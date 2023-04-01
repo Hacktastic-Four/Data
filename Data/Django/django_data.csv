@@ -1,0 +1,3366 @@
+,Links,Header-Question,Full-Question,Answers
+0,https://stackoverflow.com/questions/8609192/what-is-the-difference-between-null-true-and-blank-true-in-django,What is the difference between null=True and blank=True in Django?,"
+Want to improve this post? Provide detailed answers to this question, including citations and an explanation of why your answer is correct. Answers without enough detail may be edited or deleted.
+When we add a model field in Django we generally write:
+models.CharField(max_length=100, null=True, blank=True)
+The same is done with ForeignKey, DecimalField etc. What is the basic difference between:
+null=True only
+blank=True only
+null=True and blank=True
+in respect to different (CharField, ForeignKey, ManyToManyField, DateTimeField) fields? What are the advantages/disadvantages of using option 1, 2, or 3?
+models.CharField(max_length=100, null=True, blank=True)","
+null=True sets NULL (versus NOT NULL) on the column in your DB. Blank values for Django field types such as DateTimeField or ForeignKey will be stored as NULL in the DB.
+blank determines whether the field will be required in forms. This includes the admin and your custom forms. If blank=True then the field will not be required, whereas if it's False the field cannot be blank.
+The combo of the two is so frequent because typically if you're going to allow a field to be blank in your form, you're going to also need your database to allow NULL values for that field. The exception is CharFields and TextFields, which in Django are never saved as NULL. Blank values are stored in the DB as an empty string ('').
+A few examples:
+models.DateTimeField(blank=True) # raises IntegrityError if blank
+
+models.DateTimeField(null=True) # NULL allowed, but must be filled out in a form
+Obviously, Those two options don't make logical sense to use (though there might be a use case for null=True, blank=False if you want a field to always be required in forms, optional when dealing with an object through something like the shell.)
+models.CharField(blank=True) # No problem, blank is stored as ''
+
+models.CharField(null=True) # NULL allowed, but will never be set as NULL
+CHAR and TEXT types are never saved as NULL by Django, so null=True is unnecessary. However, you can manually set one of these fields to None to force set it as NULL. If you have a scenario where that might be necessary, you should still include null=True.
+models.DateTimeField(blank=True) # raises IntegrityError if blank
+
+models.DateTimeField(null=True) # NULL allowed, but must be filled out in a form
+models.CharField(blank=True) # No problem, blank is stored as ''
+
+models.CharField(null=True) # NULL allowed, but will never be set as NULL"
+1,https://stackoverflow.com/questions/886221/has-django-served-an-excess-of-100k-daily-visits,Has Django served an excess of 100k daily visits? [closed],"
+Closed. This question needs to be more focused. It is not currently accepting answers.
+Want to improve this question? Update the question so it focuses on one problem only by editing this post.
+Closed 6 years ago.
+This post was edited and submitted for review 17 days ago and failed to reopen the post:
+Not suitable for this site
+Improve this question
+I'm building a web application with Django. The reasons I chose Django were:
+I wanted to work with free/open-source tools.
+I like Python and feel it's a long-term language, whereas regarding Ruby I wasn't sure, and PHP seemed like a huge hassle to learn.
+I'm building a prototype for an idea and wasn't thinking too much about the future. Development speed was the main factor, and I already knew Python.
+I knew the migration to Google App Engine would be easier should I choose to do so in the future.
+I heard Django was ""nice"".
+Now that I'm getting closer to thinking about publishing my work, I start being concerned about scale. The only information I found about the scaling capabilities of Django is provided by the Django team (I'm not saying anything to disregard them, but this is clearly not objective information...).
+Has an independent development team reported building a Django-based site that reliably handles an excess of 100k daily visits?","
+""What are the largest sites built on Django today?""
+There isn't any single place that collects information about traffic on Django built sites, so I'll have to take a stab at it using data from various locations. First, we have a list of Django sites on the front page of the main Django project page and then a list of Django built sites at djangosites.org. Going through the lists and picking some that I know have decent traffic we see:
+Instagram: What Powers Instagram: Hundreds of Instances, Dozens of Technologies.
+Pinterest: Alexa rank 37 (21.4.2015) and 70 Million users in 2013
+Bitbucket: 200TB of Code and 2.500.000 Users
+Disqus: Serving 400 million people with Python.
+curse.com: 600k daily visits.
+tabblo.com: 44k daily visits, see Ned Batchelder's posts Infrastructure for modern web sites.
+chesspark.com: Alexa rank about 179k.
+pownce.com (no longer active): alexa rank about 65k. Mike Malone of Pownce, in his EuroDjangoCon presentation on Scaling Django Web Apps says ""hundreds of hits per second"". This is a very good presentation on how to scale Django, and makes some good points including (current) shortcomings in Django scalability.
+HP had a site built with Django 1.5: ePrint center. However, as for novemer/2015 the entire website was migrated and this link is just a redirect. This website was a world-wide service attending subscription to Instant Ink and related services HP offered (*).
+""Can Django deal with 100,000 users daily, each visiting the site for a couple of hours?""
+Yes, see above.
+""Could a site like Stack Overflow run on Django?""
+My gut feeling is yes but, as others answered and Mike Malone mentions in his presentation, database design is critical. Strong proof might also be found at www.cnprog.com if we can find any reliable traffic stats. Anyway, it's not just something that will happen by throwing together a bunch of Django models :)
+There are, of course, many more sites and bloggers of interest, but I have got to stop somewhere!
+Blog post about Using Django to build high-traffic site michaelmoore.com described as a top 10,000 website. Quantcast stats and compete.com stats.
+(*) The author of the edit, including such reference, used to work as outsourced developer in that project."
+2,https://stackoverflow.com/questions/13866926/is-there-a-list-of-pytz-timezones,Is there a list of Pytz Timezones?,"
+I would like to know what are all the possible values for the timezone argument in the Python library pytz. How to do it?","
+You can list all the available timezones with pytz.all_timezones:
+In [40]: import pytz
+In [41]: pytz.all_timezones
+Out[42]: 
+['Africa/Abidjan',
+ 'Africa/Accra',
+ 'Africa/Addis_Ababa',
+ ...]
+There is also pytz.common_timezones:
+In [45]: len(pytz.common_timezones)
+Out[45]: 403
+
+In [46]: len(pytz.all_timezones)
+Out[46]: 563
+In [40]: import pytz
+In [41]: pytz.all_timezones
+Out[42]: 
+['Africa/Abidjan',
+ 'Africa/Accra',
+ 'Africa/Addis_Ababa',
+ ...]
+In [45]: len(pytz.common_timezones)
+Out[45]: 403
+
+In [46]: len(pytz.all_timezones)
+Out[46]: 563"
+3,https://stackoverflow.com/questions/687295/how-do-i-do-a-not-equal-in-django-queryset-filtering,How do I do a not equal in Django queryset filtering?,"
+In Django model QuerySets, I see that there is a __gt and __lt for comparative values, but is there a __ne or != (not equals)? I want to filter out using a not equals. For example, for
+Model:
+    bool a;
+    int x;
+I want to do
+results = Model.objects.exclude(a=True, x!=5)
+The != is not correct syntax. I also tried __ne.
+I ended up using:
+results = Model.objects.exclude(a=True, x__lt=5).exclude(a=True, x__gt=5)
+Model:
+    bool a;
+    int x;
+results = Model.objects.exclude(a=True, x!=5)
+results = Model.objects.exclude(a=True, x__lt=5).exclude(a=True, x__gt=5)","
+You can use Q objects for this. They can be negated with the ~ operator and combined much like normal Python expressions:
+from myapp.models import Entry
+from django.db.models import Q
+
+Entry.objects.filter(~Q(id=3))
+will return all entries except the one(s) with 3 as their ID:
+[<Entry: Entry object>, <Entry: Entry object>, <Entry: Entry object>, ...]
+from myapp.models import Entry
+from django.db.models import Q
+
+Entry.objects.filter(~Q(id=3))
+[<Entry: Entry object>, <Entry: Entry object>, <Entry: Entry object>, ...]"
+4,https://stackoverflow.com/questions/431628/how-to-combine-multiple-querysets-in-django,How to combine multiple querysets in Django?,"
+I'm trying to build the search for a Django site I am building, and in that search, I am searching in three different models. And to get pagination on the search result list, I would like to use a generic object_list view to display the results. But to do that, I have to merge three querysets into one.
+How can I do that? I've tried this:
+result_list = []
+page_list = Page.objects.filter(
+    Q(title__icontains=cleaned_search_term) |
+    Q(body__icontains=cleaned_search_term))
+article_list = Article.objects.filter(
+    Q(title__icontains=cleaned_search_term) |
+    Q(body__icontains=cleaned_search_term) |
+    Q(tags__icontains=cleaned_search_term))
+post_list = Post.objects.filter(
+    Q(title__icontains=cleaned_search_term) |
+    Q(body__icontains=cleaned_search_term) |
+    Q(tags__icontains=cleaned_search_term))
+
+for x in page_list:
+    result_list.append(x)
+for x in article_list:
+    result_list.append(x)
+for x in post_list:
+    result_list.append(x)
+
+return object_list(
+    request,
+    queryset=result_list,
+    template_object_name='result',
+    paginate_by=10,
+    extra_context={
+        'search_term': search_term},
+    template_name=""search/result_list.html"")
+But this doesn't work. I get an error when I try to use that list in the generic view. The list is missing the clone attribute.
+How can I merge the three lists, page_list, article_list and post_list?
+result_list = []
+page_list = Page.objects.filter(
+    Q(title__icontains=cleaned_search_term) |
+    Q(body__icontains=cleaned_search_term))
+article_list = Article.objects.filter(
+    Q(title__icontains=cleaned_search_term) |
+    Q(body__icontains=cleaned_search_term) |
+    Q(tags__icontains=cleaned_search_term))
+post_list = Post.objects.filter(
+    Q(title__icontains=cleaned_search_term) |
+    Q(body__icontains=cleaned_search_term) |
+    Q(tags__icontains=cleaned_search_term))
+
+for x in page_list:
+    result_list.append(x)
+for x in article_list:
+    result_list.append(x)
+for x in post_list:
+    result_list.append(x)
+
+return object_list(
+    request,
+    queryset=result_list,
+    template_object_name='result',
+    paginate_by=10,
+    extra_context={
+        'search_term': search_term},
+    template_name=""search/result_list.html"")","
+Concatenating the querysets into a list is the simplest approach. If the database will be hit for all querysets anyway (e.g. because the result needs to be sorted), this won't add further cost.
+from itertools import chain
+result_list = list(chain(page_list, article_list, post_list))
+Using itertools.chain is faster than looping each list and appending elements one by one, since itertools is implemented in C. It also consumes less memory than converting each queryset into a list before concatenating.
+Now it's possible to sort the resulting list e.g. by date (as requested in hasen j's comment to another answer). The sorted() function conveniently accepts a generator and returns a list:
+result_list = sorted(
+    chain(page_list, article_list, post_list),
+    key=lambda instance: instance.date_created)
+If you're using Python 2.4 or later, you can use attrgetter instead of a lambda. I remember reading about it being faster, but I didn't see a noticeable speed difference for a million item list.
+from operator import attrgetter
+result_list = sorted(
+    chain(page_list, article_list, post_list),
+    key=attrgetter('date_created'))
+from itertools import chain
+result_list = list(chain(page_list, article_list, post_list))
+result_list = sorted(
+    chain(page_list, article_list, post_list),
+    key=lambda instance: instance.date_created)
+from operator import attrgetter
+result_list = sorted(
+    chain(page_list, article_list, post_list),
+    key=attrgetter('date_created'))"
+5,https://stackoverflow.com/questions/15501673/how-can-i-temporarily-disable-a-foreign-key-constraint-in-mysql,How can I temporarily disable a foreign key constraint in MySQL?,"
+Is it possible to temporarily disable constraints in MySQL?
+I have two Django models, each with a foreign key to the other one. Deleting instances of a model returns an error because of the foreign key constraint:
+cursor.execute(""DELETE FROM myapp_item WHERE n = %s"", n)
+transaction.commit_unless_managed()  #a foreign key constraint fails here
+
+cursor.execute(""DELETE FROM myapp_style WHERE n = %s"", n)
+transaction.commit_unless_managed()
+Is it possible to temporarily disable constraints and delete anyway?
+cursor.execute(""DELETE FROM myapp_item WHERE n = %s"", n)
+transaction.commit_unless_managed()  #a foreign key constraint fails here
+
+cursor.execute(""DELETE FROM myapp_style WHERE n = %s"", n)
+transaction.commit_unless_managed()","
+Try DISABLE KEYS or
+SET FOREIGN_KEY_CHECKS=0;
+Make sure to
+SET FOREIGN_KEY_CHECKS=1;
+after.
+SET FOREIGN_KEY_CHECKS=0;
+SET FOREIGN_KEY_CHECKS=1;"
+6,https://stackoverflow.com/questions/427102/what-is-a-slug-in-django,"What is a ""slug"" in Django?","
+When I read Django code I often see in models what is called a ""slug"". I am not quite sure what this is, but I do know it has something to do with URLs. How and when is this slug-thing supposed to be used?
+(I have read its definition in this glossary.)
+Slug
+A short label for something, containing only letters, numbers, underscores or hyphens. They’re generally used in URLs. For example, in a typical blog entry URL:
+https://www.djangoproject.com/weblog/2008/apr/12/spring/ the last bit (spring) is the slug.","
+A ""slug"" is a way of generating a valid URL, generally using data already obtained. For instance, a slug uses the title of an article to generate a URL. I advise to generate the slug by means of a function, given the title (or another piece of data), rather than setting it manually.
+An example:
+<title> The 46 Year Old Virgin </title>
+<content> A silly comedy movie </content>
+<slug> the-46-year-old-virgin </slug>
+Now let's pretend that we have a Django model such as:
+class Article(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField(max_length=1000)
+    slug = models.SlugField(max_length=40)
+How would you reference this object with a URL and with a meaningful name? You could for instance use Article.id so the URL would look like this:
+www.example.com/article/23
+Or, you might want to reference the title like this:
+www.example.com/article/The 46 Year Old Virgin
+Since spaces aren't valid in URLs, they must be replaced by %20, which results in:
+www.example.com/article/The%2046%20Year%20Old%20Virgin
+Both attempts are not resulting in very meaningful, easy-to-read URL. This is better:
+www.example.com/article/the-46-year-old-virgin
+In this example, the-46-year-old-virgin is a slug: it is created from the title by down-casing all letters, and replacing spaces by hyphens -.
+Also see the URL of this very web page for another example.
+<title> The 46 Year Old Virgin </title>
+<content> A silly comedy movie </content>
+<slug> the-46-year-old-virgin </slug>
+class Article(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField(max_length=1000)
+    slug = models.SlugField(max_length=40)
+www.example.com/article/23
+www.example.com/article/The 46 Year Old Virgin
+www.example.com/article/The%2046%20Year%20Old%20Virgin
+www.example.com/article/the-46-year-old-virgin"
+7,https://stackoverflow.com/questions/5871730/how-to-upload-a-file-in-django,How to upload a file in Django? [closed],"
+Closed. This question needs to be more focused. It is not currently accepting answers.
+Want to improve this question? Update the question so it focuses on one problem only by editing this post.
+Closed 7 years ago.
+Improve this question
+What is the minimal example code needed for a ""hello world"" app using Django 1.3, that enables the user to upload a file?","
+Phew, Django documentation really does not have good example about this. I spent over 2 hours to dig up all the pieces to understand how this works. With that knowledge I implemented a project that makes possible to upload files and show them as list. To download source for the project, visit https://github.com/axelpale/minimal-django-file-upload-example or clone it:
+> git clone https://github.com/axelpale/minimal-django-file-upload-example.git
+Update 2013-01-30: The source at GitHub has also implementation for Django 1.4 in addition to 1.3. Even though there is few changes the following tutorial is also useful for 1.4.
+Update 2013-05-10: Implementation for Django 1.5 at GitHub. Minor changes in redirection in urls.py and usage of url template tag in list.html. Thanks to hubert3 for the effort.
+Update 2013-12-07: Django 1.6 supported at GitHub. One import changed in myapp/urls.py. Thanks goes to Arthedian.
+Update 2015-03-17: Django 1.7 supported at GitHub, thanks to aronysidoro.
+Update 2015-09-04: Django 1.8 supported at GitHub, thanks to nerogit.
+Update 2016-07-03: Django 1.9 supported at GitHub, thanks to daavve and nerogit
+Project tree
+A basic Django 1.3 project with single app and media/ directory for uploads.
+minimal-django-file-upload-example/
+    src/
+        myproject/
+            database/
+                sqlite.db
+            media/
+            myapp/
+                templates/
+                    myapp/
+                        list.html
+                forms.py
+                models.py
+                urls.py
+                views.py
+            __init__.py
+            manage.py
+            settings.py
+            urls.py
+1. Settings: myproject/settings.py
+To upload and serve files, you need to specify where Django stores uploaded files and from what URL Django serves them. MEDIA_ROOT and MEDIA_URL are in settings.py by default but they are empty. See the first lines in Django Managing Files for details. Remember also set the database and add myapp to INSTALLED_APPS
+...
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+...
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'database.sqlite3'),
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    }
+}
+...
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+...
+INSTALLED_APPS = (
+    ...
+    'myapp',
+)
+2. Model: myproject/myapp/models.py
+Next you need a model with a FileField. This particular field stores files e.g. to media/documents/2011/12/24/ based on current date and MEDIA_ROOT. See FileField reference.
+# -*- coding: utf-8 -*-
+from django.db import models
+
+class Document(models.Model):
+    docfile = models.FileField(upload_to='documents/%Y/%m/%d')
+3. Form: myproject/myapp/forms.py
+To handle upload nicely, you need a form. This form has only one field but that is enough. See Form FileField reference for details.
+# -*- coding: utf-8 -*-
+from django import forms
+
+class DocumentForm(forms.Form):
+    docfile = forms.FileField(
+        label='Select a file',
+        help_text='max. 42 megabytes'
+    )
+4. View: myproject/myapp/views.py
+A view where all the magic happens. Pay attention how request.FILES are handled. For me, it was really hard to spot the fact that request.FILES['docfile'] can be saved to models.FileField just like that. The model's save() handles the storing of the file to the filesystem automatically.
+# -*- coding: utf-8 -*-
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
+
+from myproject.myapp.models import Document
+from myproject.myapp.forms import DocumentForm
+
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('myapp.views.list'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.all()
+
+    # Render list page with the documents and the form
+    return render_to_response(
+        'myapp/list.html',
+        {'documents': documents, 'form': form},
+        context_instance=RequestContext(request)
+    )
+5. Project URLs: myproject/urls.py
+Django does not serve MEDIA_ROOT by default. That would be dangerous in production environment. But in development stage, we could cut short. Pay attention to the last line. That line enables Django to serve files from MEDIA_URL. This works only in developement stage.
+See django.conf.urls.static.static reference for details. See also this discussion about serving media files.
+# -*- coding: utf-8 -*-
+from django.conf.urls import patterns, include, url
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = patterns('',
+    (r'^', include('myapp.urls')),
+) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+6. App URLs: myproject/myapp/urls.py
+To make the view accessible, you must specify urls for it. Nothing special here.
+# -*- coding: utf-8 -*-
+from django.conf.urls import patterns, url
+
+urlpatterns = patterns('myapp.views',
+    url(r'^list/$', 'list', name='list'),
+)
+7. Template: myproject/myapp/templates/myapp/list.html
+The last part: template for the list and the upload form below it. The form must have enctype-attribute set to ""multipart/form-data"" and method set to ""post"" to make upload to Django possible. See File Uploads documentation for details.
+The FileField has many attributes that can be used in templates. E.g. {{ document.docfile.url }} and {{ document.docfile.name }} as in the template. See more about these in Using files in models article and The File object documentation.
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=""utf-8"">
+        <title>Minimal Django File Upload Example</title>   
+    </head>
+    <body>
+    <!-- List of uploaded documents -->
+    {% if documents %}
+        <ul>
+        {% for document in documents %}
+            <li><a href=""{{ document.docfile.url }}"">{{ document.docfile.name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No documents.</p>
+    {% endif %}
+
+        <!-- Upload form. Note enctype attribute! -->
+        <form action=""{% url 'list' %}"" method=""post"" enctype=""multipart/form-data"">
+            {% csrf_token %}
+            <p>{{ form.non_field_errors }}</p>
+            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+            <p>
+                {{ form.docfile.errors }}
+                {{ form.docfile }}
+            </p>
+            <p><input type=""submit"" value=""Upload"" /></p>
+        </form>
+    </body>
+</html> 
+8. Initialize
+Just run syncdb and runserver.
+> cd myproject
+> python manage.py syncdb
+> python manage.py runserver
+Results
+Finally, everything is ready. On default Django developement environment the list of uploaded documents can be seen at localhost:8000/list/. Today the files are uploaded to /path/to/myproject/media/documents/2011/12/17/ and can be opened from the list.
+I hope this answer will help someone as much as it would have helped me.
+> git clone https://github.com/axelpale/minimal-django-file-upload-example.git
+minimal-django-file-upload-example/
+    src/
+        myproject/
+            database/
+                sqlite.db
+            media/
+            myapp/
+                templates/
+                    myapp/
+                        list.html
+                forms.py
+                models.py
+                urls.py
+                views.py
+            __init__.py
+            manage.py
+            settings.py
+            urls.py
+...
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+...
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'database.sqlite3'),
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    }
+}
+...
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+...
+INSTALLED_APPS = (
+    ...
+    'myapp',
+)
+# -*- coding: utf-8 -*-
+from django.db import models
+
+class Document(models.Model):
+    docfile = models.FileField(upload_to='documents/%Y/%m/%d')
+# -*- coding: utf-8 -*-
+from django import forms
+
+class DocumentForm(forms.Form):
+    docfile = forms.FileField(
+        label='Select a file',
+        help_text='max. 42 megabytes'
+    )
+# -*- coding: utf-8 -*-
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
+
+from myproject.myapp.models import Document
+from myproject.myapp.forms import DocumentForm
+
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('myapp.views.list'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.all()
+
+    # Render list page with the documents and the form
+    return render_to_response(
+        'myapp/list.html',
+        {'documents': documents, 'form': form},
+        context_instance=RequestContext(request)
+    )
+# -*- coding: utf-8 -*-
+from django.conf.urls import patterns, include, url
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = patterns('',
+    (r'^', include('myapp.urls')),
+) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# -*- coding: utf-8 -*-
+from django.conf.urls import patterns, url
+
+urlpatterns = patterns('myapp.views',
+    url(r'^list/$', 'list', name='list'),
+)
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=""utf-8"">
+        <title>Minimal Django File Upload Example</title>   
+    </head>
+    <body>
+    <!-- List of uploaded documents -->
+    {% if documents %}
+        <ul>
+        {% for document in documents %}
+            <li><a href=""{{ document.docfile.url }}"">{{ document.docfile.name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No documents.</p>
+    {% endif %}
+
+        <!-- Upload form. Note enctype attribute! -->
+        <form action=""{% url 'list' %}"" method=""post"" enctype=""multipart/form-data"">
+            {% csrf_token %}
+            <p>{{ form.non_field_errors }}</p>
+            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+            <p>
+                {{ form.docfile.errors }}
+                {{ form.docfile }}
+            </p>
+            <p><input type=""submit"" value=""Upload"" /></p>
+        </form>
+    </body>
+</html> 
+> cd myproject
+> python manage.py syncdb
+> python manage.py runserver"
+8,https://stackoverflow.com/questions/32123477/how-to-revert-the-last-migration,How to revert the last migration?,"
+I've made a migration that added a new table and want to revert it and delete the migration, without creating a new migration.
+How do I do it? Is there a command to revert last migration and then I can simply delete the migration file?",
+9,https://stackoverflow.com/questions/6468397/how-to-check-django-version,How to check Django version,"
+I have to use Python and Django for our application. So I have two versions of Python, 2.6 and 2.7. Now I have installed Django. I could run the sample application for testing Django succesfuly. But how do I make sure whether Django uses the 2.6 or 2.7 version and what version of modules Django uses?","
+Django 1.5 supports Python 2.6.5 and later.
+If you're under Linux and want to check the Python version you're using, run python -V from the command line.
+If you want to check the Django version, open a Python console and type
+>>> import django
+>>> django.VERSION
+(2, 0, 0, 'final', 0)
+>>> import django
+>>> django.VERSION
+(2, 0, 0, 'final', 0)"
+10,https://stackoverflow.com/questions/38388423/what-does-on-delete-do-on-django-models,What does on_delete do on Django models?,"
+I'm quite familiar with Django, but I recently noticed there exists an on_delete=models.CASCADE option with the models. I have searched for the documentation for the same, but I couldn't find anything more than:
+Changed in Django 1.9:
+on_delete can now be used as the second positional argument (previously it was typically only passed as a keyword argument). It will be a required argument in Django 2.0.
+An example case of usage is:
+from django.db import models
+
+class Car(models.Model):
+    manufacturer = models.ForeignKey(
+        'Manufacturer',
+        on_delete=models.CASCADE,
+    )
+    # ...
+
+class Manufacturer(models.Model):
+    # ...
+    pass
+What does on_delete do? (I guess the actions to be done if the model is deleted.)
+What does models.CASCADE do? (any hints in documentation)
+What other options are available (if my guess is correct)?
+Where does the documentation for this reside?
+from django.db import models
+
+class Car(models.Model):
+    manufacturer = models.ForeignKey(
+        'Manufacturer',
+        on_delete=models.CASCADE,
+    )
+    # ...
+
+class Manufacturer(models.Model):
+    # ...
+    pass","
+This is the behaviour to adopt when the referenced object is deleted. It is not specific to Django; this is an SQL standard. Although Django has its own implementation on top of SQL. (1)
+There are seven possible actions to take when such event occurs:
+CASCADE: When the referenced object is deleted, also delete the objects that have references to it (when you remove a blog post for instance, you might want to delete comments as well). SQL equivalent: CASCADE.
+PROTECT: Forbid the deletion of the referenced object. To delete it you will have to delete all objects that reference it manually. SQL equivalent: RESTRICT.
+RESTRICT: (introduced in Django 3.1) Similar behavior as PROTECT that matches SQL's RESTRICT more accurately. (See django documentation example)
+SET_NULL: Set the reference to NULL (requires the field to be nullable). For instance, when you delete a User, you might want to keep the comments he posted on blog posts, but say it was posted by an anonymous (or deleted) user. SQL equivalent: SET NULL.
+SET_DEFAULT: Set the default value. SQL equivalent: SET DEFAULT.
+SET(...): Set a given value. This one is not part of the SQL standard and is entirely handled by Django.
+DO_NOTHING: Probably a very bad idea since this would create integrity issues in your database (referencing an object that actually doesn't exist). SQL equivalent: NO ACTION. (2)
+Source: Django documentation
+See also the documentation of PostgreSQL for instance.
+In most cases, CASCADE is the expected behaviour, but for every ForeignKey, you should always ask yourself what is the expected behaviour in this situation. PROTECT and SET_NULL are often useful. Setting CASCADE where it should not, can potentially delete all of your database in cascade, by simply deleting a single user.
+Additional note to clarify cascade direction
+It's funny to notice that the direction of the CASCADE action is not clear to many people. Actually, it's funny to notice that only the CASCADE action is not clear. I understand the cascade behavior might be confusing, however you must think that it is the same direction as any other action. Thus, if you feel that CASCADE direction is not clear to you, it actually means that on_delete behavior is not clear to you.
+In your database, a foreign key is basically represented by an integer field which value is the primary key of the foreign object. Let's say you have an entry comment_A, which has a foreign key to an entry article_B. If you delete the entry comment_A, everything is fine. article_B used to live without comment_A and don't bother if it's deleted. However, if you delete article_B, then comment_A panics! It never lived without article_B and needs it, it's part of its attributes (article=article_B, but what is article_B???). This is where on_delete steps in, to determine how to resolve this integrity error, either by saying:
+""No! Please! Don't! I can't live without you!"" (which is said PROTECT or RESTRICT in Django/SQL)
+""All right, if I'm not yours, then I'm nobody's"" (which is said SET_NULL)
+""Good bye world, I can't live without article_B"" and commit suicide (this is the CASCADE behavior).
+""It's OK, I've got spare lover, I'll reference article_C from now"" (SET_DEFAULT, or even SET(...)).
+""I can't face reality, I'll keep calling your name even if that's the only thing left to me!"" (DO_NOTHING)
+I hope it makes cascade direction clearer. :)
+Footnotes
+(1) Django has its own implementation on top of SQL. And, as mentioned by @JoeMjr2 in the comments below, Django will not create the SQL constraints. If you want the constraints to be ensured by your database (for instance, if your database is used by another application, or if you hang in the database console from time to time), you might want to set the related constraints manually yourself. There is an open ticket to add support for database-level on delete constraints in Django.
+(2) Actually, there is one case where DO_NOTHING can be useful: If you want to skip Django's implementation and implement the constraint yourself at the database-level."
+11,https://stackoverflow.com/questions/29980798/where-does-pip-install-its-packages,Where does pip install its packages?,"
+I activated a virtualenv which has pip installed. I did
+pip3 install Django==1.8
+and Django successfully downloaded. Now, I want to open up the Django folder. Where is the folder located?
+Normally it would be in ""downloads"", but I'm not sure where it would be if I installed it using pip in a virtualenv.
+pip3 install Django==1.8","
+pip when used with virtualenv will generally install packages in the path <virtualenv_name>/lib/<python_ver>/site-packages.
+For example, I created a test virtualenv named venv_test with Python 2.7, and the django folder is in venv_test/lib/python2.7/site-packages/django."
+12,https://stackoverflow.com/questions/1118183/how-to-debug-in-django-the-good-way,"How to debug in Django, the good way? [closed]","
+Closed. This question needs to be more focused. It is not currently accepting answers.
+Want to improve this question? Update the question so it focuses on one problem only by editing this post.
+Closed 4 years ago.
+Improve this question
+So, I started learning to code in Python and later Django. The first times it was hard looking at tracebacks and actually figure out what I did wrong and where the syntax error was. Some time has passed now and some way along the way, I guess I got a routine in debugging my Django code. As this was done early in my coding experience, I sat down and wondered if how I was doing this was ineffective and could be done faster. I usually manage to find and correct the bugs in my code, but I wonder if I should be doing it faster?
+I usually just use the debug info Django gives when enabled. When things do end up as I thought it would, I break the code flow a lot with a syntax error, and look at the variables at that point in the flow to figure out, where the code does something other than what I wanted.
+But can this be improved? Are there some good tools or better ways to debug your Django code?","
+There are a bunch of ways to do it, but the most straightforward is to simply use the Python debugger. Just add following line in to a Django view function:
+import pdb; pdb.set_trace()
+or
+breakpoint()  #from Python3.7
+If you try to load that page in your browser, the browser will hang and you get a prompt to carry on debugging on actual executing code.
+However there are other options (I am not recommending them):
+* return HttpResponse({variable to inspect})
+
+* print {variable to inspect}
+
+* raise Exception({variable to inspect})
+But the Python Debugger (pdb) is highly recommended for all types of Python code. If you are already into pdb, you'd also want to have a look at IPDB that uses ipython for debugging.
+Some more useful extension to pdb are
+pdb++, suggested by Antash.
+pudb, suggested by PatDuJour.
+Using the Python debugger in Django, suggested by Seafangs.
+import pdb; pdb.set_trace()
+breakpoint()  #from Python3.7
+* return HttpResponse({variable to inspect})
+
+* print {variable to inspect}
+
+* raise Exception({variable to inspect})"
+13,https://stackoverflow.com/questions/2642613/what-is-related-name-used-for,What is related_name used for?,"
+What is the related_name argument useful for on ManyToManyField and ForeignKey fields? For example, given the following code, what is the effect of related_name='maps'?
+class Map(db.Model):
+    members = models.ManyToManyField(User, related_name='maps',
+                                     verbose_name=_('members'))
+class Map(db.Model):
+    members = models.ManyToManyField(User, related_name='maps',
+                                     verbose_name=_('members'))","
+The related_name attribute specifies the name of the reverse relation from the User model back to your model.
+If you don't specify a related_name, Django automatically creates one using the name of your model with the suffix _set, for instance User.map_set.all().
+If you do specify, e.g. related_name=maps on the User model, User.map_set will still work, but the User.maps. syntax is obviously a bit cleaner and less clunky; so for example, if you had a user object current_user, you could use current_user.maps.all() to get all instances of your Map model that have a relation to current_user.
+The Django documentation has more details."
+14,https://stackoverflow.com/questions/4536103/how-can-i-upgrade-specific-packages-using-pip-and-a-requirements-file,How can I upgrade specific packages using pip and a requirements file?,"
+I'm using pip with a requirements file, in a virtualenv, for my Django projects. I'm trying to upgrade some packages, notably Django itself, and I'm getting an error about source code conflicts:
+Source in <virtualenv>/build/Django has version 1.2.3 that conflicts with Django==1.2.4 (from -r requirements/apps.txt (line 3))
+That's after updating the version number of Django from 1.2.3 to 1.2.4 in my requirements file. I'm using this command to actually do the upgrade:
+pip --install --upgrade -E `<virtualenv dir`> --requirement `<requirements file`>
+I can't find any flag that triggers a total package re-download. I even tried running an uninstall command first, and then the install, but no dice. Am I missing something?
+pip --install --upgrade -E `<virtualenv dir`> --requirement `<requirements file`>","
+First make sure you have checked the most voted answer.
+I'm not sure if it's exactly your problem, but in my case, I wasn't able to upgrade Django to 1.2.4 - I was always finishing with 1.2.3 version, so I uninstalled Django with:
+<virtualenv>/bin/pip uninstall Django
+Then I removed <virtualenv>/build/Django directory and finally I installed the proper version with:
+<virtualenv>/bin/pip install Django
+<virtualenv>/bin/pip uninstall Django
+<virtualenv>/bin/pip install Django"
+15,https://stackoverflow.com/questions/6358030/how-to-reset-django-admin-password,How to reset Django admin password?,"
+I am using Django (version 1.3) and have forgotten both admin username and password. How to reset both?
+And is it possible to make a normal user into admin, and then remove admin status?","
+python manage.py changepassword <user_name>
+see docs
+python manage.py changepassword <user_name>"
+16,https://stackoverflow.com/questions/150505/capturing-url-parameters-in-request-get,Capturing URL parameters in request.GET,"
+I am currently defining regular expressions in order to capture parameters in a URL, as described in the tutorial. How do I access parameters from the URL as part the HttpRequest object?
+My HttpRequest.GET currently returns an empty QueryDict object.
+I'd like to learn how to do this without a library, so I can get to know Django better.","
+When a URL is like domain/search/?q=haha, you would use request.GET.get('q', '').
+q is the parameter you want, and '' is the default value if q isn't found.
+However, if you are instead just configuring your URLconf**, then your captures from the regex are passed to the function as arguments (or named arguments).
+Such as:
+(r'^user/(?P<username>\w{0,50})/$', views.profile_page,),
+Then in your views.py you would have
+def profile_page(request, username):
+    # Rest of the method
+(r'^user/(?P<username>\w{0,50})/$', views.profile_page,),
+def profile_page(request, username):
+    # Rest of the method"
+17,https://stackoverflow.com/questions/12578908/separation-of-business-logic-and-data-access-in-django,Separation of business logic and data access in django,"
+I am writing a project in Django and I see that 80% of the code is in the file models.py. This code is confusing and, after a certain time, I cease to understand what is really happening.
+Here is what bothers me:
+I find it ugly that my model level (which was supposed to be responsible only for the work with data from a database) is also sending email, walking on API to other services, etc.
+Also, I find it unacceptable to place business logic in the view, because this way it becomes difficult to control. For example, in my application there are at least three ways to create new instances of User, but technically it should create them uniformly.
+I do not always notice when the methods and properties of my models become non-deterministic and when they develop side effects.
+Here is a simple example. At first, the User model was like this:
+class User(db.Models):
+
+    def get_present_name(self):
+        return self.name or 'Anonymous'
+
+    def activate(self):
+        self.status = 'activated'
+        self.save()
+Over time, it turned into this:
+class User(db.Models):
+
+    def get_present_name(self): 
+        # property became non-deterministic in terms of database
+        # data is taken from another service by api
+        return remote_api.request_user_name(self.uid) or 'Anonymous' 
+
+    def activate(self):
+        # method now has a side effect (send message to user)
+        self.status = 'activated'
+        self.save()
+        send_mail('Your account is activated!', '…', [self.email])
+What I want is to separate entities in my code:
+Database level entities, i.e. database level logic: What kind of data does my application store?
+application level entities, i.e. business level logic: What does my application do?
+What are the good practices to implement such an approach that can be applied in Django?
+class User(db.Models):
+
+    def get_present_name(self):
+        return self.name or 'Anonymous'
+
+    def activate(self):
+        self.status = 'activated'
+        self.save()
+class User(db.Models):
+
+    def get_present_name(self): 
+        # property became non-deterministic in terms of database
+        # data is taken from another service by api
+        return remote_api.request_user_name(self.uid) or 'Anonymous' 
+
+    def activate(self):
+        # method now has a side effect (send message to user)
+        self.status = 'activated'
+        self.save()
+        send_mail('Your account is activated!', '…', [self.email])","
+It seems like you are asking about the difference between the data model and the domain model – the latter is where you can find the business logic and entities as perceived by your end user, the former is where you actually store your data.
+Furthermore, I've interpreted the 3rd part of your question as: how to notice failure to keep these models separate.
+These are two very different concepts and it's always hard to keep them separate. However, there are some common patterns and tools that can be used for this purpose.
+About the Domain Model
+The first thing you need to recognize is that your domain model is not really about data; it is about actions and questions such as ""activate this user"", ""deactivate this user"", ""which users are currently activated?"", and ""what is this user's name?"". In classical terms: it's about queries and commands.
+Thinking in Commands
+Let's start by looking at the commands in your example: ""activate this user"" and ""deactivate this user"". The nice thing about commands is that they can easily be expressed by small given-when-then scenario's:
+given an inactive user
+when the admin activates this user
+then the user becomes active
+and a confirmation e-mail is sent to the user
+and an entry is added to the system log
+(etc. etc.)
+Such scenario's are useful to see how different parts of your infrastructure can be affected by a single command – in this case your database (some kind of 'active' flag), your mail server, your system log, etc.
+Such scenario's also really help you in setting up a Test Driven Development environment.
+And finally, thinking in commands really helps you create a task-oriented application. Your users will appreciate this :-)
+Expressing Commands
+Django provides two easy ways of expressing commands; they are both valid options and it is not unusual to mix the two approaches.
+The service layer
+The service module has already been described by @Hedde. Here you define a separate module and each command is represented as a function.
+services.py
+def activate_user(user_id):
+    user = User.objects.get(pk=user_id)
+
+    # set active flag
+    user.active = True
+    user.save()
+
+    # mail user
+    send_mail(...)
+
+    # etc etc
+Using forms
+The other way is to use a Django Form for each command. I prefer this approach, because it combines multiple closely related aspects:
+execution of the command (what does it do?)
+validation of the command parameters (can it do this?)
+presentation of the command (how can I do this?)
+forms.py
+class ActivateUserForm(forms.Form):
+
+    user_id = IntegerField(widget = UsernameSelectWidget, verbose_name=""Select a user to activate"")
+    # the username select widget is not a standard Django widget, I just made it up
+
+    def clean_user_id(self):
+        user_id = self.cleaned_data['user_id']
+        if User.objects.get(pk=user_id).active:
+            raise ValidationError(""This user cannot be activated"")
+        # you can also check authorizations etc. 
+        return user_id
+
+    def execute(self):
+        """"""
+        This is not a standard method in the forms API; it is intended to replace the 
+        'extract-data-from-form-in-view-and-do-stuff' pattern by a more testable pattern. 
+        """"""
+        user_id = self.cleaned_data['user_id']
+
+        user = User.objects.get(pk=user_id)
+
+        # set active flag
+        user.active = True
+        user.save()
+
+        # mail user
+        send_mail(...)
+
+        # etc etc
+Thinking in Queries
+You example did not contain any queries, so I took the liberty of making up a few useful queries. I prefer to use the term ""question"", but queries is the classical terminology. Interesting queries are: ""What is the name of this user?"", ""Can this user log in?"", ""Show me a list of deactivated users"", and ""What is the geographical distribution of deactivated users?""
+Before embarking on answering these queries, you should always ask yourself this question, is this:
+a presentational query just for my templates, and/or
+a business logic query tied to executing my commands, and/or
+a reporting query.
+Presentational queries are merely made to improve the user interface. The answers to business logic queries directly affect the execution of your commands. Reporting queries are merely for analytical purposes and have looser time constraints. These categories are not mutually exclusive.
+The other question is: ""do I have complete control over the answers?"" For example, when querying the user's name (in this context) we do not have any control over the outcome, because we rely on an external API.
+Making Queries
+The most basic query in Django is the use of the Manager object:
+User.objects.filter(active=True)
+Of course, this only works if the data is actually represented in your data model. This is not always the case. In those cases, you can consider the options below.
+Custom tags and filters
+The first alternative is useful for queries that are merely presentational: custom tags and template filters.
+template.html
+<h1>Welcome, {{ user|friendly_name }}</h1>
+template_tags.py
+@register.filter
+def friendly_name(user):
+    return remote_api.get_cached_name(user.id)
+Query methods
+If your query is not merely presentational, you could add queries to your services.py (if you are using that), or introduce a queries.py module:
+queries.py
+def inactive_users():
+    return User.objects.filter(active=False)
+
+
+def users_called_publysher():
+    for user in User.objects.all():
+        if remote_api.get_cached_name(user.id) == ""publysher"":
+            yield user 
+Proxy models
+Proxy models are very useful in the context of business logic and reporting. You basically define an enhanced subset of your model. You can override a Manager’s base QuerySet by overriding the Manager.get_queryset() method.
+models.py
+class InactiveUserManager(models.Manager):
+    def get_queryset(self):
+        query_set = super(InactiveUserManager, self).get_queryset()
+        return query_set.filter(active=False)
+
+class InactiveUser(User):
+    """"""
+    >>> for user in InactiveUser.objects.all():
+    …        assert user.active is False 
+    """"""
+
+    objects = InactiveUserManager()
+    class Meta:
+        proxy = True
+Query models
+For queries that are inherently complex, but are executed quite often, there is the possibility of query models. A query model is a form of denormalization where relevant data for a single query is stored in a separate model. The trick of course is to keep the denormalized model in sync with the primary model. Query models can only be used if changes are entirely under your control.
+models.py
+class InactiveUserDistribution(models.Model):
+    country = CharField(max_length=200)
+    inactive_user_count = IntegerField(default=0)
+The first option is to update these models in your commands. This is very useful if these models are only changed by one or two commands.
+forms.py
+class ActivateUserForm(forms.Form):
+    # see above
+   
+    def execute(self):
+        # see above
+        query_model = InactiveUserDistribution.objects.get_or_create(country=user.country)
+        query_model.inactive_user_count -= 1
+        query_model.save()
+A better option would be to use custom signals. These signals are of course emitted by your commands. Signals have the advantage that you can keep multiple query models in sync with your original model. Furthermore, signal processing can be offloaded to background tasks, using Celery or similar frameworks.
+signals.py
+user_activated = Signal(providing_args = ['user'])
+user_deactivated = Signal(providing_args = ['user'])
+forms.py
+class ActivateUserForm(forms.Form):
+    # see above
+   
+    def execute(self):
+        # see above
+        user_activated.send_robust(sender=self, user=user)
+models.py
+class InactiveUserDistribution(models.Model):
+    # see above
+
+@receiver(user_activated)
+def on_user_activated(sender, **kwargs):
+        user = kwargs['user']
+        query_model = InactiveUserDistribution.objects.get_or_create(country=user.country)
+        query_model.inactive_user_count -= 1
+        query_model.save()
+    
+Keeping it clean
+When using this approach, it becomes ridiculously easy to determine if your code stays clean. Just follow these guidelines:
+Does my model contain methods that do more than managing database state? You should extract a command.
+Does my model contain properties that do not map to database fields? You should extract a query.
+Does my model reference infrastructure that is not my database (such as mail)? You should extract a command.
+The same goes for views (because views often suffer from the same problem).
+Does my view actively manage database models? You should extract a command.
+Some References
+Django documentation: proxy models
+Django documentation: signals
+Architecture: Domain Driven Design
+def activate_user(user_id):
+    user = User.objects.get(pk=user_id)
+
+    # set active flag
+    user.active = True
+    user.save()
+
+    # mail user
+    send_mail(...)
+
+    # etc etc
+class ActivateUserForm(forms.Form):
+
+    user_id = IntegerField(widget = UsernameSelectWidget, verbose_name=""Select a user to activate"")
+    # the username select widget is not a standard Django widget, I just made it up
+
+    def clean_user_id(self):
+        user_id = self.cleaned_data['user_id']
+        if User.objects.get(pk=user_id).active:
+            raise ValidationError(""This user cannot be activated"")
+        # you can also check authorizations etc. 
+        return user_id
+
+    def execute(self):
+        """"""
+        This is not a standard method in the forms API; it is intended to replace the 
+        'extract-data-from-form-in-view-and-do-stuff' pattern by a more testable pattern. 
+        """"""
+        user_id = self.cleaned_data['user_id']
+
+        user = User.objects.get(pk=user_id)
+
+        # set active flag
+        user.active = True
+        user.save()
+
+        # mail user
+        send_mail(...)
+
+        # etc etc
+User.objects.filter(active=True)
+<h1>Welcome, {{ user|friendly_name }}</h1>
+@register.filter
+def friendly_name(user):
+    return remote_api.get_cached_name(user.id)
+def inactive_users():
+    return User.objects.filter(active=False)
+
+
+def users_called_publysher():
+    for user in User.objects.all():
+        if remote_api.get_cached_name(user.id) == ""publysher"":
+            yield user 
+class InactiveUserManager(models.Manager):
+    def get_queryset(self):
+        query_set = super(InactiveUserManager, self).get_queryset()
+        return query_set.filter(active=False)
+
+class InactiveUser(User):
+    """"""
+    >>> for user in InactiveUser.objects.all():
+    …        assert user.active is False 
+    """"""
+
+    objects = InactiveUserManager()
+    class Meta:
+        proxy = True
+class InactiveUserDistribution(models.Model):
+    country = CharField(max_length=200)
+    inactive_user_count = IntegerField(default=0)
+class ActivateUserForm(forms.Form):
+    # see above
+   
+    def execute(self):
+        # see above
+        query_model = InactiveUserDistribution.objects.get_or_create(country=user.country)
+        query_model.inactive_user_count -= 1
+        query_model.save()
+user_activated = Signal(providing_args = ['user'])
+user_deactivated = Signal(providing_args = ['user'])
+class ActivateUserForm(forms.Form):
+    # see above
+   
+    def execute(self):
+        # see above
+        user_activated.send_robust(sender=self, user=user)
+class InactiveUserDistribution(models.Model):
+    # see above
+
+@receiver(user_activated)
+def on_user_activated(sender, **kwargs):
+        user = kwargs['user']
+        query_model = InactiveUserDistribution.objects.get_or_create(country=user.country)
+        query_model.inactive_user_count -= 1
+        query_model.save()
+    "
+18,https://stackoverflow.com/questions/844556/how-to-filter-empty-or-null-names-in-a-queryset,How to filter empty or NULL names in a QuerySet?,"
+I have first_name, last_name & alias (optional) which I need to search for. So, I need a query to give me all the names that have an alias set.
+Only if I could do:
+Name.objects.filter(alias!="""")
+So, what is the equivalent to the above?
+Name.objects.filter(alias!="""")","
+You could do this:
+Name.objects.exclude(alias__isnull=True)
+If you need to exclude null values and empty strings, the preferred way to do so is to chain together the conditions like so:
+Name.objects.exclude(alias__isnull=True).exclude(alias__exact='')
+Chaining these methods together basically checks each condition independently: in the above example, we exclude rows where alias is either null or an empty string, so you get all Name objects that have a not-null, not-empty alias field. The generated SQL would look something like:
+SELECT * FROM Name WHERE alias IS NOT NULL AND alias != """"
+You can also pass multiple arguments to a single call to exclude, which would ensure that only objects that meet every condition get excluded:
+Name.objects.exclude(some_field=True, other_field=True)
+Here, rows in which some_field and other_field are true get excluded, so we get all rows where both fields are not true. The generated SQL code would look a little like this:
+SELECT * FROM Name WHERE NOT (some_field = TRUE AND other_field = TRUE)
+Alternatively, if your logic is more complex than that, you could use Django's Q objects:
+from django.db.models import Q
+Name.objects.exclude(Q(alias__isnull=True) | Q(alias__exact=''))
+For more info see this page and this page in the Django docs.
+As an aside: My SQL examples are just an analogy--the actual generated SQL code will probably look different. You'll get a deeper understanding of how Django queries work by actually looking at the SQL they generate.
+Name.objects.exclude(alias__isnull=True)
+Name.objects.exclude(alias__isnull=True).exclude(alias__exact='')
+SELECT * FROM Name WHERE alias IS NOT NULL AND alias != """"
+Name.objects.exclude(some_field=True, other_field=True)
+SELECT * FROM Name WHERE NOT (some_field = TRUE AND other_field = TRUE)
+from django.db.models import Q
+Name.objects.exclude(Q(alias__isnull=True) | Q(alias__exact=''))"
+19,https://stackoverflow.com/questions/573618/set-up-a-scheduled-job,Set up a scheduled job?,"
+I've been working on a web app using Django, and I'm curious if there is a way to schedule a job to run periodically.
+Basically I just want to run through the database and make some calculations/updates on an automatic, regular basis, but I can't seem to find any documentation on doing this.
+Does anyone know how to set this up?
+To clarify: I know I can set up a cron job to do this, but I'm curious if there is some feature in Django that provides this functionality. I'd like people to be able to deploy this app themselves without having to do much config (preferably zero).
+I've considered triggering these actions ""retroactively"" by simply checking if a job should have been run since the last time a request was sent to the site, but I'm hoping for something a bit cleaner.","
+One solution that I have employed is to do this:
+1) Create a custom management command, e.g.
+python manage.py my_cool_command
+2) Use cron (on Linux) or at (on Windows) to run my command at the required times.
+This is a simple solution that doesn't require installing a heavy AMQP stack. However there are nice advantages to using something like Celery, mentioned in the other answers. In particular, with Celery it is nice to not have to spread your application logic out into crontab files. However the cron solution works quite nicely for a small to medium sized application and where you don't want a lot of external dependencies.
+EDIT:
+In later version of windows the at command is deprecated for Windows 8, Server 2012 and above. You can use schtasks.exe for same use.
+**** UPDATE **** This the new link of django doc for writing the custom management command
+python manage.py my_cool_command"
+20,https://stackoverflow.com/questions/2201598/how-to-define-two-fields-unique-as-couple,"How to define two fields ""unique"" as couple","
+Is there a way to define a couple of fields as unique in Django?
+I have a table of volumes (of journals) and I don't want more then one volume number for the same journal.
+class Volume(models.Model):
+    id = models.AutoField(primary_key=True)
+    journal_id = models.ForeignKey(Journals, db_column='jid', null=True, verbose_name = ""Journal"")
+    volume_number = models.CharField('Volume Number', max_length=100)
+    comments = models.TextField('Comments', max_length=4000, blank=True)
+I tried to put unique = True as attribute in the fields journal_id and volume_number but it doesn't work.
+class Volume(models.Model):
+    id = models.AutoField(primary_key=True)
+    journal_id = models.ForeignKey(Journals, db_column='jid', null=True, verbose_name = ""Journal"")
+    volume_number = models.CharField('Volume Number', max_length=100)
+    comments = models.TextField('Comments', max_length=4000, blank=True)","
+There is a simple solution for you called unique_together which does exactly what you want.
+For example:
+class MyModel(models.Model):
+  field1 = models.CharField(max_length=50)
+  field2 = models.CharField(max_length=50)
+
+  class Meta:
+    unique_together = ('field1', 'field2',)
+And in your case:
+class Volume(models.Model):
+  id = models.AutoField(primary_key=True)
+  journal_id = models.ForeignKey(Journals, db_column='jid', null=True, verbose_name = ""Journal"")
+  volume_number = models.CharField('Volume Number', max_length=100)
+  comments = models.TextField('Comments', max_length=4000, blank=True)
+
+  class Meta:
+    unique_together = ('journal_id', 'volume_number',)
+class MyModel(models.Model):
+  field1 = models.CharField(max_length=50)
+  field2 = models.CharField(max_length=50)
+
+  class Meta:
+    unique_together = ('field1', 'field2',)
+class Volume(models.Model):
+  id = models.AutoField(primary_key=True)
+  journal_id = models.ForeignKey(Journals, db_column='jid', null=True, verbose_name = ""Journal"")
+  volume_number = models.CharField('Volume Number', max_length=100)
+  comments = models.TextField('Comments', max_length=4000, blank=True)
+
+  class Meta:
+    unique_together = ('journal_id', 'volume_number',)"
+21,https://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python,Creating a JSON response using Django and Python,"
+I'm trying to convert a server side Ajax response script into a Django HttpResponse, but apparently it's not working.
+This is the server-side script:
+/* RECEIVE VALUE */
+$validateValue=$_POST['validateValue'];
+$validateId=$_POST['validateId'];
+$validateError=$_POST['validateError'];
+
+/* RETURN VALUE */
+$arrayToJs = array();
+$arrayToJs[0] = $validateId;
+$arrayToJs[1] = $validateError;
+
+if($validateValue ==""Testuser""){  // Validate??
+    $arrayToJs[2] = ""true"";       // RETURN TRUE
+    echo '{""jsonValidateReturn"":'.json_encode($arrayToJs).'}';  // RETURN ARRAY WITH success
+}
+else{
+    for($x=0;$x<1000000;$x++){
+        if($x == 990000){
+            $arrayToJs[2] = ""false"";
+            echo '{""jsonValidateReturn"":'.json_encode($arrayToJs).'}';   // RETURNS ARRAY WITH ERROR.
+        }
+    }
+}
+And this is the converted code
+def validate_user(request):
+    if request.method == 'POST':
+        vld_value = request.POST.get('validateValue')
+        vld_id = request.POST.get('validateId')
+        vld_error = request.POST.get('validateError')
+
+        array_to_js = [vld_id, vld_error, False]
+
+        if vld_value == ""TestUser"":
+            array_to_js[2] = True
+            x = simplejson.dumps(array_to_js)
+            return HttpResponse(x)
+        else:
+            array_to_js[2] = False
+            x = simplejson.dumps(array_to_js)
+            error = 'Error'
+            return render_to_response('index.html',{'error':error},context_instance=RequestContext(request))
+    return render_to_response('index.html',context_instance=RequestContext(request))
+I'm using simplejson to encode the Python list (so it will return a JSON array). I couldn't figure out the problem yet. But I think that I did something wrong about the 'echo'.
+/* RECEIVE VALUE */
+$validateValue=$_POST['validateValue'];
+$validateId=$_POST['validateId'];
+$validateError=$_POST['validateError'];
+
+/* RETURN VALUE */
+$arrayToJs = array();
+$arrayToJs[0] = $validateId;
+$arrayToJs[1] = $validateError;
+
+if($validateValue ==""Testuser""){  // Validate??
+    $arrayToJs[2] = ""true"";       // RETURN TRUE
+    echo '{""jsonValidateReturn"":'.json_encode($arrayToJs).'}';  // RETURN ARRAY WITH success
+}
+else{
+    for($x=0;$x<1000000;$x++){
+        if($x == 990000){
+            $arrayToJs[2] = ""false"";
+            echo '{""jsonValidateReturn"":'.json_encode($arrayToJs).'}';   // RETURNS ARRAY WITH ERROR.
+        }
+    }
+}
+def validate_user(request):
+    if request.method == 'POST':
+        vld_value = request.POST.get('validateValue')
+        vld_id = request.POST.get('validateId')
+        vld_error = request.POST.get('validateError')
+
+        array_to_js = [vld_id, vld_error, False]
+
+        if vld_value == ""TestUser"":
+            array_to_js[2] = True
+            x = simplejson.dumps(array_to_js)
+            return HttpResponse(x)
+        else:
+            array_to_js[2] = False
+            x = simplejson.dumps(array_to_js)
+            error = 'Error'
+            return render_to_response('index.html',{'error':error},context_instance=RequestContext(request))
+    return render_to_response('index.html',context_instance=RequestContext(request))","
+I usually use a dictionary, not a list to return JSON content.
+import json
+
+from django.http import HttpResponse
+
+response_data = {}
+response_data['result'] = 'error'
+response_data['message'] = 'Some error message'
+Pre-Django 1.7 you'd return it like this:
+return HttpResponse(json.dumps(response_data), content_type=""application/json"")
+For Django 1.7+, use JsonResponse as shown in this SO answer like so :
+from django.http import JsonResponse
+return JsonResponse({'foo':'bar'})
+import json
+
+from django.http import HttpResponse
+
+response_data = {}
+response_data['result'] = 'error'
+response_data['message'] = 'Some error message'
+return HttpResponse(json.dumps(response_data), content_type=""application/json"")
+from django.http import JsonResponse
+return JsonResponse({'foo':'bar'})"
+22,https://stackoverflow.com/questions/7446187/no-module-named-pkg-resources,No module named pkg_resources,"
+I'm deploying a Django app to a dev server and am hitting this error when I run pip install -r requirements.txt:
+Traceback (most recent call last):
+  File ""/var/www/mydir/virtualenvs/dev/bin/pip"", line 5, in <module>
+    from pkg_resources import load_entry_point
+ImportError: No module named pkg_resources
+pkg_resources appears to be distributed with setuptools. Initially I thought this might not be installed to the Python in the virtualenv, so I installed setuptools 2.6 (same version as Python) to the Python site-packages in the virtualenv with the following command:
+sh setuptools-0.6c11-py2.6.egg --install-dir /var/www/mydir/virtualenvs/dev/lib/python2.6/site-packages
+EDIT: This only happens inside the virtualenv. If I open a console outside the virtualenv then pkg_resources is present, but I am still getting the same error.
+Any ideas as to why pkg_resources is not on the path?
+Traceback (most recent call last):
+  File ""/var/www/mydir/virtualenvs/dev/bin/pip"", line 5, in <module>
+    from pkg_resources import load_entry_point
+ImportError: No module named pkg_resources
+sh setuptools-0.6c11-py2.6.egg --install-dir /var/www/mydir/virtualenvs/dev/lib/python2.6/site-packages","
+July 2018 Update
+Most people should now use pip install setuptools (possibly with sudo).
+Some may need to (re)install the python-setuptools package via their package manager (apt-get install, yum install, etc.).
+This issue can be highly dependent on your OS and dev environment. See the legacy/other answers below if the above isn't working for you.
+Explanation
+This error message is caused by a missing/broken Python setuptools package. Per Matt M.'s comment and setuptools issue #581, the bootstrap script referred to below is no longer the recommended installation method.
+The bootstrap script instructions will remain below, in case it's still helpful to anyone.
+Legacy Answer
+I encountered the same ImportError today while trying to use pip. Somehow the setuptools package had been deleted in my Python environment.
+To fix the issue, run the setup script for setuptools:
+wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+(or if you don't have wget installed (e.g. OS X), try
+curl https://bootstrap.pypa.io/ez_setup.py | python
+possibly with sudo prepended.)
+If you have any version of distribute, or any setuptools below 0.6, you will have to uninstall it first.*
+See Installation Instructions for further details.
+* If you already have a working distribute, upgrading it to the ""compatibility wrapper"" that switches you over to setuptools is easier. But if things are already broken, don't try that.
+wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+curl https://bootstrap.pypa.io/ez_setup.py | python"
+23,https://stackoverflow.com/questions/5870537/whats-the-difference-between-django-onetoonefield-and-foreignkey,What's the difference between django OneToOneField and ForeignKey?,"
+What's the difference between Django OneToOneField and ForeignKey?","
+Differences between OneToOneField(SomeModel) and ForeignKey(SomeModel, unique=True) as stated in The Definitive Guide to Django:
+OneToOneField
+A one-to-one relationship. Conceptually, this is similar to a ForeignKey with unique=True, but the ""reverse"" side of the relation will directly return a single object.
+In contrast to the OneToOneField ""reverse"" relation, a ForeignKey ""reverse"" relation returns a QuerySet.
+Example
+For example, if we have the following two models (full model code below):
+Car model uses OneToOneField(Engine)
+Car2 model uses ForeignKey(Engine2, unique=True)
+From within python manage.py shell execute the following:
+OneToOneField Example
+>>> from testapp.models import Car, Engine
+>>> c = Car.objects.get(name='Audi')
+>>> e = Engine.objects.get(name='Diesel')
+>>> e.car
+<Car: Audi>
+ForeignKey with unique=True Example
+>>> from testapp.models import Car2, Engine2
+>>> c2 = Car2.objects.get(name='Mazda')
+>>> e2 = Engine2.objects.get(name='Wankel')
+>>> e2.car2_set.all()
+[<Car2: Mazda>]
+Model Code
+from django.db import models
+
+class Engine(models.Model):
+    name = models.CharField(max_length=25)
+
+    def __unicode__(self):
+        return self.name
+
+class Car(models.Model):
+    name = models.CharField(max_length=25)
+    engine = models.OneToOneField(Engine)
+
+    def __unicode__(self):
+        return self.name
+
+class Engine2(models.Model):
+    name = models.CharField(max_length=25)
+
+    def __unicode__(self):
+        return self.name
+
+class Car2(models.Model):
+    name = models.CharField(max_length=25)
+    engine = models.ForeignKey(Engine2, unique=True, on_delete=models.CASCADE)
+
+    def __unicode__(self):
+        return self.name
+>>> from testapp.models import Car, Engine
+>>> c = Car.objects.get(name='Audi')
+>>> e = Engine.objects.get(name='Diesel')
+>>> e.car
+<Car: Audi>
+>>> from testapp.models import Car2, Engine2
+>>> c2 = Car2.objects.get(name='Mazda')
+>>> e2 = Engine2.objects.get(name='Wankel')
+>>> e2.car2_set.all()
+[<Car2: Mazda>]
+from django.db import models
+
+class Engine(models.Model):
+    name = models.CharField(max_length=25)
+
+    def __unicode__(self):
+        return self.name
+
+class Car(models.Model):
+    name = models.CharField(max_length=25)
+    engine = models.OneToOneField(Engine)
+
+    def __unicode__(self):
+        return self.name
+
+class Engine2(models.Model):
+    name = models.CharField(max_length=25)
+
+    def __unicode__(self):
+        return self.name
+
+class Car2(models.Model):
+    name = models.CharField(max_length=25)
+    engine = models.ForeignKey(Engine2, unique=True, on_delete=models.CASCADE)
+
+    def __unicode__(self):
+        return self.name"
+24,https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command,'pip' is not recognized as an internal or external command,"
+I'm running into a weird error when trying to install Django on my computer.
+This is the sequence that I typed into my command line:
+C:\Python34> python get-pip.py
+Requirement already up-to-date: pip in c:\python34\lib\site-packages
+Cleaning up...
+
+C:\Python34> pip install Django
+'pip' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Python34> lib\site-packages\pip install Django
+'lib\site-packages\pip' is not recognized as an internal or external command,
+operable program or batch file.
+What could be causing this?
+This is what I get when I type in echo %PATH%:
+C:\Python34>echo %PATH%
+C:\Program Files\ImageMagick-6.8.8-Q16;C:\Program Files (x86)\Intel\iCLS Client\
+;C:\Program Files\Intel\iCLS Client\;C:\Windows\system32;C:\Windows;C:\Windows\S
+ystem32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\
+Windows Live\Shared;C:\Program Files (x86)\Intel\OpenCL SDK\2.0\bin\x86;C:\Progr
+am Files (x86)\Intel\OpenCL SDK\2.0\bin\x64;C:\Program Files\Intel\Intel(R) Mana
+gement Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine C
+omponents\IPT;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components
+\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\P
+rogram Files (x86)\nodejs\;C:\Program Files (x86)\Heroku\bin;C:\Program Files (x
+86)\git\cmd;C:\RailsInstaller\Ruby2.0.0\bin;C:\RailsInstaller\Git\cmd;C:\RailsIn
+staller\Ruby1.9.3\bin;C:\Users\Javi\AppData\Roaming\npm
+C:\Python34> python get-pip.py
+Requirement already up-to-date: pip in c:\python34\lib\site-packages
+Cleaning up...
+
+C:\Python34> pip install Django
+'pip' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Python34> lib\site-packages\pip install Django
+'lib\site-packages\pip' is not recognized as an internal or external command,
+operable program or batch file.
+C:\Python34>echo %PATH%
+C:\Program Files\ImageMagick-6.8.8-Q16;C:\Program Files (x86)\Intel\iCLS Client\
+;C:\Program Files\Intel\iCLS Client\;C:\Windows\system32;C:\Windows;C:\Windows\S
+ystem32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\
+Windows Live\Shared;C:\Program Files (x86)\Intel\OpenCL SDK\2.0\bin\x86;C:\Progr
+am Files (x86)\Intel\OpenCL SDK\2.0\bin\x64;C:\Program Files\Intel\Intel(R) Mana
+gement Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine C
+omponents\IPT;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components
+\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\P
+rogram Files (x86)\nodejs\;C:\Program Files (x86)\Heroku\bin;C:\Program Files (x
+86)\git\cmd;C:\RailsInstaller\Ruby2.0.0\bin;C:\RailsInstaller\Git\cmd;C:\RailsIn
+staller\Ruby1.9.3\bin;C:\Users\Javi\AppData\Roaming\npm","
+You need to add the path of your pip installation to your PATH system variable. By default, pip is installed to C:\Python34\Scripts\pip (pip now comes bundled with new versions of python), so the path ""C:\Python34\Scripts"" needs to be added to your PATH variable.
+To check if it is already in your PATH variable, type echo %PATH% at the CMD prompt
+To add the path of your pip installation to your PATH variable, you can use the Control Panel or the setx command. For example:
+setx PATH ""%PATH%;C:\Python34\Scripts""
+Note: According to the official documentation, ""[v]ariables set with setx variables are available in future command windows only, not in the current command window"". In particular, you will need to start a new cmd.exe instance after entering the above command in order to utilize the new environment variable.
+Thanks to Scott Bartell for pointing this out.
+setx PATH ""%PATH%;C:\Python34\Scripts"""
+25,https://stackoverflow.com/questions/44109/extending-the-user-model-with-custom-fields-in-django,Extending the User model with custom fields in Django,"
+What's the best way to extend the User model (bundled with Django's authentication app) with custom fields? I would also possibly like to use the email as the username (for authentication purposes).
+I've already seen a few ways to do it, but can't decide on which one is the best.","
+The least painful and indeed Django-recommended way of doing this is through a OneToOneField(User) property.
+Extending the existing User model
+…
+If you wish to store information related to User, you can use a one-to-one relationship to a model containing the fields for additional information. This one-to-one model is often called a profile model, as it might store non-auth related information about a site user.
+That said, extending django.contrib.auth.models.User and supplanting it also works...
+Substituting a custom User model
+Some kinds of projects may have authentication requirements for which Django’s built-in User model is not always appropriate. For instance, on some sites it makes more sense to use an email address as your identification token instead of a username.
+[Ed: Two warnings and a notification follow, mentioning that this is pretty drastic.]
+I would definitely stay away from changing the actual User class in your Django source tree and/or copying and altering the auth module."
+26,https://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot,"In a Django form, how do I make a field readonly (or disabled) so that it cannot be edited?","
+In a Django form, how do I make a field read-only (or disabled)?
+When the form is being used to create a new entry, all fields should be enabled - but when the record is in update mode some fields need to be read-only.
+For example, when creating a new Item model, all fields must be editable, but while updating the record, is there a way to disable the sku field so that it is visible, but cannot be edited?
+class Item(models.Model):
+    sku = models.CharField(max_length=50)
+    description = models.CharField(max_length=200)
+    added_by = models.ForeignKey(User)
+
+
+class ItemForm(ModelForm):
+    class Meta:
+        model = Item
+        exclude = ('added_by')
+
+def new_item_view(request):
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        # Validate and save
+    else:
+            form = ItemForm()
+    # Render the view
+Can class ItemForm be reused? What changes would be required in the ItemForm or Item model class? Would I need to write another class, ""ItemUpdateForm"", for updating the item?
+def update_item_view(request):
+    if request.method == 'POST':
+        form = ItemUpdateForm(request.POST)
+        # Validate and save
+    else:
+        form = ItemUpdateForm()
+class Item(models.Model):
+    sku = models.CharField(max_length=50)
+    description = models.CharField(max_length=200)
+    added_by = models.ForeignKey(User)
+
+
+class ItemForm(ModelForm):
+    class Meta:
+        model = Item
+        exclude = ('added_by')
+
+def new_item_view(request):
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        # Validate and save
+    else:
+            form = ItemForm()
+    # Render the view
+def update_item_view(request):
+    if request.method == 'POST':
+        form = ItemUpdateForm(request.POST)
+        # Validate and save
+    else:
+        form = ItemUpdateForm()","
+As pointed out in this answer, Django 1.9 added the Field.disabled attribute:
+The disabled boolean argument, when set to True, disables a form field using the disabled HTML attribute so that it won’t be editable by users. Even if a user tampers with the field’s value submitted to the server, it will be ignored in favor of the value from the form’s initial data.
+With Django 1.8 and earlier, to disable entry on the widget and prevent malicious POST hacks you must scrub the input in addition to setting the readonly attribute on the form field:
+class ItemForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ItemForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['sku'].widget.attrs['readonly'] = True
+
+    def clean_sku(self):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            return instance.sku
+        else:
+            return self.cleaned_data['sku']
+Or, replace if instance and instance.pk with another condition indicating you're editing. You could also set the attribute disabled on the input field, instead of readonly.
+The clean_sku function will ensure that the readonly value won't be overridden by a POST.
+Otherwise, there is no built-in Django form field which will render a value while rejecting bound input data. If this is what you desire, you should instead create a separate ModelForm that excludes the uneditable field(s), and just print them inside your template.
+class ItemForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ItemForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['sku'].widget.attrs['readonly'] = True
+
+    def clean_sku(self):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            return instance.sku
+        else:
+            return self.cleaned_data['sku']"
+27,https://stackoverflow.com/questions/454854/no-module-named-mysqldb,No module named MySQLdb,"
+I am using Python version 2.5.4 and install MySQL version 5.0 and Django. Django is working fine with Python, but not MySQL. I am using it in Windows Vista.",
+28,https://stackoverflow.com/questions/18622007/runtimewarning-datetimefield-received-a-naive-datetime,RuntimeWarning: DateTimeField received a naive datetime,"
+I m trying to send a simple mail using IPython. I have not set up any models still getting this error. What can be done?
+Error : /home/sourabh/Django/learn/local/lib/python2.7/site-packages/django/db/models/fields/init.py:827: RuntimeWarning: DateTimeField received a naive datetime (2013-09-04 14:14:13.698105) while time zone support is active. RuntimeWarning)
+Tried : The first step is to add USE_TZ = True to your settings file and install pytz (if possible).
+Error changed:
+(learn)sourabh@sL:~/Django/learn/event$ python manage.py shell
+/home/sourabh/Django/learn/local/lib/python2.7/site-packages/django/db/backends/sqlite3/base.py:53: RuntimeWarning: SQLite received a naive datetime (2013-09-05 00:59:32.181872) while time zone support is active.
+  RuntimeWarning)
+(learn)sourabh@sL:~/Django/learn/event$ python manage.py shell
+/home/sourabh/Django/learn/local/lib/python2.7/site-packages/django/db/backends/sqlite3/base.py:53: RuntimeWarning: SQLite received a naive datetime (2013-09-05 00:59:32.181872) while time zone support is active.
+  RuntimeWarning)","
+The problem is not in Django settings, but in the date passed to the model. Here's how a timezone-aware object looks like:
+>>> from django.utils import timezone
+>>> import pytz
+>>> timezone.now()
+datetime.datetime(2013, 11, 20, 20, 8, 7, 127325, tzinfo=pytz.UTC)
+And here's a naive object:
+>>> from datetime import datetime
+>>> datetime.now()
+datetime.datetime(2013, 11, 20, 20, 9, 26, 423063)
+So if you are passing email date anywhere (and it eventually gets to some model), just use Django's now(). If not, then it's probably an issue with an existing package that fetches date without timezone and you can patch the package, ignore the warning or set USE_TZ to False.
+>>> from django.utils import timezone
+>>> import pytz
+>>> timezone.now()
+datetime.datetime(2013, 11, 20, 20, 8, 7, 127325, tzinfo=pytz.UTC)
+>>> from datetime import datetime
+>>> datetime.now()
+datetime.datetime(2013, 11, 20, 20, 9, 26, 423063)"
+29,https://stackoverflow.com/questions/2345708/how-can-i-get-the-full-absolute-url-with-domain-in-django,How can I get the full/absolute URL (with domain) in Django?,"
+How can I get the full/absolute URL (e.g. https://example.com/some/path) in Django without the Sites module? That's just silly... I shouldn't need to query my DB to snag the URL!
+I want to use it with reverse().","
+Use handy request.build_absolute_uri() method on request, pass it the relative url and it'll give you full one.
+By default, the absolute URL for request.get_full_path() is returned, but you can pass it a relative URL as the first argument to convert it to an absolute URL.
+>>> request.build_absolute_uri()
+'https://example.com/music/bands/the_beatles/?print=true'
+>>> request.build_absolute_uri('/bands/?print=true')
+'https://example.com/bands/?print=true'
+>>> request.build_absolute_uri()
+'https://example.com/music/bands/the_beatles/?print=true'
+>>> request.build_absolute_uri('/bands/?print=true')
+'https://example.com/bands/?print=true'"
+30,https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail,Why does DEBUG=False setting make my django Static Files Access fail?,"
+Am building an app using Django as my workhorse. All has been well so far - specified db settings, configured static directories, urls, views etc. But trouble started sneaking in the moment I wanted to render my own beautiful and custom 404.html and 500.html pages.
+I read the docs on custom error handling, and set necessary configurations in UrlsConf, created corresponding views and added the 404.html and the 500.html to my app's template directory (specified in the settings.py too).
+But the docs say you can actually view custom error views until Debug is Off, so I did turn it off to test my stuff, and that's when stuff goes berserk!
+Not only do I fail to view the custom 404.html (actually, it loads, but because my error pages each contain a graphic error message -as some nice image), the source of the error page loads, but nothing else loads! Not even linked CSS or Javascript!
+Generally, once I set DEBUG = False, all views will load, but any linked content (CSS, Javascript, Images, etc) wont load! What's happening? Is there something am missing, concerning static files and the DEBUG setting?","
+With debug turned off Django won't handle static files for you any more - your production web server (Apache or something) should take care of that."
+31,https://stackoverflow.com/questions/31237042/whats-the-difference-between-select-related-and-prefetch-related-in-django-orm,What's the difference between select_related and prefetch_related in Django ORM?,"
+In Django doc:
+select_related() ""follows"" foreign-key relationships, selecting additional related-object data when it executes its query.
+prefetch_related() does a separate lookup for each relationship, and does the ""joining"" in Python.
+What does it mean by ""doing the joining in python""? Can someone illustrate with an example?
+My understanding is that for foreign key relationship, use select_related; and for M2M relationship, use prefetch_related. Is this correct?","
+Your understanding is mostly correct. You use select_related when the object that you're going to be selecting is a single object, so OneToOneField or a ForeignKey. You use prefetch_related when you're going to get a ""set"" of things, so ManyToManyFields as you stated or reverse ForeignKeys. Just to clarify what I mean by ""reverse ForeignKeys"" here's an example:
+class ModelA(models.Model):
+    pass
+
+class ModelB(models.Model):
+    a = ForeignKey(ModelA)
+
+ModelB.objects.select_related('a').all() # Forward ForeignKey relationship
+ModelA.objects.prefetch_related('modelb_set').all() # Reverse ForeignKey relationship
+The difference is that select_related does an SQL join and therefore gets the results back as part of the table from the SQL server. prefetch_related on the other hand executes another query and therefore reduces the redundant columns in the original object (ModelA in the above example). You may use prefetch_related for anything that you can use select_related for.
+The tradeoffs are that prefetch_related has to create and send a list of IDs to select back to the server, this can take a while. I'm not sure if there's a nice way of doing this in a transaction, but my understanding is that Django always just sends a list and says SELECT ... WHERE pk IN (...,...,...) basically. In this case if the prefetched data is sparse (let's say U.S. State objects linked to people's addresses) this can be very good, however if it's closer to one-to-one, this can waste a lot of communications. If in doubt, try both and see which performs better.
+Everything discussed above is basically about the communications with the database. On the Python side however prefetch_related has the extra benefit that a single object is used to represent each object in the database. With select_related duplicate objects will be created in Python for each ""parent"" object. Since objects in Python have a decent bit of memory overhead this can also be a consideration.
+class ModelA(models.Model):
+    pass
+
+class ModelB(models.Model):
+    a = ForeignKey(ModelA)
+
+ModelB.objects.select_related('a').all() # Forward ForeignKey relationship
+ModelA.objects.prefetch_related('modelb_set').all() # Reverse ForeignKey relationship"
+32,https://stackoverflow.com/questions/629551/how-to-query-as-group-by-in-django,How to query as GROUP BY in django?,"
+I query a model:
+Members.objects.all()
+And it returns:
+Eric, Salesman, X-Shop
+Freddie, Manager, X2-Shop
+Teddy, Salesman, X2-Shop
+Sean, Manager, X2-Shop
+What I want is to know the best Django way to fire a group_by query to my database, like:
+Members.objects.all().group_by('designation')
+Which doesn't work, of course. I know we can do some tricks on django/db/models/query.py, but I am just curious to know how to do it without patching.
+Members.objects.all()
+Eric, Salesman, X-Shop
+Freddie, Manager, X2-Shop
+Teddy, Salesman, X2-Shop
+Sean, Manager, X2-Shop
+Members.objects.all().group_by('designation')","
+If you mean to do aggregation you can use the aggregation features of the ORM:
+from django.db.models import Count
+result = (Members.objects
+    .values('designation')
+    .annotate(dcount=Count('designation'))
+    .order_by()
+)
+This results in a query similar to
+SELECT designation, COUNT(designation) AS dcount
+FROM members GROUP BY designation
+and the output would be of the form
+[{'designation': 'Salesman', 'dcount': 2}, 
+ {'designation': 'Manager', 'dcount': 2}]
+If you don't include the order_by(), you may get incorrect results if the default sorting is not what you expect.
+If you want to include multiple fields in the results, just add them as arguments to values, for example:
+    .values('designation', 'first_name', 'last_name')
+References:
+Django documentation: values(), annotate(), and Count
+Django documentation: Aggregation, and in particular the section entitled Interaction with default ordering or order_by()
+from django.db.models import Count
+result = (Members.objects
+    .values('designation')
+    .annotate(dcount=Count('designation'))
+    .order_by()
+)
+SELECT designation, COUNT(designation) AS dcount
+FROM members GROUP BY designation
+[{'designation': 'Salesman', 'dcount': 2}, 
+ {'designation': 'Manager', 'dcount': 2}]
+    .values('designation', 'first_name', 'last_name')"
+33,https://stackoverflow.com/questions/6578986/how-to-convert-json-data-into-a-python-object,How to convert JSON data into a Python object?,"
+I want to convert JSON data into a Python object.
+I receive JSON data objects from the Facebook API, which I want to store in my database.
+My current View in Django (Python) (request.POST contains the JSON):
+response = request.POST
+user = FbApiUser(user_id = response['id'])
+user.name = response['name']
+user.username = response['username']
+user.save()
+This works fine, but how do I handle complex JSON data objects?
+Wouldn't it be much better if I could somehow convert this JSON object into a Python object for easy use?
+response = request.POST
+user = FbApiUser(user_id = response['id'])
+user.name = response['name']
+user.username = response['username']
+user.save()","
+UPDATE
+With Python3, you can do it in one line, using SimpleNamespace and object_hook:
+import json
+from types import SimpleNamespace
+
+data = '{""name"": ""John Smith"", ""hometown"": {""name"": ""New York"", ""id"": 123}}'
+
+# Parse JSON into an object with attributes corresponding to dict keys.
+x = json.loads(data, object_hook=lambda d: SimpleNamespace(**d))
+print(x.name, x.hometown.name, x.hometown.id)
+OLD ANSWER (Python2)
+In Python2, you can do it in one line, using namedtuple and object_hook (but it's very slow with many nested objects):
+import json
+from collections import namedtuple
+
+data = '{""name"": ""John Smith"", ""hometown"": {""name"": ""New York"", ""id"": 123}}'
+
+# Parse JSON into an object with attributes corresponding to dict keys.
+x = json.loads(data, object_hook=lambda d: namedtuple('X', d.keys())(*d.values()))
+print x.name, x.hometown.name, x.hometown.id
+or, to reuse this easily:
+def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
+def json2obj(data): return json.loads(data, object_hook=_json_object_hook)
+
+x = json2obj(data)
+If you want it to handle keys that aren't good attribute names, check out namedtuple's rename parameter.
+import json
+from types import SimpleNamespace
+
+data = '{""name"": ""John Smith"", ""hometown"": {""name"": ""New York"", ""id"": 123}}'
+
+# Parse JSON into an object with attributes corresponding to dict keys.
+x = json.loads(data, object_hook=lambda d: SimpleNamespace(**d))
+print(x.name, x.hometown.name, x.hometown.id)
+import json
+from collections import namedtuple
+
+data = '{""name"": ""John Smith"", ""hometown"": {""name"": ""New York"", ""id"": 123}}'
+
+# Parse JSON into an object with attributes corresponding to dict keys.
+x = json.loads(data, object_hook=lambda d: namedtuple('X', d.keys())(*d.values()))
+print x.name, x.hometown.name, x.hometown.id
+def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
+def json2obj(data): return json.loads(data, object_hook=_json_object_hook)
+
+x = json2obj(data)"
+34,https://stackoverflow.com/questions/739776/how-do-i-do-an-or-filter-in-a-django-query,How do I do an OR filter in a Django query?,"
+I want to be able to list the items that either a user has added (they are listed as the creator) or the item has been approved.
+So I basically need to select:
+item.creator = owner or item.moderated = False
+How would I do this in Django? (preferably with a filter or queryset).
+item.creator = owner or item.moderated = False","
+There is Q objects that allow to complex lookups. Example:
+from django.db.models import Q
+
+Item.objects.filter(Q(creator=owner) | Q(moderated=False))
+from django.db.models import Q
+
+Item.objects.filter(Q(creator=owner) | Q(moderated=False))"
+35,https://stackoverflow.com/questions/9834038/django-order-by-query-set-ascending-and-descending,"django order_by query set, ascending and descending","
+How can I order by descending my query set in django by date?
+Reserved.objects.all().filter(client=client_id).order_by('check_in')
+I just want to filter from descending all the Reserved by check_in date.
+Reserved.objects.all().filter(client=client_id).order_by('check_in')","
+Reserved.objects.filter(client=client_id).order_by('-check_in')
+Notice the - before check_in.
+Django Documentation
+Reserved.objects.filter(client=client_id).order_by('-check_in')"
+36,https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models,How to delete a record in Django models?,"
+I want to delete a particular record like:
+delete from table_name where id = 1;
+How can I do this in a django model?
+delete from table_name where id = 1;",
+37,https://stackoverflow.com/questions/19743396/cors-cannot-use-wildcard-in-access-control-allow-origin-when-credentials-flag-i,CORS: Cannot use wildcard in Access-Control-Allow-Origin when credentials flag is true,"
+I have a setup involving
+Frontend server (Node.js, domain: localhost:3000) <---> Backend (Django, Ajax, domain: localhost:8000)
+Browser <-- webapp <-- Node.js (Serve the app)
+Browser (webapp) --> Ajax --> Django(Serve ajax POST requests)
+Now, my problem here is with CORS setup which the webapp uses to make Ajax calls to the backend server. In chrome, I keep getting
+Cannot use wildcard in Access-Control-Allow-Origin when credentials flag is true.
+doesn't work on firefox either.
+My Node.js setup is:
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:8000/');
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header(""Access-Control-Allow-Headers"", ""Origin, X-Requested-With, Content-Type, Accept"");
+    next();
+};
+And in Django I'm using this middleware along with this
+The webapp makes requests as such:
+$.ajax({
+    type: ""POST"",
+    url: 'http://localhost:8000/blah',
+    data: {},
+    xhrFields: {
+        withCredentials: true
+    },
+    crossDomain: true,
+    dataType: 'json',
+    success: successHandler
+});
+So, the request headers that the webapp sends looks like:
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Headers: ""Origin, X-Requested-With, Content-Type, Accept""
+Access-Control-Allow-Methods: 'GET,PUT,POST,DELETE'
+Content-Type: application/json 
+Accept: */*
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-US,en;q=0.8
+Cookie: csrftoken=***; sessionid=""***""
+And here's the response header:
+Access-Control-Allow-Headers: Content-Type,*
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: POST,GET,OPTIONS,PUT,DELETE
+Content-Type: application/json
+Where am I going wrong?!
+Edit 1: I've been using chrome --disable-web-security, but now want things to actually work.
+Edit 2: Answer:
+So, solution for me django-cors-headers config:
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000' # Here was the problem indeed and it has to be http://localhost:3000, not http://localhost:3000/
+)
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:8000/');
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header(""Access-Control-Allow-Headers"", ""Origin, X-Requested-With, Content-Type, Accept"");
+    next();
+};
+$.ajax({
+    type: ""POST"",
+    url: 'http://localhost:8000/blah',
+    data: {},
+    xhrFields: {
+        withCredentials: true
+    },
+    crossDomain: true,
+    dataType: 'json',
+    success: successHandler
+});
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Headers: ""Origin, X-Requested-With, Content-Type, Accept""
+Access-Control-Allow-Methods: 'GET,PUT,POST,DELETE'
+Content-Type: application/json 
+Accept: */*
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-US,en;q=0.8
+Cookie: csrftoken=***; sessionid=""***""
+Access-Control-Allow-Headers: Content-Type,*
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: POST,GET,OPTIONS,PUT,DELETE
+Content-Type: application/json
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000' # Here was the problem indeed and it has to be http://localhost:3000, not http://localhost:3000/
+)","
+This is a part of security, you cannot do that. If you want to allow credentials then your Access-Control-Allow-Origin must not use *. You will have to specify the exact protocol + domain + port. For reference see these questions :
+Access-Control-Allow-Origin wildcard subdomains, ports and protocols
+Cross Origin Resource Sharing with Credentials
+Besides * is too permissive and would defeat use of credentials. So set http://localhost:3000 or http://localhost:8000 as the allow origin header."
+38,https://stackoverflow.com/questions/21925671/convert-django-model-object-to-dict-with-all-of-the-fields-intact,Convert Django Model object to dict with all of the fields intact,"
+How does one convert a django Model object to a dict with all of its fields? All ideally includes foreign keys and fields with editable=False.
+Let me elaborate. Let's say I have a django model like the following:
+from django.db import models
+
+class OtherModel(models.Model): pass
+
+class SomeModel(models.Model):
+    normal_value = models.IntegerField()
+    readonly_value = models.IntegerField(editable=False)
+    auto_now_add = models.DateTimeField(auto_now_add=True)
+    foreign_key = models.ForeignKey(OtherModel, related_name=""ref1"")
+    many_to_many = models.ManyToManyField(OtherModel, related_name=""ref2"")
+In the terminal, I have done the following:
+other_model = OtherModel()
+other_model.save()
+instance = SomeModel()
+instance.normal_value = 1
+instance.readonly_value = 2
+instance.foreign_key = other_model
+instance.save()
+instance.many_to_many.add(other_model)
+instance.save()
+I want to convert this to the following dictionary:
+{'auto_now_add': datetime.datetime(2015, 3, 16, 21, 34, 14, 926738, tzinfo=<UTC>),
+ 'foreign_key': 1,
+ 'id': 1,
+ 'many_to_many': [1],
+ 'normal_value': 1,
+ 'readonly_value': 2}
+Questions with unsatisfactory answers:
+Django: Converting an entire set of a Model's objects into a single dictionary
+How can I turn Django Model objects into a dictionary and still have their foreign keys?
+from django.db import models
+
+class OtherModel(models.Model): pass
+
+class SomeModel(models.Model):
+    normal_value = models.IntegerField()
+    readonly_value = models.IntegerField(editable=False)
+    auto_now_add = models.DateTimeField(auto_now_add=True)
+    foreign_key = models.ForeignKey(OtherModel, related_name=""ref1"")
+    many_to_many = models.ManyToManyField(OtherModel, related_name=""ref2"")
+other_model = OtherModel()
+other_model.save()
+instance = SomeModel()
+instance.normal_value = 1
+instance.readonly_value = 2
+instance.foreign_key = other_model
+instance.save()
+instance.many_to_many.add(other_model)
+instance.save()
+{'auto_now_add': datetime.datetime(2015, 3, 16, 21, 34, 14, 926738, tzinfo=<UTC>),
+ 'foreign_key': 1,
+ 'id': 1,
+ 'many_to_many': [1],
+ 'normal_value': 1,
+ 'readonly_value': 2}","
+There are many ways to convert an instance to a dictionary, with varying degrees of corner case handling and closeness to the desired result.
+1. instance.__dict__
+instance.__dict__
+which returns
+{'_foreign_key_cache': <OtherModel: OtherModel object>,
+ '_state': <django.db.models.base.ModelState at 0x7ff0993f6908>,
+ 'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key_id': 2,
+ 'id': 1,
+ 'normal_value': 1,
+ 'readonly_value': 2}
+This is by far the simplest, but is missing many_to_many, foreign_key is misnamed, and it has two unwanted extra things in it.
+2. model_to_dict
+from django.forms.models import model_to_dict
+model_to_dict(instance)
+which returns
+{'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [<OtherModel: OtherModel object>],
+ 'normal_value': 1}
+This is the only one with many_to_many, but is missing the uneditable fields.
+3. model_to_dict(..., fields=...)
+from django.forms.models import model_to_dict
+model_to_dict(instance, fields=[field.name for field in instance._meta.fields])
+which returns
+{'foreign_key': 2, 'id': 1, 'normal_value': 1}
+This is strictly worse than the standard model_to_dict invocation.
+4. query_set.values()
+SomeModel.objects.filter(id=instance.id).values()[0]
+which returns
+{'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key_id': 2,
+ 'id': 1,
+ 'normal_value': 1,
+ 'readonly_value': 2}
+This is the same output as instance.__dict__ but without the extra fields. foreign_key_id is still wrong and many_to_many is still missing.
+5. Custom Function
+The code for django's model_to_dict had most of the answer. It explicitly removed non-editable fields, so removing that check and getting the ids of foreign keys for many to many fields results in the following code which behaves as desired:
+from itertools import chain
+
+def to_dict(instance):
+    opts = instance._meta
+    data = {}
+    for f in chain(opts.concrete_fields, opts.private_fields):
+        data[f.name] = f.value_from_object(instance)
+    for f in opts.many_to_many:
+        data[f.name] = [i.id for i in f.value_from_object(instance)]
+    return data
+While this is the most complicated option, calling to_dict(instance) gives us exactly the desired result:
+{'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [2],
+ 'normal_value': 1,
+ 'readonly_value': 2}
+6. Use Serializers
+Django Rest Framework's ModelSerializer allows you to build a serializer automatically from a model.
+from rest_framework import serializers
+class SomeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SomeModel
+        fields = ""__all__""
+
+SomeModelSerializer(instance).data
+returns
+{'auto_now_add': '2018-12-20T21:34:29.494827Z',
+ 'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [2],
+ 'normal_value': 1,
+ 'readonly_value': 2}
+This is almost as good as the custom function, but auto_now_add is a string instead of a datetime object.
+Bonus Round: better model printing
+If you want a django model that has a better python command-line display, have your models child-class the following:
+from django.db import models
+from itertools import chain
+
+class PrintableModel(models.Model):
+    def __repr__(self):
+        return str(self.to_dict())
+
+    def to_dict(instance):
+        opts = instance._meta
+        data = {}
+        for f in chain(opts.concrete_fields, opts.private_fields):
+            data[f.name] = f.value_from_object(instance)
+        for f in opts.many_to_many:
+            data[f.name] = [i.id for i in f.value_from_object(instance)]
+        return data
+
+    class Meta:
+        abstract = True
+So, for example, if we define our models as such:
+class OtherModel(PrintableModel): pass
+
+class SomeModel(PrintableModel):
+    normal_value = models.IntegerField()
+    readonly_value = models.IntegerField(editable=False)
+    auto_now_add = models.DateTimeField(auto_now_add=True)
+    foreign_key = models.ForeignKey(OtherModel, related_name=""ref1"")
+    many_to_many = models.ManyToManyField(OtherModel, related_name=""ref2"")
+Calling SomeModel.objects.first() now gives output like this:
+{'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [2],
+ 'normal_value': 1,
+ 'readonly_value': 2}
+instance.__dict__
+{'_foreign_key_cache': <OtherModel: OtherModel object>,
+ '_state': <django.db.models.base.ModelState at 0x7ff0993f6908>,
+ 'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key_id': 2,
+ 'id': 1,
+ 'normal_value': 1,
+ 'readonly_value': 2}
+from django.forms.models import model_to_dict
+model_to_dict(instance)
+{'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [<OtherModel: OtherModel object>],
+ 'normal_value': 1}
+from django.forms.models import model_to_dict
+model_to_dict(instance, fields=[field.name for field in instance._meta.fields])
+{'foreign_key': 2, 'id': 1, 'normal_value': 1}
+SomeModel.objects.filter(id=instance.id).values()[0]
+{'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key_id': 2,
+ 'id': 1,
+ 'normal_value': 1,
+ 'readonly_value': 2}
+from itertools import chain
+
+def to_dict(instance):
+    opts = instance._meta
+    data = {}
+    for f in chain(opts.concrete_fields, opts.private_fields):
+        data[f.name] = f.value_from_object(instance)
+    for f in opts.many_to_many:
+        data[f.name] = [i.id for i in f.value_from_object(instance)]
+    return data
+{'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [2],
+ 'normal_value': 1,
+ 'readonly_value': 2}
+from rest_framework import serializers
+class SomeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SomeModel
+        fields = ""__all__""
+
+SomeModelSerializer(instance).data
+{'auto_now_add': '2018-12-20T21:34:29.494827Z',
+ 'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [2],
+ 'normal_value': 1,
+ 'readonly_value': 2}
+from django.db import models
+from itertools import chain
+
+class PrintableModel(models.Model):
+    def __repr__(self):
+        return str(self.to_dict())
+
+    def to_dict(instance):
+        opts = instance._meta
+        data = {}
+        for f in chain(opts.concrete_fields, opts.private_fields):
+            data[f.name] = f.value_from_object(instance)
+        for f in opts.many_to_many:
+            data[f.name] = [i.id for i in f.value_from_object(instance)]
+        return data
+
+    class Meta:
+        abstract = True
+class OtherModel(PrintableModel): pass
+
+class SomeModel(PrintableModel):
+    normal_value = models.IntegerField()
+    readonly_value = models.IntegerField(editable=False)
+    auto_now_add = models.DateTimeField(auto_now_add=True)
+    foreign_key = models.ForeignKey(OtherModel, related_name=""ref1"")
+    many_to_many = models.ManyToManyField(OtherModel, related_name=""ref2"")
+{'auto_now_add': datetime.datetime(2018, 12, 20, 21, 34, 29, 494827, tzinfo=<UTC>),
+ 'foreign_key': 2,
+ 'id': 1,
+ 'many_to_many': [2],
+ 'normal_value': 1,
+ 'readonly_value': 2}"
+39,https://stackoverflow.com/questions/1706111/where-can-i-find-the-error-logs-of-nginx-using-fastcgi-and-django,"Where can I find the error logs of nginx, using FastCGI and Django?","
+I'm using Django with FastCGI + nginx. Where are the logs (errors) stored in this case?","
+Errors are stored in the nginx log file. You can specify it in the root of the nginx configuration file:
+error_log  /var/log/nginx/nginx_error.log  warn;
+On Mac OS X with Homebrew, the log file was found by default at the following location:
+/usr/local/var/log/nginx
+error_log  /var/log/nginx/nginx_error.log  warn;
+/usr/local/var/log/nginx"
+40,https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values,How can I filter a Django query with a list of values?,"
+I'm sure this is a trivial operation, but I can't figure out how it's done.
+There's got to be something smarter than this:
+ids = [1, 3, 6, 7, 9]
+
+for id in ids:
+    MyModel.objects.filter(pk=id)
+I'm looking to get them all in one query with something like:
+MyModel.objects.filter(pk=[1, 3, 6, 7, 9])
+How can I filter a Django query with a list of values?
+ids = [1, 3, 6, 7, 9]
+
+for id in ids:
+    MyModel.objects.filter(pk=id)
+MyModel.objects.filter(pk=[1, 3, 6, 7, 9])","
+From the Django documentation:
+Blog.objects.filter(pk__in=[1, 4, 7])
+Blog.objects.filter(pk__in=[1, 4, 7])"
+41,https://stackoverflow.com/questions/433162/can-i-access-constants-in-settings-py-from-templates-in-django,Can I access constants in settings.py from templates in Django?,"
+I have some stuff in settings.py that I'd like to be able to access from a template, but I can't figure out how to do it. I already tried
+{{CONSTANT_NAME}}
+but that doesn't seem to work. Is this possible?
+{{CONSTANT_NAME}}","
+Django provides access to certain, frequently-used settings constants to the template such as settings.MEDIA_URL and some of the language settings if you use django's built in generic views or pass in a context instance keyword argument in the render_to_response shortcut function. Here's an example of each case:
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.views.generic.simple import direct_to_template
+
+def my_generic_view(request, template='my_template.html'):
+    return direct_to_template(request, template)
+
+def more_custom_view(request, template='my_template.html'):
+    return render_to_response(template, {}, context_instance=RequestContext(request))
+These views will both have several frequently used settings like settings.MEDIA_URL available to the template as {{ MEDIA_URL }}, etc.
+If you're looking for access to other constants in the settings, then simply unpack the constants you want and add them to the context dictionary you're using in your view function, like so:
+from django.conf import settings
+from django.shortcuts import render_to_response
+
+def my_view_function(request, template='my_template.html'):
+    context = {'favorite_color': settings.FAVORITE_COLOR}
+    return render_to_response(template, context)
+Now you can access settings.FAVORITE_COLOR on your template as {{ favorite_color }}.
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.views.generic.simple import direct_to_template
+
+def my_generic_view(request, template='my_template.html'):
+    return direct_to_template(request, template)
+
+def more_custom_view(request, template='my_template.html'):
+    return render_to_response(template, {}, context_instance=RequestContext(request))
+from django.conf import settings
+from django.shortcuts import render_to_response
+
+def my_view_function(request, template='my_template.html'):
+    context = {'favorite_color': settings.FAVORITE_COLOR}
+    return render_to_response(template, context)"
+42,https://stackoverflow.com/questions/1074212/how-to-see-the-raw-sql-queries-django-is-running,How to see the raw SQL queries Django is running?,"
+Is there a way to show the SQL that Django is running while performing a query?","
+See the docs FAQ: ""How can I see the raw SQL queries Django is running?""
+django.db.connection.queries contains a list of the SQL queries:
+from django.db import connection
+print(connection.queries)
+Querysets also have a query attribute containing the query to be executed:
+print(MyModel.objects.filter(name=""my name"").query)
+Note that the output of the query is not valid SQL, because:
+""Django never actually interpolates the parameters: it sends the query and the parameters separately to the database adapter, which performs the appropriate operations.""
+From Django bug report #17741.
+Because of that, you should not send query output directly to a database.
+If you need to reset the queries to, for example, see how many queries are running in a given period, you can use reset_queries from django.db:
+from django.db import reset_queries
+from django.db import connection
+
+reset_queries()
+# Run your query here
+print(connection.queries)
+>>> []
+from django.db import connection
+print(connection.queries)
+print(MyModel.objects.filter(name=""my name"").query)
+from django.db import reset_queries
+from django.db import connection
+
+reset_queries()
+# Run your query here
+print(connection.queries)
+>>> []"
+43,https://stackoverflow.com/questions/6567831/how-to-perform-or-condition-in-django-queryset,How to perform OR condition in django queryset?,"
+I want to write a Django query equivalent to this SQL query:
+SELECT * from user where income >= 5000 or income is NULL.
+How to construct the Django queryset filter?
+User.objects.filter(income__gte=5000, income=0)
+This doesn't work, because it ANDs the filters. I want to OR the filters to get union of individual querysets.
+SELECT * from user where income >= 5000 or income is NULL.
+User.objects.filter(income__gte=5000, income=0)","
+from django.db.models import Q
+User.objects.filter(Q(income__gte=5000) | Q(income__isnull=True))
+via Documentation
+from django.db.models import Q
+User.objects.filter(Q(income__gte=5000) | Q(income__isnull=True))"
+44,https://stackoverflow.com/questions/26672077/django-model-vs-model-objects-create,Django Model() vs Model.objects.create(),"
+What it the difference between running two commands:
+foo = FooModel()
+and
+bar = BarModel.objects.create()
+Does the second one immediately create a BarModel in the database, while for FooModel, the save() method has to be called explicitly to add it to the database?
+foo = FooModel()
+bar = BarModel.objects.create()","
+https://docs.djangoproject.com/en/stable/topics/db/queries/#creating-objects
+To create and save an object in a single step, use the create() method."
+45,https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable,NumPy array is not JSON serializable,"
+After creating a NumPy array, and saving it as a Django context variable, I receive the following error when loading the webpage:
+array([   0,  239,  479,  717,  952, 1192, 1432, 1667], dtype=int64) is not JSON serializable
+What does this mean?
+array([   0,  239,  479,  717,  952, 1192, 1432, 1667], dtype=int64) is not JSON serializable","
+I regularly ""jsonify"" np.arrays. Try using the "".tolist()"" method on the arrays first, like this:
+import numpy as np
+import codecs, json 
+
+a = np.arange(10).reshape(2,5) # a 2 by 5 array
+b = a.tolist() # nested lists with same data, indices
+file_path = ""/path.json"" ## your path variable
+json.dump(b, codecs.open(file_path, 'w', encoding='utf-8'), 
+          separators=(',', ':'), 
+          sort_keys=True, 
+          indent=4) ### this saves the array in .json format
+In order to ""unjsonify"" the array use:
+obj_text = codecs.open(file_path, 'r', encoding='utf-8').read()
+b_new = json.loads(obj_text)
+a_new = np.array(b_new)
+import numpy as np
+import codecs, json 
+
+a = np.arange(10).reshape(2,5) # a 2 by 5 array
+b = a.tolist() # nested lists with same data, indices
+file_path = ""/path.json"" ## your path variable
+json.dump(b, codecs.open(file_path, 'w', encoding='utf-8'), 
+          separators=(',', ':'), 
+          sort_keys=True, 
+          indent=4) ### this saves the array in .json format
+obj_text = codecs.open(file_path, 'r', encoding='utf-8').read()
+b_new = json.loads(obj_text)
+a_new = np.array(b_new)"
+46,https://stackoverflow.com/questions/163823/can-list-display-in-a-django-modeladmin-display-attributes-of-foreignkey-field,"Can ""list_display"" in a Django ModelAdmin display attributes of ForeignKey fields?","
+I have a Person model that has a foreign key relationship to Book, which has a number of fields, but I'm most concerned about author (a standard CharField).
+With that being said, in my PersonAdmin model, I'd like to display book.author using list_display:
+class PersonAdmin(admin.ModelAdmin):
+    list_display = ['book.author',]
+I've tried all of the obvious methods for doing so, but nothing seems to work.
+Any suggestions?
+class PersonAdmin(admin.ModelAdmin):
+    list_display = ['book.author',]","
+As another option, you can do lookups like:
+#models.py
+class UserAdmin(admin.ModelAdmin):
+    list_display = (..., 'get_author')
+    
+    def get_author(self, obj):
+        return obj.book.author
+    get_author.short_description = 'Author'
+    get_author.admin_order_field = 'book__author'
+Since Django 3.2 you can use display() decorator:
+#models.py
+class UserAdmin(admin.ModelAdmin):
+    list_display = (..., 'get_author')
+    
+    @admin.display(ordering='book__author', description='Author')
+    def get_author(self, obj):
+        return obj.book.author
+#models.py
+class UserAdmin(admin.ModelAdmin):
+    list_display = (..., 'get_author')
+    
+    def get_author(self, obj):
+        return obj.book.author
+    get_author.short_description = 'Author'
+    get_author.admin_order_field = 'book__author'
+#models.py
+class UserAdmin(admin.ModelAdmin):
+    list_display = (..., 'get_author')
+    
+    @admin.display(ordering='book__author', description='Author')
+    def get_author(self, obj):
+        return obj.book.author"
+47,https://stackoverflow.com/questions/3748295/getting-the-sql-from-a-django-queryset,Getting the SQL from a Django QuerySet,"
+How do I get the SQL that Django will use on the database from a QuerySet object? I'm trying to debug some strange behavior, but I'm not sure what queries are going to the database.","
+You print the queryset's query attribute.
+>>> queryset = MyModel.objects.all()
+>>> print(queryset.query)
+SELECT ""myapp_mymodel"".""id"", ... FROM ""myapp_mymodel""
+>>> queryset = MyModel.objects.all()
+>>> print(queryset.query)
+SELECT ""myapp_mymodel"".""id"", ... FROM ""myapp_mymodel"""
+48,https://stackoverflow.com/questions/7354588/whats-the-difference-between-charfield-and-textfield-in-django,What's the difference between CharField and TextField in Django?,"
+The documentation says that CharField() should be used for smaller strings and TextField() should be used for larger strings.
+Okay, but where is the line drawn between ""small"" and ""large""? What's going on under the hood here that makes this the case?","
+It's a difference between RDBMS's varchar (or similar) — those are usually specified with a maximum length, and might be more efficient in terms of performance or storage — and text (or similar) types — those are usually limited only by hardcoded implementation limits (not a DB schema).
+PostgreSQL 9, specifically, states that ""There is no performance difference among these three types"", but AFAIK there are some differences in e.g. MySQL, so this is something to keep in mind.
+A good rule of thumb is that you use CharField when you need to limit the maximum length, TextField otherwise.
+This is not really Django-specific, also."
+49,https://stackoverflow.com/questions/23948527/13-permission-denied-while-connecting-to-upstreamnginx,(13: Permission denied) while connecting to upstream:[nginx],"
+I am working with configuring Django project with Nginx and Gunicorn.
+While I am accessing my port gunicorn mysite.wsgi:application --bind=127.0.0.1:8001 in Nginx server, I am getting the following error in my error log file;
+2014/05/30 11:59:42 [crit] 4075#0: *6 connect() to 127.0.0.1:8001 failed (13: Permission denied) while connecting to upstream, client: 127.0.0.1, server: localhost, request: ""GET / HTTP/1.1"", upstream: ""http://127.0.0.1:8001/"", host: ""localhost:8080""
+Below is the content of my nginx.conf file;
+server {
+    listen 8080;
+    server_name localhost;
+    access_log  /var/log/nginx/example.log;
+    error_log /var/log/nginx/example.error.log;
+
+    location / {
+        proxy_pass http://127.0.0.1:8001;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host $http_host;
+    }
+}
+In the HTML page I am getting 502 Bad Gateway.
+What mistake am I doing?
+server {
+    listen 8080;
+    server_name localhost;
+    access_log  /var/log/nginx/example.log;
+    error_log /var/log/nginx/example.error.log;
+
+    location / {
+        proxy_pass http://127.0.0.1:8001;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host $http_host;
+    }
+}","
+Disclaimer
+Make sure there are no security implications for your use-case before running this.
+Answer
+I had a similar issue getting Fedora 20, Nginx, Node.js, and Ghost (blog) to work. It turns out my issue was due to SELinux.
+This should solve the problem:
+setsebool -P httpd_can_network_connect 1
+Details
+I checked for errors in the SELinux logs:
+sudo cat /var/log/audit/audit.log | grep nginx | grep denied
+And found that running the following commands fixed my issue:
+sudo cat /var/log/audit/audit.log | grep nginx | grep denied | audit2allow -M mynginx
+sudo semodule -i mynginx.pp
+Option #2 (probably more secure)
+setsebool -P httpd_can_network_relay 1
+https://security.stackexchange.com/questions/152358/difference-between-selinux-booleans-httpd-can-network-relay-and-httpd-can-net
+References
+http://blog.frag-gustav.de/2013/07/21/nginx-selinux-me-mad/
+https://wiki.gentoo.org/wiki/SELinux/Tutorials/Where_to_find_SELinux_permission_denial_details
+http://wiki.gentoo.org/wiki/SELinux/Tutorials/Managing_network_port_labels
+setsebool -P httpd_can_network_connect 1
+sudo cat /var/log/audit/audit.log | grep nginx | grep denied
+sudo cat /var/log/audit/audit.log | grep nginx | grep denied | audit2allow -M mynginx
+sudo semodule -i mynginx.pp
+setsebool -P httpd_can_network_relay 1"
+50,https://stackoverflow.com/questions/6590688/is-it-bad-to-have-my-virtualenv-directory-inside-my-git-repository,Is it bad to have my virtualenv directory inside my git repository?,"
+I'm thinking about putting the virtualenv for a Django web app I am making inside my git repository for the app. It seems like an easy way to keep deploy's simple and easy. Is there any reason why I shouldn't do this?","
+I use pip freeze to get the packages I need into a requirements.txt file and add that to my repository. I tried to think of a way of why you would want to store the entire virtualenv, but I could not."
+51,https://stackoverflow.com/questions/2882490/how-to-get-the-current-url-within-a-django-template,How to get the current URL within a Django template?,"
+I was wondering how to get the current URL within a template.
+Say my current URL is:
+.../user/profile/
+How do I return this to the template?
+.../user/profile/","
+Django 1.9 and above:
+## template
+{{ request.path }}  #  -without GET parameters 
+{{ request.get_full_path }}  # - with GET parameters
+Old:
+## settings.py
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.request',
+)
+
+## views.py
+from django.template import *
+
+def home(request):
+    return render_to_response('home.html', {}, context_instance=RequestContext(request))
+
+## template
+{{ request.path }}
+## template
+{{ request.path }}  #  -without GET parameters 
+{{ request.get_full_path }}  # - with GET parameters
+## settings.py
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.request',
+)
+
+## views.py
+from django.template import *
+
+def home(request):
+    return render_to_response('home.html', {}, context_instance=RequestContext(request))
+
+## template
+{{ request.path }}"
+52,https://stackoverflow.com/questions/7125467/find-object-in-list-that-has-attribute-equal-to-some-value-that-meets-any-condi,Find object in list that has attribute equal to some value (that meets any condition),"
+I've got a list of objects. I want to find one (first or whatever) object in this list that has an attribute (or method result - whatever) equal to value.
+What's the best way to find it?
+Here's a test case:
+class Test:
+    def __init__(self, value):
+        self.value = value
+
+import random
+
+value = 5
+
+test_list = [Test(random.randint(0,100)) for x in range(1000)]
+
+# that I would do in Pascal, I don't believe it's anywhere near 'Pythonic'
+for x in test_list:
+    if x.value == value:
+        print ""i found it!""
+        break
+I think using generators and reduce() won't make any difference because it still would be iterating through the list.
+ps.: Equation to value is just an example. Of course, we want to get an element that meets any condition.
+class Test:
+    def __init__(self, value):
+        self.value = value
+
+import random
+
+value = 5
+
+test_list = [Test(random.randint(0,100)) for x in range(1000)]
+
+# that I would do in Pascal, I don't believe it's anywhere near 'Pythonic'
+for x in test_list:
+    if x.value == value:
+        print ""i found it!""
+        break","
+next((x for x in test_list if x.value == value), None)
+This gets the first item from the list that matches the condition, and returns None if no item matches. It's my preferred single-expression form.
+However,
+for x in test_list:
+    if x.value == value:
+        print(""i found it!"")
+        break
+The naive loop-break version, is perfectly Pythonic -- it's concise, clear, and efficient. To make it match the behavior of the one-liner:
+for x in test_list:
+    if x.value == value:
+        print(""i found it!"")
+        break
+else:
+    x = None
+This will assign None to x if you don't break out of the loop.
+next((x for x in test_list if x.value == value), None)
+for x in test_list:
+    if x.value == value:
+        print(""i found it!"")
+        break
+for x in test_list:
+    if x.value == value:
+        print(""i found it!"")
+        break
+else:
+    x = None"
+53,https://stackoverflow.com/questions/2771676/django-datetime-issues-default-datetime-now,Django datetime issues (default=datetime.now()),"
+I have the below db model:
+from datetime import datetime    
+
+class TermPayment(models.Model):
+    # I have excluded fields that are irrelevant to the question
+    date = models.DateTimeField(default=datetime.now(), blank=True)
+I add a new instance by using the below:
+tp = TermPayment.objects.create(**kwargs)
+My issue: all records in database have the same value in date field, which is the date of the first payment. After the server restarts, one record has the new date and the other records have the same as the first. It looks as if some data is cached, but I can't find where.
+database: mysql 5.1.25
+django v1.1.1
+from datetime import datetime    
+
+class TermPayment(models.Model):
+    # I have excluded fields that are irrelevant to the question
+    date = models.DateTimeField(default=datetime.now(), blank=True)
+tp = TermPayment.objects.create(**kwargs)","
+it looks like datetime.now() is being evaluated when the model is defined, and not each time you add a record.
+Django has a feature to accomplish what you are trying to do already:
+date = models.DateTimeField(auto_now_add=True, blank=True)
+or
+date = models.DateTimeField(default=datetime.now, blank=True)
+The difference between the second example and what you currently have is the lack of parentheses. By passing datetime.now without the parentheses, you are passing the actual function, which will be called each time a record is added. If you pass it datetime.now(), then you are just evaluating the function and passing it the return value.
+More information is available at Django's model field reference
+date = models.DateTimeField(auto_now_add=True, blank=True)
+date = models.DateTimeField(default=datetime.now, blank=True)"
+54,https://stackoverflow.com/questions/11481499/django-iterate-number-in-for-loop-of-a-template,Django - iterate number in for loop of a template,"
+I have the following for loop in my django template displaying days. I wonder, whether it's possible to iterate a number (in the below case i) in a loop. Or do I have to store it in the database and then query it in form of days.day_number?
+{% for days in days_list %}
+    <h2># Day {{ i }} - From {{ days.from_location }} to {{ days.to_location }}</h2>
+{% endfor %}
+{% for days in days_list %}
+    <h2># Day {{ i }} - From {{ days.from_location }} to {{ days.to_location }}</h2>
+{% endfor %}","
+Django provides it. You can use either:
+{{ forloop.counter }} index starts at 1.
+{{ forloop.counter0 }} index starts at 0.
+In template, you can do:
+{% for item in item_list %}
+    {{ forloop.counter }} # starting index 1
+    {{ forloop.counter0 }} # starting index 0
+
+    # do your stuff
+{% endfor %}
+More info at: for | Built-in template tags and filters | Django documentation
+{% for item in item_list %}
+    {{ forloop.counter }} # starting index 1
+    {{ forloop.counter0 }} # starting index 0
+
+    # do your stuff
+{% endfor %}"
+55,https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django,How do I get user IP address in Django?,"
+How do I get user's IP in Django?
+I have a view like this:
+# Create your views
+from django.contrib.gis.utils import GeoIP
+from django.template import  RequestContext
+from django.shortcuts import render_to_response
+
+def home(request):
+  g = GeoIP()
+  client_ip = request.META['REMOTE_ADDR']
+  lat,long = g.lat_lon(client_ip)
+  return render_to_response('home_page_tmp.html',locals())
+But I get this error:
+KeyError at /mypage/
+    'REMOTE_ADDR'
+    Request Method: GET
+    Request URL:    http://mywebsite.example/mypage/
+    Django Version: 1.2.4
+    Exception Type: KeyError
+    Exception Value:
+    'REMOTE_ADDR'
+    Exception Location: /mysite/homepage/views.py in home, line 9
+    Python Executable:  /usr/bin/python
+    Python Version: 2.6.6
+    Python Path:    ['/mysite', '/usr/local/lib/python2.6/dist-packages/flup-1.0.2-py2.6.egg', '/usr/lib/python2.6', '/usr/lib/python2.6/plat-linux2', '/usr/lib/python2.6/lib-tk', '/usr/lib/python2.6/lib-old', '/usr/lib/python2.6/lib-dynload', '/usr/local/lib/python2.6/dist-packages', '/usr/lib/python2.6/dist-packages', '/usr/lib/pymodules/python2.6']
+    Server time:    Sun, 2 Jan 2011 20:42:50 -0600
+# Create your views
+from django.contrib.gis.utils import GeoIP
+from django.template import  RequestContext
+from django.shortcuts import render_to_response
+
+def home(request):
+  g = GeoIP()
+  client_ip = request.META['REMOTE_ADDR']
+  lat,long = g.lat_lon(client_ip)
+  return render_to_response('home_page_tmp.html',locals())
+KeyError at /mypage/
+    'REMOTE_ADDR'
+    Request Method: GET
+    Request URL:    http://mywebsite.example/mypage/
+    Django Version: 1.2.4
+    Exception Type: KeyError
+    Exception Value:
+    'REMOTE_ADDR'
+    Exception Location: /mysite/homepage/views.py in home, line 9
+    Python Executable:  /usr/bin/python
+    Python Version: 2.6.6
+    Python Path:    ['/mysite', '/usr/local/lib/python2.6/dist-packages/flup-1.0.2-py2.6.egg', '/usr/lib/python2.6', '/usr/lib/python2.6/plat-linux2', '/usr/lib/python2.6/lib-tk', '/usr/lib/python2.6/lib-old', '/usr/lib/python2.6/lib-dynload', '/usr/local/lib/python2.6/dist-packages', '/usr/lib/python2.6/dist-packages', '/usr/lib/pymodules/python2.6']
+    Server time:    Sun, 2 Jan 2011 20:42:50 -0600","
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+Make sure you have reverse proxy (if any) configured correctly (e.g. mod_rpaf installed for Apache).
+Note: the above uses the first item in X-Forwarded-For, but you might want to use the last item (e.g., in the case of Heroku: Get client's real IP address on Heroku)
+And then just pass the request as argument to it;
+get_client_ip(request)
+Django documentation for HttpRequest.META
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+get_client_ip(request)"
+56,https://stackoverflow.com/questions/3090302/how-do-i-get-the-object-if-it-exists-or-none-if-it-does-not-exist-in-django,"How do I get the object if it exists, or None if it does not exist in Django?","
+When I ask the model manager to get an object, it raises DoesNotExist when there is no matching object.
+go = Content.objects.get(name=""baby"")
+Instead of DoesNotExist, how can I have go be None instead?
+go = Content.objects.get(name=""baby"")","
+There is no 'built in' way to do this. Django will raise the DoesNotExist exception every time. The idiomatic way to handle this in python is to wrap it in a try catch:
+try:
+    go = SomeModel.objects.get(foo='bar')
+except SomeModel.DoesNotExist:
+    go = None
+What I did do, is to subclass models.Manager, create a safe_get like the code above and use that manager for my models. That way you can write: SomeModel.objects.safe_get(foo='bar').
+try:
+    go = SomeModel.objects.get(foo='bar')
+except SomeModel.DoesNotExist:
+    go = None"
+57,https://stackoverflow.com/questions/4668619/how-do-i-filter-query-objects-by-date-range-in-django,How do I filter query objects by date range in Django?,"
+I've got a field in one model like:
+class Sample(models.Model):
+    date = fields.DateField(auto_now=False)
+Now, I need to filter the objects by a date range.
+How do I filter all the objects that have a date between 1-Jan-2011 and 31-Jan-2011?
+class Sample(models.Model):
+    date = fields.DateField(auto_now=False)","
+Use
+Sample.objects.filter(date__range=[""2011-01-01"", ""2011-01-31""])
+Or if you are just trying to filter month wise:
+Sample.objects.filter(date__year='2011', 
+                      date__month='01')
+Edit
+As Bernhard Vallant said, if you want a queryset which excludes the specified range ends you should consider his solution, which utilizes gt/lt (greater-than/less-than).
+Sample.objects.filter(date__range=[""2011-01-01"", ""2011-01-31""])
+Sample.objects.filter(date__year='2011', 
+                      date__month='01')"
+58,https://stackoverflow.com/questions/1355150/when-saving-how-can-you-check-if-a-field-has-changed,"When saving, how can you check if a field has changed?","
+In my model I have :
+class Alias(MyBaseModel):
+remote_image = models.URLField(
+    max_length=500, null=True,
+    help_text='''
+        A URL that is downloaded and cached for the image.
+        Only used when the alias is made
+    '''
+)
+    image = models.ImageField(
+        upload_to='alias', default='alias-default.png',
+        help_text=""An image representing the alias""
+    )
+
+    
+    def save(self, *args, **kw):
+        if (not self.image or self.image.name == 'alias-default.png') and self.remote_image :
+            try :
+                data = utils.fetch(self.remote_image)
+                image = StringIO.StringIO(data)
+                image = Image.open(image)
+                buf = StringIO.StringIO()
+                image.save(buf, format='PNG')
+                self.image.save(
+                    hashlib.md5(self.string_id).hexdigest() + "".png"", ContentFile(buf.getvalue())
+                )
+            except IOError :
+                pass
+Which works great for the first time the remote_image changes.
+How can I fetch a new image when someone has modified the remote_image on the alias? And secondly, is there a better way to cache a remote image?
+class Alias(MyBaseModel):
+remote_image = models.URLField(
+    max_length=500, null=True,
+    help_text='''
+        A URL that is downloaded and cached for the image.
+        Only used when the alias is made
+    '''
+)
+    image = models.ImageField(
+        upload_to='alias', default='alias-default.png',
+        help_text=""An image representing the alias""
+    )
+
+    
+    def save(self, *args, **kw):
+        if (not self.image or self.image.name == 'alias-default.png') and self.remote_image :
+            try :
+                data = utils.fetch(self.remote_image)
+                image = StringIO.StringIO(data)
+                image = Image.open(image)
+                buf = StringIO.StringIO()
+                image.save(buf, format='PNG')
+                self.image.save(
+                    hashlib.md5(self.string_id).hexdigest() + "".png"", ContentFile(buf.getvalue())
+                )
+            except IOError :
+                pass","
+Essentially, you want to override the __init__ method of models.Model so that you keep a copy of the original value. This makes it so that you don't have to do another DB lookup (which is always a good thing).
+    class Person(models.Model):
+        name = models.CharField()
+
+        __original_name = None
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.__original_name = self.name
+
+        def save(self, force_insert=False, force_update=False, *args, **kwargs):
+            if self.name != self.__original_name:
+                # name changed - do something here
+
+            super().save(force_insert, force_update, *args, **kwargs)
+            self.__original_name = self.name
+    class Person(models.Model):
+        name = models.CharField()
+
+        __original_name = None
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.__original_name = self.name
+
+        def save(self, force_insert=False, force_update=False, *args, **kwargs):
+            if self.name != self.__original_name:
+                # name changed - do something here
+
+            super().save(force_insert, force_update, *args, **kwargs)
+            self.__original_name = self.name"
+59,https://stackoverflow.com/questions/1737017/django-auto-now-and-auto-now-add,Django auto_now and auto_now_add,"
+For Django 1.1.
+I have this in my models.py:
+class User(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+When updating a row I get:
+[Sun Nov 15 02:18:12 2009] [error] /home/ptarjan/projects/twitter-meme/django/db/backends/mysql/base.py:84: Warning: Column 'created' cannot be null
+[Sun Nov 15 02:18:12 2009] [error]   return self.cursor.execute(query, args)
+The relevant part of my database is:
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+Is this cause for concern?
+Side question: in my admin tool, those two fields aren't showing up. Is that expected?
+class User(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+[Sun Nov 15 02:18:12 2009] [error] /home/ptarjan/projects/twitter-meme/django/db/backends/mysql/base.py:84: Warning: Column 'created' cannot be null
+[Sun Nov 15 02:18:12 2009] [error]   return self.cursor.execute(query, args)
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,","
+Any field with the auto_now attribute set will also inherit editable=False and therefore will not show up in the admin panel. There has been talk in the past about making the auto_now and auto_now_add arguments go away, and although they still exist, I feel you're better off just using a custom save() method.
+So, to make this work properly, I would recommend not using auto_now or auto_now_add and instead define your own save() method to make sure that created is only updated if id is not set (such as when the item is first created), and have it update modified every time the item is saved.
+I have done the exact same thing with other projects I have written using Django, and so your save() would look like this:
+from django.utils import timezone
+
+class User(models.Model):
+    created     = models.DateTimeField(editable=False)
+    modified    = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created = timezone.now()
+        self.modified = timezone.now()
+        return super(User, self).save(*args, **kwargs)
+Edit in response to comments:
+The reason why I just stick with overloading save() vs. relying on these field arguments is two-fold:
+The aforementioned ups and downs with their reliability. These arguments are heavily reliant on the way each type of database that Django knows how to interact with treats a date/time stamp field, and seems to break and/or change between every release. (Which I believe is the impetus behind the call to have them removed altogether).
+The fact that they only work on DateField, DateTimeField, and TimeField, and by using this technique you are able to automatically populate any field type every time an item is saved.
+Use django.utils.timezone.now() vs. datetime.datetime.now(), because it will return a TZ-aware or naive datetime.datetime object depending on settings.USE_TZ.
+To address why the OP saw the error, I don't know exactly, but it looks like created isn't even being populated at all, despite having auto_now_add=True. To me it stands out as a bug, and underscores item #1 in my little list above: auto_now and auto_now_add are flaky at best.
+from django.utils import timezone
+
+class User(models.Model):
+    created     = models.DateTimeField(editable=False)
+    modified    = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created = timezone.now()
+        self.modified = timezone.now()
+        return super(User, self).save(*args, **kwargs)"
+60,https://stackoverflow.com/questions/2979369/databaseerror-current-transaction-is-aborted-commands-ignored-until-end-of-tra,"DatabaseError: current transaction is aborted, commands ignored until end of transaction block?","
+I got a lot of errors with the message :
+""DatabaseError: current transaction is aborted, commands ignored until end of transaction block""
+after changed from python-psycopg to python-psycopg2 as Django project's database engine.
+The code remains the same, just don't know where those errors are from.
+""DatabaseError: current transaction is aborted, commands ignored until end of transaction block""","
+This is what postgres does when a query produces an error and you try to run another query without first rolling back the transaction. (You might think of it as a safety feature, to keep you from corrupting your data.)
+To fix this, you'll want to figure out where in the code that bad query is being executed. It might be helpful to use the log_statement and log_min_error_statement options in your postgresql server."
+61,https://stackoverflow.com/questions/4733609/how-do-i-clone-a-django-model-instance-object-and-save-it-to-the-database,How do I clone a Django model instance object and save it to the database?,"
+Foo.objects.get(pk=""foo"")
+<Foo: test>
+In the database, I want to add another object which is a copy of the object above.
+Suppose my table has one row. I want to insert the first row object into another row with a different primary key. How can I do that?
+Foo.objects.get(pk=""foo"")
+<Foo: test>","
+Just change the primary key of your object and run save().
+obj = Foo.objects.get(pk=<some_existing_pk>)
+obj.pk = None
+obj.save()
+If you want auto-generated key, set the new key to None.
+More on UPDATE/INSERT here.
+Official docs on copying model instances: https://docs.djangoproject.com/en/2.2/topics/db/queries/#copying-model-instances
+obj = Foo.objects.get(pk=<some_existing_pk>)
+obj.pk = None
+obj.save()"
+62,https://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django,How to manage local vs production settings in Django?,"
+What is the recommended way of handling settings for local development and the production server? Some of them (like constants, etc) can be changed/accessed in both, but some of them (like paths to static files) need to remain different, and hence should not be overwritten every time the new code is deployed.
+Currently, I am adding all constants to settings.py. But every time I change some constant locally, I have to copy it to the production server and edit the file for production specific changes... :(
+Edit: looks like there is no standard answer to this question, I've accepted the most popular method.","
+In settings.py:
+try:
+    from local_settings import *
+except ImportError as e:
+    pass
+You can override what needed in local_settings.py; it should stay out of your version control then. But since you mention copying I'm guessing you use none ;)
+try:
+    from local_settings import *
+except ImportError as e:
+    pass"
+63,https://stackoverflow.com/questions/16853649/how-to-execute-a-python-script-from-the-django-shell,How to execute a Python script from the Django shell?,"
+I need to execute a Python script from the Django shell. I tried:
+./manage.py shell << my_script.py
+But it didn't work. It was just waiting for me to write something.
+./manage.py shell << my_script.py","
+The << part is wrong, use < instead:
+$ ./manage.py shell < myscript.py
+You could also do:
+$ ./manage.py shell
+...
+>>> execfile('myscript.py')
+For python3 you would need to use
+>>> exec(open('myscript.py').read())
+$ ./manage.py shell < myscript.py
+$ ./manage.py shell
+...
+>>> execfile('myscript.py')
+>>> exec(open('myscript.py').read())"
+64,https://stackoverflow.com/questions/4320679/django-display-choice-value,Django: Display Choice Value,"
+models.py:
+class Person(models.Model):
+    name = models.CharField(max_length=200)
+    CATEGORY_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+    gender = models.CharField(max_length=200, choices=CATEGORY_CHOICES)
+    to_be_listed = models.BooleanField(default=True)
+    description = models.CharField(max_length=20000, blank=True)
+views.py:
+def index(request):
+    latest_person_list2 = Person.objects.filter(to_be_listed=True)
+    return object_list(request, template_name='polls/schol.html',
+                       queryset=latest_person_list, paginate_by=5)
+On the template, when I call person.gender, I get 'M' or 'F' instead of 'Male' or 'Female'.
+How to display the value ('Male' or 'Female') instead of the code ('M'/'F')?
+class Person(models.Model):
+    name = models.CharField(max_length=200)
+    CATEGORY_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+    gender = models.CharField(max_length=200, choices=CATEGORY_CHOICES)
+    to_be_listed = models.BooleanField(default=True)
+    description = models.CharField(max_length=20000, blank=True)
+def index(request):
+    latest_person_list2 = Person.objects.filter(to_be_listed=True)
+    return object_list(request, template_name='polls/schol.html',
+                       queryset=latest_person_list, paginate_by=5)",
+65,https://stackoverflow.com/questions/3644902/how-to-check-if-a-user-is-logged-in-how-to-properly-use-user-is-authenticated,How to check if a user is logged in (how to properly use user.is_authenticated)?,"
+I am looking over this website but just can't seem to figure out how to do this as it's not working. I need to check if the current site user is logged in (authenticated), and am trying:
+request.user.is_authenticated
+despite being sure that the user is logged in, it returns just:
+>
+I'm able to do other requests (from the first section in the url above), such as:
+request.user.is_active
+which returns a successful response.
+request.user.is_authenticated
+>
+request.user.is_active","
+Update for Django 1.10+
+is_authenticated is now an attribute in Django 1.10.
+if request.user.is_authenticated:
+    # do something if the user is authenticated
+NB: The method was removed in Django 2.0.
+For Django 1.9 and older
+is_authenticated is a function. You should call it like
+if request.user.is_authenticated():
+    # do something if the user is authenticated
+As Peter Rowell pointed out, what may be tripping you up is that in the default Django template language, you don't tack on parenthesis to call functions. So you may have seen something like this in template code:
+{% if user.is_authenticated %}
+However, in Python code, it is indeed a method in the User class.
+if request.user.is_authenticated:
+    # do something if the user is authenticated
+if request.user.is_authenticated():
+    # do something if the user is authenticated
+{% if user.is_authenticated %}"
+66,https://stackoverflow.com/questions/1107737/numeric-for-loop-in-django-templates,Numeric for loop in Django templates,"
+How do I write a numeric for loop in a Django template? I mean something like
+for i = 1 to n
+for i = 1 to n",
+67,https://stackoverflow.com/questions/15128135/setting-debug-false-causes-500-error,Setting DEBUG = False causes 500 Error,"
+Once I change the DEBUG = False, my site will generate 500 (using wsgi & manage.py runserver), and there is no error info in Apache error log and it will run normally when I change debug to True .
+I'm using Django 1.5 & Python 2.7.3 here is Apache access log and without any log in apache error log
+www.beta800.net:80 222.247.56.11 - - [28/Feb/2013:13:42:28 +0800] ""GET / HTTP/1.1"" 500 257 ""-"" ""Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.97 Safari/537.22""
+www.beta800.net:80 222.247.56.11 - - [28/Feb/2013:13:42:28 +0800] ""GET /favicon.ico HTTP/1.1"" 500 257 ""-"" ""Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.97 Safari/537.22""
+www.beta800.net:80 222.247.56.11 - - [28/Feb/2013:13:42:28 +0800] ""GET /favicon.ico HTTP/1.1"" 500 257 ""-"" ""Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.97 Safari/537.22""
+Here is my settings file:
+import os.path    
+DEBUG = False 
+#TEMPLATE_DEBUG = DEBUG
+
+HERE = os.path.dirname(__file__)
+ADMINS = (
+    ('admin', 'xyzadmin@qq.com'),
+)
+
+MANAGERS = ADMINS
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'zdm',                      # Or path to database file if using sqlite3.
+        'USER': 'root',                      # Not used with sqlite3.
+        'PASSWORD': 'passwd',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+# Local time zone for this installation. Choices can be found here:
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
+# although not all choices may be available on all operating systems.
+# In a Windows environment this must be set to your system time zone.
+TIME_ZONE = 'America/Chicago'
+
+# Language code for this installation. All choices can be found here:
+# http://www.i18nguy.com/unicode/language-identifiers.html
+LANGUAGE_CODE = 'en-us'
+
+SITE_ID = 1
+
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
+USE_I18N = True
+
+# If you set this to False, Django will not format dates, numbers and
+# calendars according to the current locale.
+USE_L10N = True
+
+# If you set this to False, Django will not use timezone-aware datetimes.
+USE_TZ = True
+
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+# Example: ""/home/media/media.lawrence.com/media/""
+MEDIA_ROOT = ''
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash.
+# Examples: ""http://media.lawrence.com/media/"", ""http://example.com/media/""
+MEDIA_URL = ''
+
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' ""static/"" subdirectories and in STATICFILES_DIRS.
+# Example: ""/home/media/media.lawrence.com/static/""
+#STATIC_ROOT = os.path.join(HERE, 'static').replace('\\','/')
+
+# URL prefix for static files.
+# Example: ""http://media.lawrence.com/static/""
+STATIC_URL = '/static/'
+#STATIC_ROOT = os.path.join(HERE, 'static').replace('\\','/')
+S= os.path.join(HERE, 'static').replace('\\','/')
+
+# Additional locations of static files
+STATICFILES_DIRS = (
+    # Put strings here, like ""/home/html/static"" or ""C:/www/django/static"".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    '/home/zdm/static',
+)
+
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)
+
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = '9a7!^gp8ojyk-^^d@*whuw!0rml+r+uaie4ur$(do9zz_6!hy0'
+
+# List of callables that know how to import templates from various sources.
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+#     'django.template.loaders.eggs.Loader',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+ROOT_URLCONF = 'zdm.urls'
+
+# Python dotted path to the WSGI application used by Django's runserver.
+WSGI_APPLICATION = 'zdm.wsgi.application'
+
+TEMPLATE_DIRS = (
+    # Put strings here, like ""/home/html/django_templates"" or ""C:/www/django/templates"".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    '/home/zdm/templates',
+)
+
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # Uncomment the next line to enable the admin:
+    'django.contrib.admin',
+    # Uncomment the next line to enable admin documentation:
+    # 'django.contrib.admindocs',
+    'zdm',
+    'portal',
+    'admin',
+    'tagging',
+)
+www.beta800.net:80 222.247.56.11 - - [28/Feb/2013:13:42:28 +0800] ""GET / HTTP/1.1"" 500 257 ""-"" ""Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.97 Safari/537.22""
+www.beta800.net:80 222.247.56.11 - - [28/Feb/2013:13:42:28 +0800] ""GET /favicon.ico HTTP/1.1"" 500 257 ""-"" ""Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.97 Safari/537.22""
+www.beta800.net:80 222.247.56.11 - - [28/Feb/2013:13:42:28 +0800] ""GET /favicon.ico HTTP/1.1"" 500 257 ""-"" ""Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.97 Safari/537.22""
+import os.path    
+DEBUG = False 
+#TEMPLATE_DEBUG = DEBUG
+
+HERE = os.path.dirname(__file__)
+ADMINS = (
+    ('admin', 'xyzadmin@qq.com'),
+)
+
+MANAGERS = ADMINS
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'zdm',                      # Or path to database file if using sqlite3.
+        'USER': 'root',                      # Not used with sqlite3.
+        'PASSWORD': 'passwd',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+# Local time zone for this installation. Choices can be found here:
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
+# although not all choices may be available on all operating systems.
+# In a Windows environment this must be set to your system time zone.
+TIME_ZONE = 'America/Chicago'
+
+# Language code for this installation. All choices can be found here:
+# http://www.i18nguy.com/unicode/language-identifiers.html
+LANGUAGE_CODE = 'en-us'
+
+SITE_ID = 1
+
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
+USE_I18N = True
+
+# If you set this to False, Django will not format dates, numbers and
+# calendars according to the current locale.
+USE_L10N = True
+
+# If you set this to False, Django will not use timezone-aware datetimes.
+USE_TZ = True
+
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+# Example: ""/home/media/media.lawrence.com/media/""
+MEDIA_ROOT = ''
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash.
+# Examples: ""http://media.lawrence.com/media/"", ""http://example.com/media/""
+MEDIA_URL = ''
+
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' ""static/"" subdirectories and in STATICFILES_DIRS.
+# Example: ""/home/media/media.lawrence.com/static/""
+#STATIC_ROOT = os.path.join(HERE, 'static').replace('\\','/')
+
+# URL prefix for static files.
+# Example: ""http://media.lawrence.com/static/""
+STATIC_URL = '/static/'
+#STATIC_ROOT = os.path.join(HERE, 'static').replace('\\','/')
+S= os.path.join(HERE, 'static').replace('\\','/')
+
+# Additional locations of static files
+STATICFILES_DIRS = (
+    # Put strings here, like ""/home/html/static"" or ""C:/www/django/static"".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    '/home/zdm/static',
+)
+
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)
+
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = '9a7!^gp8ojyk-^^d@*whuw!0rml+r+uaie4ur$(do9zz_6!hy0'
+
+# List of callables that know how to import templates from various sources.
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+#     'django.template.loaders.eggs.Loader',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+ROOT_URLCONF = 'zdm.urls'
+
+# Python dotted path to the WSGI application used by Django's runserver.
+WSGI_APPLICATION = 'zdm.wsgi.application'
+
+TEMPLATE_DIRS = (
+    # Put strings here, like ""/home/html/django_templates"" or ""C:/www/django/templates"".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    '/home/zdm/templates',
+)
+
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # Uncomment the next line to enable the admin:
+    'django.contrib.admin',
+    # Uncomment the next line to enable admin documentation:
+    # 'django.contrib.admindocs',
+    'zdm',
+    'portal',
+    'admin',
+    'tagging',
+)","
+Django 1.5 introduced the allowed hosts setting that is required for security reasons. A settings file created with Django 1.5 has this new section which you need to add:
+# Hosts/domain names that are valid for this site; required if DEBUG is False
+# See https://docs.djangoproject.com/en/1.9/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = []
+Add your host here like ['www.beta800.net'] or ['*'] for a quick test, but don't use ['*'] for production.
+# Hosts/domain names that are valid for this site; required if DEBUG is False
+# See https://docs.djangoproject.com/en/1.9/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = []"
+68,https://stackoverflow.com/questions/3719243/best-practices-for-adding-gitignore-file-for-python-projects,Best practices for adding .gitignore file for Python projects? [closed],"
+Closed. This question is opinion-based. It is not currently accepting answers.
+Want to improve this question? Update the question so it can be answered with facts and citations by editing this post.
+Closed 4 years ago.
+Improve this question
+I'm trying to collect some of my default settings, and one thing I realized I don't have a standard for is .gitignore files. There's a great thread showing a good .gitignore for Visual Studio projects, but I don't see many recommendations for Python and related tools (PyGTK, Django).
+So far, I have...
+*.pyc
+*.pyo
+...for the compiled objects and...
+build/
+dist/
+...for the setuptools output.
+Are there best practices for .gitignore files, and where can I go for more about these best practices?
+*.pyc
+*.pyo
+build/
+dist/","
+When using buildout I have following in .gitignore (along with *.pyo and *.pyc):
+.installed.cfg
+bin
+develop-eggs
+dist
+downloads
+eggs
+parts
+src/*.egg-info
+lib
+lib64
+Thanks to Jacob Kaplan-Moss
+Also I tend to put .svn in since we use several SCM-s where I work.
+.installed.cfg
+bin
+develop-eggs
+dist
+downloads
+eggs
+parts
+src/*.egg-info
+lib
+lib64"
+69,https://stackoverflow.com/questions/42352841/how-to-update-an-existing-conda-environment-with-a-yml-file,How to update an existing Conda environment with a .yml file,"
+How can a pre-existing conda environment be updated with another .yml file. This is extremely helpful when working on projects that have multiple requirement files, i.e. base.yml, local.yml, production.yml, etc.
+For example, below is a base.yml file has conda-forge, conda, and pip packages:
+base.yml
+name: myenv
+channels:
+  - conda-forge
+dependencies:
+  - django=1.10.5
+  - pip:
+    - django-crispy-forms==1.6.1
+The actual environment is created with: conda env create -f base.yml.
+Later on, additional packages need to be added to base.yml. Another file, say local.yml, needs to import those updates.
+Previous attempts to accomplish this include:
+creating a local.yml file with an import definition:
+channels:
+
+dependencies:
+  - pip:
+    - boto3==1.4.4
+imports:
+  - requirements/base. 
+And then run the command: conda install -f local.yml.
+This does not work. Any thoughts?
+name: myenv
+channels:
+  - conda-forge
+dependencies:
+  - django=1.10.5
+  - pip:
+    - django-crispy-forms==1.6.1
+channels:
+
+dependencies:
+  - pip:
+    - boto3==1.4.4
+imports:
+  - requirements/base. ","
+Try using conda env update:
+conda activate myenv
+conda env update --file local.yml --prune
+--prune uninstalls dependencies which were removed from local.yml, as pointed out in this answer by @Blink.
+Or without the need to activate the environment (thanks @NumesSanguis):
+conda env update --name myenv --file local.yml --prune
+See Updating an environment in Conda User Guide.
+conda activate myenv
+conda env update --file local.yml --prune
+conda env update --name myenv --file local.yml --prune"
+70,https://stackoverflow.com/questions/15307623/cant-compare-naive-and-aware-datetime-now-challenge-datetime-end,Can't compare naive and aware datetime.now() <= challenge.datetime_end,"
+I am trying to compare the current date and time with dates and times specified in models using comparison operators:
+if challenge.datetime_start <= datetime.now() <= challenge.datetime_end:
+The script errors out with:
+TypeError: can't compare offset-naive and offset-aware datetimes
+The models look like this:
+class Fundraising_Challenge(models.Model):
+    name = models.CharField(max_length=100)
+    datetime_start = models.DateTimeField()
+    datetime_end = models.DateTimeField()
+I also have django using locale date and times.
+What I haven't been able to find is the format django uses for DateTimeField(). Is it naive or aware? And how do I get datetime.now() to recognize locale datetime?
+if challenge.datetime_start <= datetime.now() <= challenge.datetime_end:
+TypeError: can't compare offset-naive and offset-aware datetimes
+class Fundraising_Challenge(models.Model):
+    name = models.CharField(max_length=100)
+    datetime_start = models.DateTimeField()
+    datetime_end = models.DateTimeField()","
+By default, the datetime object is naive in Python, so you need to make both of them either naive or aware datetime objects. This can be done using:
+import datetime
+import pytz
+
+utc=pytz.UTC
+
+challenge.datetime_start = utc.localize(challenge.datetime_start) 
+challenge.datetime_end = utc.localize(challenge.datetime_end) 
+# now both the datetime objects are aware, and you can compare them
+Note: This would raise a ValueError if tzinfo is already set. If you are not sure about that, just use
+start_time = challenge.datetime_start.replace(tzinfo=utc)
+end_time = challenge.datetime_end.replace(tzinfo=utc)
+BTW, you could format a UNIX timestamp in datetime.datetime object with timezone info as following
+d = datetime.datetime.utcfromtimestamp(int(unix_timestamp))
+d_with_tz = datetime.datetime(
+    year=d.year,
+    month=d.month,
+    day=d.day,
+    hour=d.hour,
+    minute=d.minute,
+    second=d.second,
+    tzinfo=pytz.UTC)
+import datetime
+import pytz
+
+utc=pytz.UTC
+
+challenge.datetime_start = utc.localize(challenge.datetime_start) 
+challenge.datetime_end = utc.localize(challenge.datetime_end) 
+# now both the datetime objects are aware, and you can compare them
+start_time = challenge.datetime_start.replace(tzinfo=utc)
+end_time = challenge.datetime_end.replace(tzinfo=utc)
+d = datetime.datetime.utcfromtimestamp(int(unix_timestamp))
+d_with_tz = datetime.datetime(
+    year=d.year,
+    month=d.month,
+    day=d.day,
+    hour=d.hour,
+    minute=d.minute,
+    second=d.second,
+    tzinfo=pytz.UTC)"
+71,https://stackoverflow.com/questions/3287038/cron-and-virtualenv,Cron and virtualenv,"
+I am trying to run a Django management command from cron. I am using virtualenv to keep my project sandboxed.
+I have seen examples here and elsewhere that show running management commands from within virtualenv's like:
+0 3 * * * source /home/user/project/env/bin/activate && /home/user/project/manage.py command arg
+However, even though syslog shows an entry when the task should have started, this task never actually runs (the log file for the script is empty). If I run the line manually from the shell, it works as expected.
+The only way I can currently get the command to run via cron, is to break the commands up and put them in a dumb bash wrapper script:
+#!/bin/sh
+source /home/user/project/env/bin/activate
+cd /home/user/project/
+./manage.py command arg
+EDIT:
+ars came up with a working combination of commands:
+0 3 * * * cd /home/user/project && /home/user/project/env/bin/python /home/user/project/manage.py command arg
+At least in my case, invoking the activate script for the virtualenv did nothing. This works, so on with the show.
+0 3 * * * source /home/user/project/env/bin/activate && /home/user/project/manage.py command arg
+#!/bin/sh
+source /home/user/project/env/bin/activate
+cd /home/user/project/
+./manage.py command arg
+0 3 * * * cd /home/user/project && /home/user/project/env/bin/python /home/user/project/manage.py command arg","
+You should be able to do this by using the python in your virtual environment:
+/home/my/virtual/bin/python /home/my/project/manage.py command arg
+EDIT: If your django project isn't in the PYTHONPATH, then you'll need to switch to the right directory:
+cd /home/my/project && /home/my/virtual/bin/python ...
+You can also try to log the failure from cron:
+cd /home/my/project && /home/my/virtual/bin/python /home/my/project/manage.py > /tmp/cronlog.txt 2>&1
+Another thing to try is to make the same change in your manage.py script at the very top:
+#!/home/my/virtual/bin/python
+/home/my/virtual/bin/python /home/my/project/manage.py command arg
+cd /home/my/project && /home/my/virtual/bin/python ...
+cd /home/my/project && /home/my/virtual/bin/python /home/my/project/manage.py > /tmp/cronlog.txt 2>&1
+#!/home/my/virtual/bin/python"
+72,https://stackoverflow.com/questions/11241668/what-is-reverse,What is reverse()?,"
+When I read Django code sometimes, I see in some templates reverse(). I am not quite sure what this is but it is used together with HttpResponseRedirect. How and when is this reverse() supposed to be used?","
+reverse() | Django documentation
+Let's suppose that in your urls.py you have defined this:
+url(r'^foo$', some_view, name='url_name'),
+In a template you can then refer to this url as:
+<!-- django <= 1.4 -->
+<a href=""{% url url_name %}"">link which calls some_view</a>
+
+<!-- django >= 1.5 or with {% load url from future %} in your template -->
+<a href=""{% url 'url_name' %}"">link which calls some_view</a>
+This will be rendered as:
+<a href=""/foo/"">link which calls some_view</a>
+Now say you want to do something similar in your views.py - e.g. you are handling some other URL (not /foo/) in some other view (not some_view) and you want to redirect the user to /foo/ (often the case on successful form submission).
+You could just do:
+return HttpResponseRedirect('/foo/')
+But what if you want to change the URL in the future? You'd have to update your urls.py and all references to it in your code. This violates the DRY (Don't Repeat Yourself) principle and the whole idea of editing in one place only - which is something to strive for.
+Instead, you can say:
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+return HttpResponseRedirect(reverse('url_name'))
+This looks through all URLs defined in your project for the URL defined with the name url_name and returns the actual URL /foo/.
+This means that you refer to the URL only by its name attribute - if you want to change the URL itself or the view it refers to you can do this by editing one place only - urls.py.
+url(r'^foo$', some_view, name='url_name'),
+<!-- django <= 1.4 -->
+<a href=""{% url url_name %}"">link which calls some_view</a>
+
+<!-- django >= 1.5 or with {% load url from future %} in your template -->
+<a href=""{% url 'url_name' %}"">link which calls some_view</a>
+<a href=""/foo/"">link which calls some_view</a>
+return HttpResponseRedirect('/foo/')
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+return HttpResponseRedirect(reverse('url_name'))"
+73,https://stackoverflow.com/questions/9856683/using-pythons-os-path-how-do-i-go-up-one-directory,"Using Python's os.path, how do I go up one directory?","
+I recently upgrade Django from v1.3.1 to v1.4.
+In my old settings.py I have
+TEMPLATE_DIRS = (
+    os.path.join(os.path.dirname( __file__ ), 'templates').replace('\\', '/'),
+    # Put strings here, like ""/home/html/django_templates"" or ""C:/www/django/templates"".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+)
+This will point to /Users/hobbes3/Sites/mysite/templates, but because Django v1.4 moved the project folder to the same level as the app folders, my settings.py file is now in /Users/hobbes3/Sites/mysite/mysite/ instead of /Users/hobbes3/Sites/mysite/.
+So actually my question is now twofold:
+How do I use os.path to look at a directory one level above from __file__. In other words, I want /Users/hobbes3/Sites/mysite/mysite/settings.py to find /Users/hobbes3/Sites/mysite/templates using relative paths.
+Should I be keeping the template folder (which has cross-app templates, like admin, registration, etc.) at the project /User/hobbes3/Sites/mysite level or at /User/hobbes3/Sites/mysite/mysite?
+TEMPLATE_DIRS = (
+    os.path.join(os.path.dirname( __file__ ), 'templates').replace('\\', '/'),
+    # Put strings here, like ""/home/html/django_templates"" or ""C:/www/django/templates"".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+)","
+os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'templates'))
+As far as where the templates folder should go, I don't know since Django 1.4 just came out and I haven't looked at it yet. You should probably ask another question on SE to solve that issue.
+You can also use normpath to clean up the path, rather than abspath. However, in this situation, Django expects an absolute path rather than a relative path.
+For cross platform compatability, use os.pardir instead of '..'.
+os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'templates'))"
+74,https://stackoverflow.com/questions/550632/favorite-django-tips-features,Favorite Django Tips & Features?,"
+Locked. This question and its answers are locked because the question is off-topic but has historical significance. It is not currently accepting new answers or interactions.
+Inspired by the question series 'Hidden features of ...', I am curious to hear about your favorite Django tips or lesser known but useful features you know of.
+Please, include only one tip per answer.
+Add Django version requirements if there are any.",

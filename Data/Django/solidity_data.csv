@@ -1,0 +1,3443 @@
+,Links,Header-Question,Full-Question,Answers
+0,https://stackoverflow.com/questions/33839154/in-ethereum-solidity-what-is-the-purpose-of-the-memory-keyword,"In Ethereum Solidity, what is the purpose of the ""memory"" keyword?","
+When looking at sample contracts, sometimes arrays are declared in methods with ""memory"" and sometimes they aren't. What's the difference?","
+Without the memory keyword, Solidity tries to declare variables in storage.
+Lead Solidity dev chriseth: “You can think of storage as a large array that has a virtual structure… a structure you cannot change at runtime - it is determined by the state variables in your contract”.
+That is, the structure of storage is set in stone at the time of contract creation based on your contract-level variable declarations and cannot be changed by future method calls. BUT -- the contents of that storage can be changed with sendTransaction calls. Such calls change “state” which is why contract-level variables are called “state variables”. So a variable uint8 storage var; declared at the contract level can be changed to any valid value of uint8 (0-255) but that “slot” for a value of type uint8 will always be there.
+If you declare variables in functions without the memory keyword, then solidity will try to use the storage structure, which currently compiles, but can produce unexpected results. memory tells solidity to create a chunk of space for the variable at method runtime, guaranteeing its size and structure for future use in that method.
+memory cannot be used at the contract level. Only in methods.
+See the the entry ""What is the memory keyword? What does it do?"" in the FAQ. I quote it here:
+The Ethereum Virtual Machine has three areas where it can store items.
+The first is “storage”, where all the contract state variables reside. Every contract has its own storage and it is persistent between function calls and quite expensive to use.
+The second is “memory”, this is used to hold temporary values. It is erased between (external) function calls and is cheaper to use.
+The third one is the stack, which is used to hold small local variables. It is almost free to use, but can only hold a limited amount of values.
+For almost all types, you cannot specify where they should be stored, because they are copied everytime they are used.
+The types where the so-called storage location is important are structs and arrays. If you e.g. pass such variables in function calls, their data is not copied if it can stay in memory or stay in storage. This means that you can modify their content in the called function and these modifications will still be visible in the caller.
+There are defaults for the storage location depending on which type of variable it concerns:
+state variables are always in storage
+function arguments are always in memory
+local variables of struct, array or mapping type reference storage by default
+local variables of value type (i.e. neither array, nor struct nor mapping) are stored in the stack"
+1,https://stackoverflow.com/questions/48219716/what-is-address0-in-solidity,What is address(0) in Solidity,"
+Can anyone explain to me what address(0) is in Solidity? I found the following in the docs but it doesn't really make sense to me:
+If the target account is the zero-account (the account with the address 0), the transaction creates a new contract. As already mentioned, the address of that contract is not the zero address but an address derived from the sender and its number of transactions sent (the “nonce”). The payload of such a contract creation transaction is taken to be EVM bytecode and executed. The output of this execution is permanently stored as the code of the contract. This means that in order to create a contract, you do not send the actual code of the contract, but in fact code that returns that code.
+http://solidity.readthedocs.io/en/develop/introduction-to-smart-contracts.html?highlight=address(0)#index-8",
+2,https://stackoverflow.com/questions/58258808/data-location-must-be-memory-for-return-parameter-in-function-but-none-was-gi,"Data location must be ""memory"" for return parameter in function, but none was given","
+I tried solidity example like as above in remix, solidity version > 0.5.0 But I am getting this error now. What is the way to solve this error?
+contract MyContract {
+    string value;
+
+    function get() public view returns (string) {
+        return value;
+    }
+
+    function set(string _value) public {
+        value = _value;
+    }
+
+    constructor() public {
+        value = ""myValue"";
+    }
+}","
+You should add memory keyword for string parameter, which was introduced in solidity version 0.5.0
+As per the documentation:
+Explicit data location for all variables of struct, array or mapping types is now mandatory. This is also applied to function parameters and return variables. For example, change uint[] x = m_x to uint[] storage x = m_x, and function f(uint[][] x) to function f(uint[][] memory x) where memory is the data location and might be replaced by storage or calldata accordingly. Note that external functions require parameters with a data location of calldata.
+Corrected code
+contract MyContract {
+    string value;
+
+    function get() public view returns (string memory) {
+        return value;
+    }
+
+    function set(string memory _value) public {
+        value = _value;
+    }
+
+    constructor() public {
+        value = ""myValue"";
+    }
+}
+Refer to official documentation on breaking changes made in version 0.5.0"
+3,https://stackoverflow.com/questions/65234522/warning-spdx-license-identifier-not-provided-in-source-file,Warning: SPDX license identifier not provided in source file,"
+I created a new solidity contract. The contract is up and running but giving me this warning.
+Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing ""SPDX-License-Identifier: <SPDX-License>"" to each source file. Use ""SPDX-License-Identifier: UNLICENSED"" for non-open-source code. Please see https://spdx.org for more information.
+There are no errors while compilation.
+The Compiler version I am using in https://remix.ethereum.org/ is v0.7.5+commit.eb77ed08 Language: Solidity EVM VERSION: compiler default
+Whenever I press compile it gives me the warning but there is no problem while deploying.
+My code snippet:
+pragma solidity ^0.7.5;
+contract TestContract {
+// Some logic
+}","
+From Solidity ^0.6.8 SPDX license is introduced. So you need to use SPDX-License-Identifier in the code.
+Have a look at this: https://forum.openzeppelin.com/t/solidity-0-6-8-introduces-spdx-license-identifiers/2859
+For example in your code you need to use license identifier like
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.5;
+contract TestContract {
+// Some logic
+}
+You need to use license according to your project. Some other licenses are:
+// SPDX-License-Identifier: GPL-3.0-or-later
+You can find list of licenses here: https://spdx.org/licenses/"
+4,https://stackoverflow.com/questions/37852682/are-there-null-like-thing-in-solidity,Are there null like thing in solidity,"
+    struct buyer{
+       uint amount;
+       Status status;
+    }
+
+    mapping(address=>buyer) public buyers;
+    mapping(uint=>address) buyerIndex;
+    uint public buyerNum;
+    //Order a product.
+    function(){
+      uint doubleValue=value*2;
+      uint amount=msg.value/doubleValue; 
+      if(buyers[msg.sender]==null){ //Error in this line
+      buyer abuyer=buyer({amount:amount,status:Status.Created}); //Error in this line
+      buyerNum++;
+      buyerIndex[buyerNum]=msg.sender;
+      buyers[msg.sender]=abuyer;
+    }else{
+      buyers[msg.sender].amount+=amount;
+    }
+      Order(msg.sender,amount*doubleValue,amount);
+
+ }
+If a buyer is not recorded in the buyer mapping, then buyerNum++; but I don't know how to tell whether a buyer is in the mapping",
+5,https://stackoverflow.com/questions/47129173/how-to-convert-uint-to-string-in-solidity,How to convert uint to string in solidity?,"
+In Solidity, is there a way I can convert my int to string ?
+Example:
+pragma solidity ^0.4.4;
+
+contract someContract {
+
+    uint i;
+
+    function test() pure returns (string) {
+
+      return ""Here and Now is Happiness!"";
+
+    }
+
+    function love() pure returns(string) {
+
+        i = i +1;
+
+        return ""I love "" + functionname(i) + "" persons"" ;
+    }
+
+
+
+}
+What is functionname?Thanks!","
+The two post here are giving the responses :
+https://ethereum.stackexchange.com/questions/10811/solidity-concatenate-uint-into-a-string
+https://ethereum.stackexchange.com/questions/10932/how-to-convert-string-to-int
+function uintToString(uint v) constant returns (string str) {
+        uint maxlength = 100;
+        bytes memory reversed = new bytes(maxlength);
+        uint i = 0;
+        while (v != 0) {
+            uint remainder = v % 10;
+            v = v / 10;
+            reversed[i++] = byte(48 + remainder);
+        }
+        bytes memory s = new bytes(i + 1);
+        for (uint j = 0; j <= i; j++) {
+            s[j] = reversed[i - j];
+        }
+        str = string(s);
+    }
+Regards"
+6,https://stackoverflow.com/questions/37644395/how-to-find-out-if-an-ethereum-address-is-a-contract,How to find out if an Ethereum address is a contract?,"
+An address in Solidity can be an account or a contract (or other things, such as a transaction). When I have a variable x, holding an address, how can I test if it is a contract or not?
+(Yes, I've read the chapter on types in the doc)","
+Edit: Solidity has changed since this answer was first written, @manuel-aráoz has the correct answer.
+There is no way in solidity to check if an address is a contract. One of the goals of Ethereum is for humans and smart contracts to both be treated equally. This leads into a future where smart contracts interact seamlessly with humans and other contracts. It might change in the future , but for now an arbitrary address is ambiguous."
+7,https://stackoverflow.com/questions/70051896/why-do-i-get-the-error-method-eth-maxpriorityfeepergas-not-supported-when-i-tr,"Why do I get the error ""Method eth_maxPriorityFeePerGas not supported"" when I try to run Web3py with Ganache?","
+Running Web3.py with Ganache-cli returns this error:
+Method eth_maxPriorityFeePerGas not supported.
+However this does work when working with a test-network like Ropsten directly without Ganache-cli.
+Running this code in following a tutorial:
+from solcx import compile_standard, install_solc
+import json
+from web3 import Web3
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+with open(""./SimpleStorage.sol"", ""r"") as file:
+    simple_storage_file = file.read()
+
+install_solc(""0.6.0"")
+
+compiled_sol = compile_standard(
+    {
+        ""language"": ""Solidity"",
+        ""sources"": {""SimpleStorage.sol"": {""content"": simple_storage_file}},
+        ""settings"": {
+            ""outputSelection"": {
+                ""*"": {""*"": [""abi"", ""metadata"", ""evm.bytecode"", ""evm.sourceMap""]}
+            }
+        },
+    },
+    solc_version=""0.6.0"",
+)
+
+with open(""compiled_code.json"", ""w"") as file:
+    json.dump(compiled_sol, file)
+
+bytecode = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""evm""][
+    ""bytecode""
+][""object""]
+
+abi = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""abi""]
+
+w3 = Web3(Web3.HTTPProvider(""HTTP://127.0.0.1:7545""))
+chain_id = 1337
+my_address = ""0x3d5CDfCea81141d7C839938095912F594b566Ab8""
+private_key = os.getenv(""private_key"")
+
+SimpleStorage = w3.eth.contract(abi=abi, bytecode=bytecode)
+
+nonce = w3.eth.getTransactionCount(my_address)
+
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""from"": my_address, ""nonce"": nonce}
+)
+
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=private_key)
+
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+I get this error in the terminal:
+Traceback (most recent call last):
+  File ""C:\Users\Axceus\Desktop\demos\web3_py_simple_storage\deploy.py"", line 54, in <module>
+    transaction = SimpleStorage.constructor().buildTransaction(
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\eth_utils\decorators.py"", line 18, in _wrapper
+    return self.method(obj, *args, **kwargs)
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\contract.py"", line 684, in buildTransaction
+    return fill_transaction_defaults(self.web3, built_transaction)
+  File ""cytoolz/functoolz.pyx"", line 250, in cytoolz.functoolz.curry.__call__
+    return self.func(*args, **kwargs)
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\_utils\transactions.py"", line 121, in fill_transaction_defaults
+    default_val = default_getter(web3, transaction)
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\_utils\transactions.py"", line 71, in <lambda>
+    web3.eth.max_priority_fee + (2 * web3.eth.get_block('latest')['baseFeePerGas'])
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\eth.py"", line 549, in max_priority_fee
+    return self._max_priority_fee()
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\module.py"", line 57, in caller
+    result = w3.manager.request_blocking(method_str,
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\manager.py"", line 198, in request_blocking
+    return self.formatted_response(response,
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\manager.py"", line 171, in formatted_response
+    raise ValueError(response[""error""])
+ValueError: {'message': 'Method eth_maxPriorityFeePerGas not supported.', 'code': -32000, 'data': {'stack': 'Error: Method eth_maxPriorityFeePerGas not supported.\n    at GethApiDouble.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\geth_api_double.js:70:16)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at GethDefaults.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\gethdefaults.js:15:12)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at SubscriptionSubprovider.FilterSubprovider.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\subproviders\\filters.js:89:7)\n    at SubscriptionSubprovider.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\subproviders\\subscriptions.js:137:49)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at DelayedBlockFilter.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\delayedblockfilter.js:31:3)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at RequestFunnel.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\requestfunnel.js:32:12)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at Web3ProviderEngine._handleAsync (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:123:3)\n    at Timeout._onTimeout (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:107:12)\n    at listOnTimeout (internal/timers.js:531:17)\n    at processTimers (internal/timers.js:475:7)', 'name': 'Error'}}
+from solcx import compile_standard, install_solc
+import json
+from web3 import Web3
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+with open(""./SimpleStorage.sol"", ""r"") as file:
+    simple_storage_file = file.read()
+
+install_solc(""0.6.0"")
+
+compiled_sol = compile_standard(
+    {
+        ""language"": ""Solidity"",
+        ""sources"": {""SimpleStorage.sol"": {""content"": simple_storage_file}},
+        ""settings"": {
+            ""outputSelection"": {
+                ""*"": {""*"": [""abi"", ""metadata"", ""evm.bytecode"", ""evm.sourceMap""]}
+            }
+        },
+    },
+    solc_version=""0.6.0"",
+)
+
+with open(""compiled_code.json"", ""w"") as file:
+    json.dump(compiled_sol, file)
+
+bytecode = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""evm""][
+    ""bytecode""
+][""object""]
+
+abi = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""abi""]
+
+w3 = Web3(Web3.HTTPProvider(""HTTP://127.0.0.1:7545""))
+chain_id = 1337
+my_address = ""0x3d5CDfCea81141d7C839938095912F594b566Ab8""
+private_key = os.getenv(""private_key"")
+
+SimpleStorage = w3.eth.contract(abi=abi, bytecode=bytecode)
+
+nonce = w3.eth.getTransactionCount(my_address)
+
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""from"": my_address, ""nonce"": nonce}
+)
+
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=private_key)
+
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+Traceback (most recent call last):
+  File ""C:\Users\Axceus\Desktop\demos\web3_py_simple_storage\deploy.py"", line 54, in <module>
+    transaction = SimpleStorage.constructor().buildTransaction(
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\eth_utils\decorators.py"", line 18, in _wrapper
+    return self.method(obj, *args, **kwargs)
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\contract.py"", line 684, in buildTransaction
+    return fill_transaction_defaults(self.web3, built_transaction)
+  File ""cytoolz/functoolz.pyx"", line 250, in cytoolz.functoolz.curry.__call__
+    return self.func(*args, **kwargs)
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\_utils\transactions.py"", line 121, in fill_transaction_defaults
+    default_val = default_getter(web3, transaction)
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\_utils\transactions.py"", line 71, in <lambda>
+    web3.eth.max_priority_fee + (2 * web3.eth.get_block('latest')['baseFeePerGas'])
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\eth.py"", line 549, in max_priority_fee
+    return self._max_priority_fee()
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\module.py"", line 57, in caller
+    result = w3.manager.request_blocking(method_str,
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\manager.py"", line 198, in request_blocking
+    return self.formatted_response(response,
+  File ""C:\Users\Axceus\AppData\Local\Programs\Python\Python310\lib\site-packages\web3\manager.py"", line 171, in formatted_response
+    raise ValueError(response[""error""])
+ValueError: {'message': 'Method eth_maxPriorityFeePerGas not supported.', 'code': -32000, 'data': {'stack': 'Error: Method eth_maxPriorityFeePerGas not supported.\n    at GethApiDouble.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\geth_api_double.js:70:16)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at GethDefaults.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\gethdefaults.js:15:12)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at SubscriptionSubprovider.FilterSubprovider.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\subproviders\\filters.js:89:7)\n    at SubscriptionSubprovider.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\subproviders\\subscriptions.js:137:49)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at DelayedBlockFilter.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\delayedblockfilter.js:31:3)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at RequestFunnel.handleRequest (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\lib\\subproviders\\requestfunnel.js:32:12)\n    at next (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:136:18)\n    at Web3ProviderEngine._handleAsync (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:123:3)\n    at Timeout._onTimeout (C:\\Program Files\\WindowsApps\\GanacheUI_2.5.4.0_x64__5dg5pnz03psnj\\app\\resources\\static\\node\\node_modules\\ganache-core\\node_modules\\web3-provider-engine\\index.js:107:12)\n    at listOnTimeout (internal/timers.js:531:17)\n    at processTimers (internal/timers.js:475:7)', 'name': 'Error'}}",
+8,https://stackoverflow.com/questions/68289806/no-safetransferfrom-function-in-ethers-js-contract-instance,No safeTransferFrom function in ethers.js contract instance?,"
+I created a contract instance in hardhat console like so:
+const contract_fac = await ethers.getContractFactory(""ContractName"");
+const contract = await contract_fac.attach(""CONTRACTADDR..."");
+Contract object has all public/external functions except safeTransferFrom. Why?
+When I call it with contract.safeTransferFrom(…) it throws JavaScript Error “safeTransferFrom is not a function”. Is this a bug or do I not understand something? safeTransferFrom function is listed in the ABI.
+I use OpenZeppelin (v. 4.2) 721 token template without changes, Ethers.js (v. 5.4.1) and hardhat (v. 2.4.1).
+Update: Problem solved. safeTransferFrom is a overloaded function. In ethers, the syntax to call an overloaded contract function is different from the non-overloaded function. Ethers.js doc
+Wrong:
+contract.safeTransferFrom(addr1, addr2, 1);
+Correct:
+contract[""safeTransferFrom(address,address,uint256)""](addr1, addr2, 1);",
+9,https://stackoverflow.com/questions/67321111/file-import-callback-not-supported,File import callback not supported?,"
+Tried to run:
+1.) Dappuniversity project (dappuniversity/dbank) 2.) pet-shop-tutorial
+Truffle v5.3.3 (core: 5.3.3) Node v14.15.5
+How can ser compile code @ the 0.8.4 to import OpenZeppelin’s ERC20.sol template, when Truffle requires it’s compiler/solc to match 5.3.3?
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.4;
+
+import ""@openzeppelin/contracts/token/ERC20/ERC20.sol"";
+
+contract Token is ERC20 {
+
+  //add minter variable
+
+  //add minter changed event
+
+  constructor() public payable ERC20(""Name"", ""Symbol"") {
+
+    //assign initial minter
+
+  }
+
+  //Add pass minter role function
+
+  function mint(address account, uint256 amount) public {
+
+    //check if msg.sender has a minter role
+
+    _mint(account, amount);
+
+  }
+
+}
+Source “@openzeppelin/contracts/token/ERC20/ERC20.sol” not found: File import callback not supported",
+10,https://stackoverflow.com/questions/66799537/member-push-not-found-or-not-visible-after-argument-dependent-lookup-in-addres,"Member ""push"" not found or not visible after argument-dependent lookup in address payable[] storage ref","
+In the statement players.push(msg.sender); I am getting following error:
+Member ""push"" not found or not visible after argument-dependent lookup in address payable[] storage ref.
+Thus I cannot push to address payable array in solidity. What's the workaround here?
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.7.0;
+
+contract Lottery {
+    address public manager;
+    address payable[] public players;
+
+    constructor() {
+        manager = msg.sender;
+    }
+
+    function enter() public payable {
+        players.push(msg.sender);            // ERROR IN THIS LINE
+    }
+}","
+If you're compiling with Solidity 0.7, everything works fine.
+This error shows in Solidity 0.8, and it's because in 0.8 msg.sender is not automatically payable anymore. So you need to make it payable first:
+players.push(payable(msg.sender));
+From the docs page Solidity v0.8.0 Breaking Changes:
+The global variables tx.origin and msg.sender have the type address instead of address payable. One can convert them into address payable by using an explicit conversion, i.e., payable(tx.origin) or payable(msg.sender)."
+11,https://stackoverflow.com/questions/48562483/solidity-basics-what-msg-sender-stands-for,"Solidity basics: what ""msg.sender"" stands for","
+I just started to learn Solidity as a personal challenge. I'm not a developer so I've a loooooong way to go.
+I'm following the Ethereum.org tutorial, here is what I've got doubt about: What does [msg.sender] stand for? I guess it is the wallet address of who triggered the contract, but I'm not sure.",
+12,https://stackoverflow.com/questions/48848948/how-to-generate-a-random-number-in-solidity,How to generate a random number in solidity?,"
+I have a couple of keccaks, which could be reduced to one if I would find a cheap way to get parts of the created uint.
+pragma solidity ^0.4.19;
+
+contract test {
+  function test() {
+
+  }
+
+function sup() returns (uint test) {
+    uint _test = uint(keccak256(""wow""));
+    return _test;
+  }
+}
+This returns me a sweet random number: 13483274892375982735325
+Now the plan is that instead of calling keccak 5 times with different ""seeds"", I could take that number apart and get something like: 1348, 3274, 8923 etc. which I then use for my random number e.g.: 1348 % 10
+But solidity can't just do that. Is there anything cheap that could work?",
+13,https://stackoverflow.com/questions/67341914/error-send-and-transfer-are-only-available-for-objects-of-type-address-payable,"ERROR send and transfer are only available for objects of type address payable , not address","
+function finalizeRequest(uint index) public restricted {
+    Request storage request = requests[index];
+    
+    require(request.approvalCount > (approversCount / 2));
+    require(!request.complete);
+    
+    request.recipient.transfer(request.value);
+    request.complete = true;
+}
+error line ---> request.recipient.transfer(request.value);
+can someone help me with this? Thank you.
+solidity version I'm using:
+pragma solidity >0.4.17 <0.8.0;","
+You need to mark the request.recipient as payable
+payable(request.recipient).transfer(request.value);
+From the docs page Solidity v0.8.0 Breaking Changes:
+The global variables tx.origin and msg.sender have the type address instead of address payable. One can convert them into address payable by using an explicit conversion, i.e., payable(tx.origin) or payable(msg.sender)."
+14,https://stackoverflow.com/questions/51250211/converting-object-promise-to-string-in-javascript,Converting Object Promise to String in Javascript,"
+I'm working with React, Next.Js, semantic-ui-react and Solidity. It is my goal to print out the users address (from MetaMask) and a ProjectTitle (set by User) as meta infomation for a semantic-ui-react card. To print out the address in the 'header' is working, but I'm not able to print out the ProjectTitle as 'meta'. The Title should be a String but I'm receiving a Object Promise.
+static async getInitialProps() {
+    const projects = await factory.methods.getDeployedProjects().call();
+    return {
+        projects
+    };
+}
+
+async getProjectTitle(address) {
+    let title;
+    try {
+        title = await factory.methods.projectTitle(address).call();
+    } catch (err) {
+        console.log('err');
+    }
+    return title;
+}
+
+renderProjects() {
+    const items = this.props.projects.map(address => {
+        return {
+            header: address,
+            color: 'green',
+            description: (
+                <Link route={`/projects/${address}`}>
+                    <a>View Project</a>
+                </Link>
+            ),
+            **meta: this.getProjectTitle(address)**,
+            fluid: true,
+            style: { overflowWrap: 'break-word' }
+        };
+    }, );
+    return <Card.Group items={items} />
+}
+Part of the Solidity Contract:
+address[] public deployedProjects;
+mapping(address => string) public projectTitle;
+
+function createProject(string startup, string title, string deadline, string description, uint wage) public {
+    address newProject = new Project(startup, title, deadline, description, wage, msg.sender);
+    projectTitle[newProject] = title;
+    deployedProjects.push(newProject);
+}
+
+function getDeployedProjects() public view returns (address[]) {
+    return (
+        deployedProjects
+    );
+}
+The basic framework is from the Udemy Course ""Ethereum and Solidity: The Complete Developer's Guide"" by Stephen Grider.
+static async getInitialProps() {
+    const projects = await factory.methods.getDeployedProjects().call();
+    return {
+        projects
+    };
+}
+
+async getProjectTitle(address) {
+    let title;
+    try {
+        title = await factory.methods.projectTitle(address).call();
+    } catch (err) {
+        console.log('err');
+    }
+    return title;
+}
+
+renderProjects() {
+    const items = this.props.projects.map(address => {
+        return {
+            header: address,
+            color: 'green',
+            description: (
+                <Link route={`/projects/${address}`}>
+                    <a>View Project</a>
+                </Link>
+            ),
+            **meta: this.getProjectTitle(address)**,
+            fluid: true,
+            style: { overflowWrap: 'break-word' }
+        };
+    }, );
+    return <Card.Group items={items} />
+}
+address[] public deployedProjects;
+mapping(address => string) public projectTitle;
+
+function createProject(string startup, string title, string deadline, string description, uint wage) public {
+    address newProject = new Project(startup, title, deadline, description, wage, msg.sender);
+    projectTitle[newProject] = title;
+    deployedProjects.push(newProject);
+}
+
+function getDeployedProjects() public view returns (address[]) {
+    return (
+        deployedProjects
+    );
+}","
+There is no direct way to convert an Object Promise into a String. The only way to continue processing is to call an await function or use .then() and a callback function."
+15,https://stackoverflow.com/questions/37606839/how-to-return-mapping-list-in-solidity-ethereum-contract,How to return mapping list in Solidity? (Ethereum contract),"
+I want to make a simple smart contract that has a list, can set item, and can get the list.
+Code in solidity:
+contract lister {
+    mapping(int => string) list;
+    int id = 0;
+    
+    function getList() returns ( /*HERE*/ ) {
+        return list;
+    }
+
+    function setItemToList(string str) {
+        list[id] = str;
+        id++;
+    }
+}
+I want to make getList() return the list, but the return type is not compatible. How can I do that?","
+Bulk access to lists/arrays/etc is painful in Solidity. You rarely see it in contracts. In your case, a possible solution is to provide a function to access one item, using its index, and to let the caller loop from 0 to id."
+16,https://stackoverflow.com/questions/56221938/module-is-extraneous-npm,Module is extraneous npm,"
+I've checked that the connect-privkey-to-provider module is in the dependencies. However, it keeps saying Module 'connect-privkey-to-provider' is extraneous npm and cannot find module 'connect-privkey-to-provider'.
+What's wrong with my code?
+PS C:\Users\1Sun\addition-game-starter> truffle deploy --network klaytn Error: Cannot find module 'connect-privkey-to-provider' at Function.Module._resolveFilename (internal/modules/cjs/loader.js:582:15) at Function.Module._load (internal/modules/cjs/loader.js:508:25) at Module.require (internal/modules/cjs/loader.js:637:17) at require (internal/modules/cjs/helpers.js:22:18) at Object. (C:\Users\1Sun\addition-game-starter\truffle.js:2:29) at Module._compile (internal/modules/cjs/loader.js:701:30) at Object.Module._extensions..js (internal/modules/cjs/loader.js:712:10) at Module.load (internal/modules/cjs/loader.js:600:32) at tryModuleLoad (internal/modules/cjs/loader.js:539:12) at Function.Module._load (internal/modules/cjs/loader.js:531:3) at Module.require (internal/modules/cjs/loader.js:637:17) at require (internal/modules/cjs/helpers.js:22:18) at Function.Config.load (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\truffle-config\index.js:254:1) at Function.Config.detect (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\truffle-config\index.js:243:1) at Object.run (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\truffle-core\lib\commands\migrate.js:35:1) at Command.run (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\truffle-core\lib\command.js:101:1) at Object. (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\truffle-core\cli.js:22:1) at webpack_require (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\webpack\bootstrap 0791995565e53f633c90:19:1) at C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\webpack:\webpack\bootstrap 0791995565e53f633c90:65:1 at Object. (C:\Users\1Sun\AppData\Roaming\npm\node_modules\truffle\build\cli.bundled.js:71:10) at Module._compile (internal/modules/cjs/loader.js:701:30)
+package.json
+{
+  ""name"": ""klay-dapp-boilerplate"",
+  ""version"": ""0.0.1"",
+  ""description"": ""boilerplate for klaytn-based app"",
+  ""main"": ""truffle.js"",
+  ""scripts"": {
+    ""build"": ""webpack"",
+    ""dev"": ""webpack-dev-server""
+  },
+  ""dependencies"": {
+    ""caver-js"": ""^0.0.2-m"",
+    ""connect-privkey-to-provider"": ""^0.0.3"",
+    ""spin.js"": ""^4.0.0""
+  },
+  ""devDependencies"": {
+    ""copy-webpack-plugin"": ""^4.6.0"",
+    ""eslint"": ""^4.19.1"",
+    ""webpack"": ""^4.7.0"",
+    ""webpack-cli"": ""^3.1.1"",
+    ""webpack-dev-server"": ""^3.1.4""
+  },
+  ""eslintConfig"": {
+    ""env"": {
+      ""browser"": true,
+      ""node"": true
+    }
+  }
+}
+truffle.js
+// truffle.js config for klaytn.
+const PrivateKeyConnector = require('connect-privkey-to-provider')
+const NETWORK_ID = '1001'
+const GASLIMIT = '20000000'
+const URL ='https://api.baobab.klaytn.net:8651'
+const PRIVATE_KEY = '0x80ea7e298ba2cbf484e6c0c0703ccf2ea94be7f8a1a097fc013042b4888a2e80'
+
+module.exports = {
+    networks: {
+        klaytn: {
+            provider: new PrivateKeyConnector(PRIVATE_KEY, URL),
+            network_id: NETWORK_ID,
+            gas: GASLIMIT,
+            gasPrice: null,
+        }
+    }
+}
+Error
+{
+  ""name"": ""klay-dapp-boilerplate"",
+  ""version"": ""0.0.1"",
+  ""description"": ""boilerplate for klaytn-based app"",
+  ""main"": ""truffle.js"",
+  ""scripts"": {
+    ""build"": ""webpack"",
+    ""dev"": ""webpack-dev-server""
+  },
+  ""dependencies"": {
+    ""caver-js"": ""^0.0.2-m"",
+    ""connect-privkey-to-provider"": ""^0.0.3"",
+    ""spin.js"": ""^4.0.0""
+  },
+  ""devDependencies"": {
+    ""copy-webpack-plugin"": ""^4.6.0"",
+    ""eslint"": ""^4.19.1"",
+    ""webpack"": ""^4.7.0"",
+    ""webpack-cli"": ""^3.1.1"",
+    ""webpack-dev-server"": ""^3.1.4""
+  },
+  ""eslintConfig"": {
+    ""env"": {
+      ""browser"": true,
+      ""node"": true
+    }
+  }
+}
+// truffle.js config for klaytn.
+const PrivateKeyConnector = require('connect-privkey-to-provider')
+const NETWORK_ID = '1001'
+const GASLIMIT = '20000000'
+const URL ='https://api.baobab.klaytn.net:8651'
+const PRIVATE_KEY = '0x80ea7e298ba2cbf484e6c0c0703ccf2ea94be7f8a1a097fc013042b4888a2e80'
+
+module.exports = {
+    networks: {
+        klaytn: {
+            provider: new PrivateKeyConnector(PRIVATE_KEY, URL),
+            network_id: NETWORK_ID,
+            gas: GASLIMIT,
+            gasPrice: null,
+        }
+    }
+}",
+17,https://stackoverflow.com/questions/53353167/npm-solc-assertionerror-err-assertion-invalid-callback-specified,npm solc: AssertionError [ERR_ASSERTION]: Invalid callback specified,"
+I am trying to compile solidity smart contract using npm solc. I tried to follow different examples. Link to example: https://medium.com/coinmonks/how-to-compile-a-solidity-smart-contract-using-node-js-51ea7c6bf440
+I wrote my code like following:
+const path = require('path');
+const fs = require('fs');
+const solc = require('solc');
+
+
+
+const helloPath = path.resolve(__dirname, 'contracts', 'hello.sol');
+console.log(""First"" + helloPath);
+const source = fs.readFileSync(helloPath, 'UTF-8');
+console.log(""Second"" + source);
+console.log(solc.compile(source, 1));
+I am getting following error when running the above code.
+AssertionError [ERR_ASSERTION]: Invalid callback specified.
+    at wrapCallback (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:16:5)
+    at runWithReadCallback (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:37:42)
+    at compileStandard (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:78:14)
+    at Object.compileStandardWrapper (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:85:14)
+    at Object.<anonymous> (C:\Users\mouazzamj058\solc_example\example.js:4:19)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+Please help.
+const path = require('path');
+const fs = require('fs');
+const solc = require('solc');
+
+
+
+const helloPath = path.resolve(__dirname, 'contracts', 'hello.sol');
+console.log(""First"" + helloPath);
+const source = fs.readFileSync(helloPath, 'UTF-8');
+console.log(""Second"" + source);
+console.log(solc.compile(source, 1));
+AssertionError [ERR_ASSERTION]: Invalid callback specified.
+    at wrapCallback (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:16:5)
+    at runWithReadCallback (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:37:42)
+    at compileStandard (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:78:14)
+    at Object.compileStandardWrapper (C:\Users\mouazzamj058\solc_example\node_modules\solc\wrapper.js:85:14)
+    at Object.<anonymous> (C:\Users\mouazzamj058\solc_example\example.js:4:19)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)","
+Which version of solc are you using?
+Solc released a breaking version the other day, this error is related to that.
+npm uninstall solc
+npm install solc@0.4.25
+npm uninstall solc
+npm install solc@0.4.25"
+18,https://stackoverflow.com/questions/59651032/why-does-solidity-suggest-me-to-implement-a-receive-ether-function-when-i-have-a,Why does Solidity suggest me to implement a receive ether function when I have a fallback function?,"
+The recent change in Solidity changed the fallback function format from just function() to fallback(), which is pretty nice for beginners to understand what is going on, but I have a question about a suggestion that the compiler gives me when I implement such a fallback.
+For example, a piece of code from my project:
+pragma solidity ^0.6.1;
+
+contract payment{
+    mapping(address => uint) _balance;
+
+    fallback() payable external {
+        _balance[msg.sender] += msg.value;
+    }
+}
+Everything goes fine, but the compiler suggests that:
+Warning: This contract has a payable fallback function, but no receive ether function.
+Consider adding a receive ether function.
+What does it mean by a receive ether function? I tried looking it up and many examples I could find is just another fallback function.
+I am using version 0.6.1+commit.e6f7d5a4","
+According to solidity version 0.6.0, we have a breaking change. The unnamed function commonly referred to as “fallback function” was split up into a new fallback function that is defined using the fallback keyword and a receive ether function defined using the receive keyword. If present, the receive ether function is called whenever the call data is empty (whether or not ether is received). This function is implicitly payable. The new fallback function is called when no other function matches (if the receive ether function does not exist then this includes calls with empty call data). You can make this function payable or not. If it is not payable then transactions not matching any other function which send value will revert. You should only need to implement the new fallback function if you are following an upgrade or proxy pattern.
+https://solidity.readthedocs.io/en/v0.6.7/060-breaking-changes.html#semantic-and-syntactic-changes"
+19,https://stackoverflow.com/questions/49345903/copying-of-type-struct-memory-memory-to-storage-not-yet-supported,Copying of type struct memory[] memory to storage not yet supported,"
+How do I add a new empty Parent instance to the list of parents in the code sample below? I keep getting
+UnimplementedFeatureError: Copying of type struct Test.Child memory[] memory
+to storage not yet supported.
+Minimal example:
+contract Test {
+  struct Child { } 
+  struct Parent { Child[] children; }
+
+  Parent[] parents;
+
+  function test() {
+    parents.push(Parent(new Child[](0)));
+  }
+}","
+You can't really do what you're trying to do with dynamic arrays. You'll need to change your approach slightly to get it to work.
+contract Test {
+  struct Child { } 
+  struct Parent { 
+      mapping(uint => Child) children;
+      uint childrenSize;
+  }
+
+  Parent[] parents;
+
+  function testWithEmptyChildren() public {
+      parents.push(Parent({childrenSize: 0}));
+  }
+
+  function testWithChild(uint index) public {
+      Parent storage p = parents[index];
+
+      p.children[p.childrenSize] = Child();
+      p.childrenSize++;
+  }
+}
+Use Parent.childrenSize if you need to iterate through Parent.children somewhere else in your contract.
+Alternatively, you can increase the size of the parents array and use Solidity's default zero values.
+contract Test {
+  struct Child { } 
+  struct Parent { Child[] children; }
+
+  Parent[] parents;
+
+  function test() public {
+      parents.length++;
+      Parent storage p = parents[parents.length - 1];
+
+      Child memory c;
+
+      p.children.push(c);
+  }
+}"
+20,https://stackoverflow.com/questions/32157648/string-concatenation-in-solidity,String concatenation in solidity?,"
+How do I concatenate strings in solidity?
+var str = 'asdf'
+var b = str + 'sdf'
+seems not to work.
+I looked up the documentation and there is not much mentioned about string concatenation.
+But it is stated that it works with the dot ('.')?
+""[...] a mapping key k is located at sha3(k . p) where . is concatenation.""
+Didn't work out for me too. :/","
+An answer from the Ethereum Stack Exchange:
+A library can be used, for example:
+import ""github.com/Arachnid/solidity-stringutils/strings.sol"";
+
+contract C {
+  using strings for *;
+  string public s;
+
+  function foo(string s1, string s2) {
+    s = s1.toSlice().concat(s2.toSlice());
+  }
+}
+Use the above for a quick test that you can modify for your needs.
+Since concatenating strings needs to be done manually for now, and doing so in a contract may consume unnecessary gas (new string has to be allocated and then each character written), it is worth considering what's the use case that needs string concatenation?
+If the DApp can be written in a way so that the frontend concatenates the strings, and then passes it to the contract for processing, this could be a better design.
+Or, if a contract wants to hash a single long string, note that all the built-in hashing functions in Solidity (sha256, ripemd160, sha3) take a variable number of arguments and will perform the concatenation before computing the hash."
+21,https://stackoverflow.com/questions/42716858/string-array-in-solidity,String array in solidity,"
+I came across quite a common problem that it seems I can't solve elegantly and efficiently in solidity.
+I've to pass an arbitrary long array of arbitrary long strings to a solidity contract.
+In my mind it should be something like
+function setStrings(string [] row)
+but it seems it can't be done.
+How can I solve this problem?","
+This is a limitation of Solidity, and the reason is that string is basically an arbitrary-length byte array (i.e. byte[]), and so string[] is a two-dimensional byte array (i.e. byte[][]). According to Solidity references, two-dimensional arrays as parameters are not yet supported.
+Can a contract function accept a two-dimensional array?
+This is not yet implemented for external calls and dynamic arrays - you can only use one level of dynamic arrays.
+One way you can solve this problem is if you know in advanced the max length of all of your strings (which in most cases are possible), then you can do this:
+function setStrings(byte[MAX_LENGTH][] row) {...}"
+22,https://stackoverflow.com/questions/68198724/how-would-i-send-an-eth-value-to-specific-smart-contract-function-that-is-payabl,How would I send an eth value to specific smart contract function that is payable in ethers.js?,"
+I'm trying to call a payable function on a smart contract that only accepts one argument.
+How would I send an eth value to this function in ethers.js along with the function call? The docs don't seem to give much examples on the best way to do this.
+My function call
+const reciept = await contract.buyPunk(1001);
+all other read and write function calls work as expected, but its calling a payable function that I have yet to solve.
+const reciept = await contract.buyPunk(1001);","
+const options = {value: ethers.utils.parseEther(""1.0"")}
+const reciept = await contract.buyPunk(1001, options);
+When calling a contract function through ethers.js you can pass along an object of options at the end of your arguments. This object can set the the value to send along with the transaction.
+Documentation here: https://docs.ethers.io/v5/api/contract/contract/#Contract-functionsCall
+const options = {value: ethers.utils.parseEther(""1.0"")}
+const reciept = await contract.buyPunk(1001, options);"
+23,https://stackoverflow.com/questions/67856902/how-to-logout-of-metamask-account-using-web3-js,How to Logout of MetaMask account Using web3.js,"
+I am using MetaMask for sending transactions to contract in my DApp. I need help in How to Disconnect MetaMask account from my DApp when the user clicks on logout button.
+Front-end: ReactJS
+Back-end: Web3js, Solidity (Ethereum)","
+Once a wallet is connected it's up to the user to disconnect, you have no control over metamask. You essentially simulate the concept of logging in and logging out by checking if you can get access to their accounts.
+const {ethereum} = window;
+const accounts = await ethereum.request({method: 'eth_accounts'});
+if (accounts && accounts.length > 0) {
+    console.log(""user is connected"");
+} else {
+    console.log(""user not connected"");
+}
+One thing I do is to watch for any account changes:
+window.ethereum.on('accountsChanged', async () => {
+    // Do something
+});
+Typically in my app I have an initialise function that checks for metamask, is it installed? is it connected? then I store the state so the app can persist as though the user is logged in even on page refresh. If anything happens such as account change or disconnect the above script runs and I run my initialise script again to reset the state.
+// Runs on page load
+initialise();
+
+// Runs whenever the user changes account state
+window.ethereum.on('accountsChanged', async () => {
+    initialise();
+});
+So, doesn't really answer your question, as far as I know there is now way to reach out and disconnect the user.
+let connected = false;
+let installed = false;
+
+function isMetaMaskInstalled() {
+    return Boolean(window.ethereum && window.ethereum.isMetaMask);
+}
+
+async function isMetaMaskConnected() {
+    const {ethereum} = window;
+    const accounts = await ethereum.request({method: 'eth_accounts'});
+    return accounts && accounts.length > 0;
+}
+
+async function initialise() {
+    connected = await isMetaMaskConnected();
+    installed = isMetaMaskInstalled();
+}
+
+initialise();
+
+window.ethereum.on('accountsChanged', async () => {
+    initialise();
+});
+I then have my UI reactive to the installed and connected variables.
+const {ethereum} = window;
+const accounts = await ethereum.request({method: 'eth_accounts'});
+if (accounts && accounts.length > 0) {
+    console.log(""user is connected"");
+} else {
+    console.log(""user not connected"");
+}
+window.ethereum.on('accountsChanged', async () => {
+    // Do something
+});
+// Runs on page load
+initialise();
+
+// Runs whenever the user changes account state
+window.ethereum.on('accountsChanged', async () => {
+    initialise();
+});
+let connected = false;
+let installed = false;
+
+function isMetaMaskInstalled() {
+    return Boolean(window.ethereum && window.ethereum.isMetaMask);
+}
+
+async function isMetaMaskConnected() {
+    const {ethereum} = window;
+    const accounts = await ethereum.request({method: 'eth_accounts'});
+    return accounts && accounts.length > 0;
+}
+
+async function initialise() {
+    connected = await isMetaMaskConnected();
+    installed = isMetaMaskInstalled();
+}
+
+initialise();
+
+window.ethereum.on('accountsChanged', async () => {
+    initialise();
+});"
+24,https://stackoverflow.com/questions/61388743/solidity-transaction-error-the-called-function-should-be-payable-if-you-send-va,"solidity transaction error, The called function should be payable if you send value and the value you send should be less than your current balance","
+I'm learning solidity on remix. I was following some tutorial video on youtube and I've got stuck trying to build 2 contracts. contract ERC20Token has function which increases balances. And Mycontract instantiates and call the mint function. I did it the same way as the guy on youtube did, but I ran into error saying when I call buyToken function. The error is saying
+transact to MyContract.buyToken errored: VM error: revert.
+revert The transaction has been reverted to the initial state.
+Note: The called function should be payable if you send value and the value you send should be less than your current balance. Debug the transaction to get more information.
+Please help me out.
+Here is the code.
+pragma solidity 0.5.1;
+
+contract ERC20Token{
+   string public name;
+   mapping(address => uint256) public balances;
+
+   function mint() public {
+       balances[tx.origin] ++;
+  }
+}
+
+contract MyContract {
+   address payable wallet;
+   address public token;
+
+
+   constructor(address payable _wallet, address _token) public {
+    wallet = _wallet;
+    token = _token;
+}
+
+    
+
+   function buyToken() public payable {
+       ERC20Token _token = ERC20Token(address(token)); 
+       _token.mint();
+       wallet.transfer(msg.value);
+    
+      }
+  }",
+25,https://stackoverflow.com/questions/48664570/what-approve-and-allowance-methods-are-really-doing-in-erc20-standard,what approve and allowance methods are really doing in ERC20 Standard?,"
+The problem is what allowance and approve are really doing?
+And what is _spender and what is it doing?
+Is there anybody who can explain it to me?
+contract Token {
+    uint256 public totalSupply;
+    function balanceOf(address _owner) constant returns (uint256 balance);
+    function transfer(address _to, uint256 value) returns (bool success);
+    function transferFrom(address _from, address _to, uint256 value) returns (bool success);
+    function approve(address _spender, uint256 _value) returns (bool success);
+    function allowance(address _owner, address _spender) constant returns (uint256 remaining);
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+}","
+what allowance and approve are doing really?
+Let's assume we have user A and user B. A has 1000 tokens and want to give permission to B to spend 100 of them.
+A will call approve(address(B), 100, {""from"": address(A)})
+B will check how many tokens A gave him permission to use by calling: allowance(address(A), address(B))
+B will send to his account these tokens by calling: transferFrom(address(A), address(B), 100, {""from"": address(B)})"
+26,https://stackoverflow.com/questions/52113202/how-to-set-default-parameters-to-functions-in-solidity,How to set default parameters to functions in Solidity,"
+I came across below example from the Solidity Documentation and have similar code in my project and want to set default value to key parameter if the key is not passed from the caller
+pragma solidity ^0.4.0;
+
+contract C {
+    function f(uint key, uint value) public {
+        // ...
+    }
+
+    function g() public {
+        // named arguments
+        f({value: 2, key: 3});
+    }
+}
+My questions are -
+Do Solidity language provides default parameters?
+How to achieve the same if default parameters are not allowed then?
+Appreciate the help?","
+Solidity does not support default parameters, but it is on their roadmap (see https://github.com/ethereum/solidity/issues/232). To work around this, just use function overloading:
+pragma solidity ^0.4.0;
+
+contract C {
+    function f(uint key, uint value) public {
+        // ...
+    }
+
+    function h(uint value) public {
+        f(123, value);
+    }
+
+    function g() public {
+        // named arguments
+        f({value: 2, key: 3});
+    }
+
+    function i() public {
+        h({value: 2});
+    }
+}"
+27,https://stackoverflow.com/questions/42520069/handling-user-profiles-in-ethereum-dapps,Handling user profiles in Ethereum DApps,"
+I'm in the process of creating an Ethereum DApp. The DApp consists of users who have associated data like email, name, and a profile picture. I would like to store the contents of the user within IPFS as a JSON object and reference this on chain using the IPFS hash. How could I go about associating this data with a particular user? In the sense, that subsequent interactions with the DApp connect the user with the data stored in IPFS. Is this done using the users account hash with a password of some sort?
+For example, user A is interested in using the DApp and so, provides his or her email, name, and profile picture. Then any subsequent interaction with the DApp, like a comment or post would link this user to the respective user data in IPFS.
+Any suggestions or adjustments to this way of modeling users would be greatly appreciated. Thanks!
+(P.S. I come from the traditional web/mobile app world so I'm just getting accustomed to modeling things using smart contracts. So I apologize in advance if this is a simple or ill-structured question.)","
+One of the beauties of using a platform like Ethereum is that you can build a ZERO click login. If we establish that the user's web3.eth.accounts[0] is proof that the user controls the private key of that account's address, then you will always know that the user is valid.
+If you want to use IPFS like a database, my suggested approach would be this:
+Note that with most decentralised systems a lot of the action happens on the client side.
+User Signup
+Users have Ethereum accounts.
+On sign up user data is collected into a JSON object
+A file is created, write JSON object to file.
+Pass file to IPFS
+Get file hash (which is basically its IPFS location)
+Store the IPFS hash in an Ethereum contract that associates the user's Ethereum account with the IPFS file hash.
+User Validation
+User visits the website
+web3js gets the active Ethereum account
+Read from the user contract to find the associated IPFS hash
+Get file from IPFS
+Read the JSON object
+Extract the data from the JSON
+Display data to user"
+28,https://stackoverflow.com/questions/50201353/unhandledpromiserejectionwarning-error-the-contract-code-couldnt-be-stored-p,"UnhandledPromiseRejectionWarning: Error: The contract code couldn't be stored, please check your gas limit","
+I am trying to deploy my simple solidity smart contract onto the Rinkeby Network but I keep getting the error:
+UnhandledPromiseRejectionWarning: Error: The contract code couldn't be stored, please check your gas limit.
+My solidity code is simple
+pragma solidity ^0.4.18; 
+
+contract Greetings{ 
+  string public message; 
+
+  function Greetings(string initialMessage) public{ 
+    message = initialMessage;
+  }  
+
+  function setMessage(string newMessage) public {
+    message = newMessage;
+  }  
+}
+and my deploy script is:
+const HDWalletProvider = require('truffle-hdwallet-provider'); 
+const Web3 = require('web3');
+const { interface,bytecode} = require('./compile');
+
+const provider = new HDWalletProvider(  
+  'twelve word mnemonic...', 
+  'https://rinkeby.infura.io/GLm6McXWuaih4gqq8nTY'    
+);
+
+const web3 = new Web3(provider);
+
+const deploy = async () => {
+    accounts = await web3.eth.getAccounts(); 
+
+    console.log('attempting to deploy from account',accounts[0]);
+
+    const result = await new web3.eth.Contract(JSON.parse(interface)) 
+      .deploy({data:bytecode, arguments:['Hello World']})      
+      .send({from: accounts[0], gas:'1000000'});                              
+
+    console.log('Contract deployed to', result.options.address); 
+};
+
+deploy();
+Funny thing is, I used to be able to deploy successfully, but when i created a new project and re did the same code, i get this error now. Please help!
+pragma solidity ^0.4.18; 
+
+contract Greetings{ 
+  string public message; 
+
+  function Greetings(string initialMessage) public{ 
+    message = initialMessage;
+  }  
+
+  function setMessage(string newMessage) public {
+    message = newMessage;
+  }  
+}
+const HDWalletProvider = require('truffle-hdwallet-provider'); 
+const Web3 = require('web3');
+const { interface,bytecode} = require('./compile');
+
+const provider = new HDWalletProvider(  
+  'twelve word mnemonic...', 
+  'https://rinkeby.infura.io/GLm6McXWuaih4gqq8nTY'    
+);
+
+const web3 = new Web3(provider);
+
+const deploy = async () => {
+    accounts = await web3.eth.getAccounts(); 
+
+    console.log('attempting to deploy from account',accounts[0]);
+
+    const result = await new web3.eth.Contract(JSON.parse(interface)) 
+      .deploy({data:bytecode, arguments:['Hello World']})      
+      .send({from: accounts[0], gas:'1000000'});                              
+
+    console.log('Contract deployed to', result.options.address); 
+};
+
+deploy();","
+Had exactly same problem! Seems it is caused by the bug in the ""truffle-hdwallet-provider"" version 0.0.5. During the udemy course it was using ""0.0.3"" apparently.
+If you do the following should be okay, it worked for me.
+npm uninstall truffle-hdwallet-provider
+npm install --save truffle-hdwallet-provider@0.0.3
+Then I ran the same contract which has deployed successfully.
+Good luck!
+npm uninstall truffle-hdwallet-provider
+npm install --save truffle-hdwallet-provider@0.0.3"
+29,https://stackoverflow.com/questions/42230532/getting-the-address-of-a-contract-deployed-by-another-contract,Getting the address of a contract deployed by another contract,"
+I am trying to deploy a contract from another factory contract and then return the address of the newly created contract. The address it returns however is the transaction hash not the contract address. I believe this is because the contract is not yet mined when the address is returned. When I deploy a contract using the web3 deploy it seems to wait until the contract is deployed before outputting the address.
+The factory contract:
+contract Factory {
+mapping(uint256 => Contract) deployedContracts;
+uint256 numContracts;
+function Factory(){
+    numContracts = 0;
+}
+
+function createContract (uint32 name) returns (address){
+    deployedContracts[numContracts] = new Contract(name);
+    numContracts++;
+    return deployedContracts[numContracts];
+}}
+This is how I am calling the createContract function.
+factory.createContract(2,function(err, res){
+        if (err){
+            console.log(err)
+        }else{
+        console.log(res)
+        }
+    });
+contract Factory {
+mapping(uint256 => Contract) deployedContracts;
+uint256 numContracts;
+function Factory(){
+    numContracts = 0;
+}
+
+function createContract (uint32 name) returns (address){
+    deployedContracts[numContracts] = new Contract(name);
+    numContracts++;
+    return deployedContracts[numContracts];
+}}
+factory.createContract(2,function(err, res){
+        if (err){
+            console.log(err)
+        }else{
+        console.log(res)
+        }
+    });","
+Consider the below example. There are a number of ways you can get the address of the contract:
+contract Object {
+
+    string name;
+    function Object(String _name) {
+        name = _name
+    }
+}
+
+contract ObjectFactory {
+    function createObject(string name) returns (address objectAddress) {
+        return address(new Object(name));
+    }
+}
+1 Store the Address and Return it:
+Store the address in the contract as an attribute and retrieve it using a normal getter method.
+contract ObjectFactory {
+    Object public theObj;
+
+    function createObject(string name) returns (address objectAddress) {
+        theObj = address(new Object(name));
+        return theObj;
+    }
+}
+2 Call Before You Make A Transaction
+You can make a call before you make a transaction:
+var address = web3.eth.contract(objectFactoryAbi)
+    .at(contractFactoryAddress)
+    .createObject.call(""object"");
+Once you have the address perform the transaction:
+var txHash = web3.eth.contract(objectFactoryAbi)
+    .at(contractFactoryAddress)
+    .createObject(""object"", { gas: price, from: accountAddress });
+3 Calculate the Future Address
+Otherwise, you can calculate the address of the future contract like so:
+var ethJsUtil = require('ethereumjs-util');
+var futureAddress = ethJsUtil.bufferToHex(ethJsUtil.generateAddress(
+      contractFactoryAddress,
+      await web3.eth.getTransactionCount(contractFactoryAddress)));
+contract Object {
+
+    string name;
+    function Object(String _name) {
+        name = _name
+    }
+}
+
+contract ObjectFactory {
+    function createObject(string name) returns (address objectAddress) {
+        return address(new Object(name));
+    }
+}
+contract ObjectFactory {
+    Object public theObj;
+
+    function createObject(string name) returns (address objectAddress) {
+        theObj = address(new Object(name));
+        return theObj;
+    }
+}
+var address = web3.eth.contract(objectFactoryAbi)
+    .at(contractFactoryAddress)
+    .createObject.call(""object"");
+var txHash = web3.eth.contract(objectFactoryAbi)
+    .at(contractFactoryAddress)
+    .createObject(""object"", { gas: price, from: accountAddress });
+var ethJsUtil = require('ethereumjs-util');
+var futureAddress = ethJsUtil.bufferToHex(ethJsUtil.generateAddress(
+      contractFactoryAddress,
+      await web3.eth.getTransactionCount(contractFactoryAddress)));"
+30,https://stackoverflow.com/questions/49051856/is-there-a-pop-functionality-for-solidity-arrays,Is there a pop functionality for solidity arrays?,"
+I have used solidity to push data into an array. Is there a similar function for pop ?
+string[] myArray;
+myArray.push(""hello"")
+What is the best solution for this ? How do I delete an element in a dynamic array in solidity ?","
+Update 2-19-2019: As Joel pointed out below, pop has been added to built-in array support. See https://solidity.readthedocs.io/en/v0.5.4/types.html#array-members. Leaving original answer on here in case others are using older versions of Solidity.
+There is no pop function in Solidity. You have a few options you can consider for maintaining your array.
+Delete & Leave Gaps
+The simplest solution is to just delete the element at a specific index:
+string element = myArray[index];
+delete myArray[index];
+return element;
+However, this will NOT shift the elements in your array and will leave an element of ""string 0"" in your array. To check this element, you would use
+if(bytes(myArray[index]).length > 0) ...
+Swap & Delete
+If you don't care about order in your array, you can swap the element with the last element in your array and then delete:
+string element = myArray[index];
+myArray[index] = myArray[myArray.length - 1];
+delete myArray[myArray.length - 1];
+myArray.length--;
+return element;
+Delete With Shift
+If order in your array is important, you can delete the element then shift all remaining elements to the left.
+string element = myArray[index];
+for (uint i = index; i < myArray.length - 1; i++) {
+  myArray[i] = myArray[i + 1];
+}
+delete myArray[myArray.length - 1];
+myArray.length--;
+return element;
+Note that this will be the most expensive of the options. If your array is very long, you will have high gas usage.
+Correlating with @Jedsada's suggestion, here is a version as a library:
+pragma solidity ^0.4.24;
+
+library StackLib {
+  using StackLib for Stack;
+
+  struct Stack {
+    uint[] _items;
+  }
+
+  function pushElement(Stack storage self, uint element) internal returns (bool) {
+    self._items.push(element);
+  }
+
+  function popElement(Stack storage self) internal returns (uint) {
+    uint element = self.peek();
+
+    if (self.size() > 0)
+      delete self._items[self.size() - 1];
+
+    return element;
+  }
+
+  function peek(Stack storage self) internal returns (uint) {
+    uint value;
+
+    if (self.size() > 0)
+      value = self._items[self.size() - 1];
+
+    return value;
+  }
+
+  function size(Stack storage self) internal returns (uint8) {
+    return self.size();
+  }
+}
+Example usage (Important note: You can't use popElement and return the value to a client. That method changes state and should only be used within a transaction.):
+contract Test {
+  using StackLib for StackLib.Stack;
+
+  StackLib.Stack numbers;
+
+  function add(uint v) public {
+    numbers.pushElement(v);
+  }
+
+  function doSomething() public {
+    for (uint8 i = 0; i < numbers.size(); i++) {
+      uint curNum = numbers.popElement();
+
+      // do something with curNum
+    }
+  }
+}
+Additional note: Unfortunately, var has been deprecated since 0.4.20 and there is no replacement for generics. You have to customize for a specific type."
+31,https://stackoverflow.com/questions/49449474/is-it-possible-to-modify-a-variable-value-from-another-contract,Is it possible to modify a variable value from another contract?,"
+I could get the information about access another contract's variable from here
+But I couldn't find how to modify another contract's variable.
+Here is the example of contract A,
+contract A {
+    uint public target;
+}
+And this is the example of contract B
+contract B {
+    function edit_A_a() public {
+        A.target = 1;  // some kind of this
+    }
+}
+I want to modify the value of target variable from contract B.
+Also, assuming that all operations are executed in a solidity contract level.
+Thanks","
+Declaring a state variable as public generates a public getter, but not a setter. If you want another contract to modify your contract's state variable, you'll have to write a function to do that yourself:
+contract A {
+    uint public target;
+    function setTarget(uint _target) public {
+        target = _target;
+    }
+}
+
+contract B {
+    A a = Test(0x123abc...);  // address of deployed A
+    function editA() public {
+        a.setTarget(1);
+    }
+}"
+32,https://stackoverflow.com/questions/42738640/division-in-ethereum-solidity,Division in Ethereum Solidity,"
+I am creating a contract that issues tokens. I would like an account that holds tokens to be able to check what percentage they own out of all the tokens issued. I know that Ethereum has not implemented floating point numbers yet. What should I do?","
+It's probably best (lowest gas cost and trivial to implement) to perform that calculation on the client rather than in Solidity.
+If you find you need it in Solidity, then it's just a matter of working with integers by shifting the decimal point. Similar to: https://en.wikipedia.org/wiki/Parts-per_notation
+For example, this function let's you decide the degree of precision and uses one extra degree of precision to correctly round up:
+pragma solidity ^0.4.6;
+
+contract Divide {
+
+  function percent(uint numerator, uint denominator, uint precision) public 
+
+  constant returns(uint quotient) {
+
+         // caution, check safe-to-multiply here
+        uint _numerator  = numerator * 10 ** (precision+1);
+        // with rounding of last digit
+        uint _quotient =  ((_numerator / denominator) + 5) / 10;
+        return ( _quotient);
+  }
+
+}
+If you feed it 101,450, 3 you get 224, i.e. 22.4%.
+Hope it helps."
+33,https://stackoverflow.com/questions/43106483/calling-external-contract-in-solidity-dynamically,Calling external contract in solidity dynamically,"
+I am trying to make a contract have a function that is capable of calling functions of another contract. The key part of my goal is that the contract should not be able to be deployed without any import statements and will not know the name of the contract by default. In other words the user of this contract would input the called contracts data (i.e. address, name) as parameters. What is the best way to accomplish this?","
+Not sure why this was downvoted.
+If I understand the question correctly, you want to deploy the contract without knowledge of the specific details of the contracts it will have to communicate with.
+You can greatly simplify this by assuming knowledge of their interfaces.
+You can define interfaces without importing contract code. Define the function interfaces and leave the function definitions empty:
+contract WidgetInterface {
+
+   function doSomething() returns(uint) {}
+   function somethingElse() returns(bool isTrue) {}
+
+}
+Use that Interface contract to talk to actual contracts:
+WidgetInterface w = WidgetInterface(actualContractAddress);
+In my opinion it will usually be possible and advisable to register authorized/valid contracts as you go. Maintain a list of the contracts it can safely talk to, along these lines:
+if(!isAuthorized(actualContractAddress)) throw; 
+where actualContractAddress is supplied by sender and isAuthorized() is a function you have worked out to query an internal registry.
+Hope it helps."
+34,https://stackoverflow.com/questions/35743893/how-do-i-initialize-an-array-in-a-struct,How do I initialize an array in a struct,"
+I have a struct Purchase in which I'm putting an array of payments. However, when I try to add the new payments array in my makePayment method I get an error back from the solidity compiler: ""Internal compiler error: Copying of type struct Payment memory[] memory to storage not yet supported."" When I change the mayment array to be storage or memory, I get the same error. I've added the relevant code below.
+Is it possible to do what I'm trying to do in solidity? I don't see anything explicitly saying it's not possible in the documentation but I also don't see any examples doing what I'm trying to do. :|
+  struct Payment {
+    address maker;
+    uint amount;
+  }
+
+  struct Purchase {
+    uint product_id;
+    bool complete;
+    Payment[] payments;
+  }
+  Purchase[] purchases;
+
+  function makePayment(uint product_id, uint amt, uint purchase_id) returns (bool) {
+
+      Payment[] payments;
+      payments[0] = Payment(address, amt);
+      purchases[purchase_id] = Purchase(product_id, false, payments);
+  }","
+You need to manually change the length of the payments array when setting it.
+Either use:
+  Payment[] payments;
+  payments[payments.length++] = Payment(address, amt);
+Or:
+Payment[] payments;
+payments.push(Payment(address, amt));
+For setting the payments array in Purchase, instead of creating an array and trying to set it to the Purchase.payments you can do the following:
+uint purchase_id = purchases.length++;
+purchases[purchase_id].product_id = product_id;
+purchases[purchase_id].complete   = false;
+purchases[purchase_id].payments.push(Payment(msg.sender, amt));
+Extending the purchases length will automatically create the new attributes. Then you can set them manually."
+35,https://stackoverflow.com/questions/53460851/typeerror-data-location-must-be-memory-for-parameter-in-function-but-none-wa,"TypeError: Data location must be ""memory"" for parameter in function, but none was given","
+I tried to compile my code, but I got the following error:
+TypeError: Data location must be ""memory"" for parameter in function, but none was given
+my code:
+pragma solidity ^0.5.0;
+
+contract memeRegistry {
+    string url;
+    string name;
+    uint timestamp;
+
+    function setmeme(string _url,string _name, uint _timestamp) public{
+        url = _url;
+        name = _name;
+        timestamp = _timestamp;   
+    }
+}",
+36,https://stackoverflow.com/questions/68126347/how-can-i-use-different-addresses-to-call-functions-in-hardhat-tests-and-scripts,How can I use different addresses to call functions in Hardhat tests and scripts?,"
+When running tests and scripts, all functions are called by the first address provided by Hardhat.
+I'd like to know if there's a way to change the calling address within the same test or script.
+Thanks in advance!",
+37,https://stackoverflow.com/questions/63170366/solidity-solc-error-struct-containing-a-nested-mapping-cannot-be-constructed,"Solidity, Solc Error: Struct containing a (nested) mapping cannot be constructed","
+I am using Solc version 0.7.0 installed by npm. When I try to create a Struct that contains mapping, I received an error: ""Struct containing a (nested) mapping cannot be constructed.""
+Please check the code:
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.0;
+
+contract Test {
+    struct Request {
+        uint256 value;
+        mapping(address => bool) approvals;
+    }
+    Request[] public requests;
+      ...
+
+    function createRequest(
+        uint256 value
+    ) public {
+        Request memory newRequest = Request({// here the compiler complains
+            value: value
+        });
+
+        requests.push(newRequest);
+    }
+}
+When I use older versions of solc, the code compiles without problems.
+Thank you in advance!",
+38,https://stackoverflow.com/questions/54499116/how-do-you-compare-strings-in-solidity,How do you compare strings in Solidity?,"
+I would assume comparing strings would be as easy as doing:
+function withStrs(string memory a, string memory b) internal {
+  if (a == b) {
+    // do something
+  }
+}
+But doing so gives me an error Operator == not compatible with types string memory and string memory.
+What's the right way?","
+You can compare strings by hashing the packed encoding values of the string:
+if (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b))) {
+  // do something
+}
+keccak256 is a hashing function supported by Solidity, and abi.encodePacked() encodes values via the Application Binary Interface."
+39,https://stackoverflow.com/questions/68163319/failing-to-compile-multiple-solidity-versions,Failing to compile multiple Solidity versions,"
+I'm trying to compile (through Hardhat) a contract that imports several interfaces with different Solidity versions but I'm getting the following error:
+Error HH606: The project cannot be compiled, see reasons below.
+
+These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
+
+  * contracts/FlashLoaner.sol
+Flashloaner.sol:
+pragma solidity >=0.5.0 <=0.8.0;
+
+import '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
+import ""@openzeppelin/contracts/token/ERC20/IERC20.sol"";
+import '@aave/protocol-v2/contracts/interfaces/ILendingPool.sol'; //---> Issue
+import ""hardhat/console.sol"";
+
+
+contract FlashLoaner {
+    struct MyCustomData {
+        address token;
+        uint256 repayAmount;
+    }
+
+    address public logicContract;
+    
+    function execute(address _weth, address _contract) external view {
+        console.log(_weth);
+    }
+}
+The problem is with @aave/protocol-v2/contracts/interfaces/ILendingPool.sol. If I comment it out, my contract compiles good.
+IlendingPool.sol: pragma solidity 0.6.12;
+IERC20.sol: pragma solidity ^0.5.0;
+IWETH.sol: pragma solidity >=0.5.0;
+Hardhat.config:
+module.exports = {
+  solidity: {
+    compilers: [
+      {
+        version: ""0.5.7""
+      },
+      {
+        version: ""0.8.0""
+      },
+      {
+        version: ""0.6.12""
+      }
+    ]
+  }
+   ...
+pragma solidity >=0.5.0 <=0.8.0;
+
+import '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
+import ""@openzeppelin/contracts/token/ERC20/IERC20.sol"";
+import '@aave/protocol-v2/contracts/interfaces/ILendingPool.sol'; //---> Issue
+import ""hardhat/console.sol"";
+
+
+contract FlashLoaner {
+    struct MyCustomData {
+        address token;
+        uint256 repayAmount;
+    }
+
+    address public logicContract;
+    
+    function execute(address _weth, address _contract) external view {
+        console.log(_weth);
+    }
+}
+module.exports = {
+  solidity: {
+    compilers: [
+      {
+        version: ""0.5.7""
+      },
+      {
+        version: ""0.8.0""
+      },
+      {
+        version: ""0.6.12""
+      }
+    ]
+  }
+   ...","
+Solution:
+Grab the signatures from the functions that I'm interested in from each interface, and put them on my own interface with pragma solidity ^0.8.0."
+40,https://stackoverflow.com/questions/65500489/warning-function-state-mutability-can-be-restricted-to-pure-function,Warning: Function state mutability can be restricted to pure function,"
+I am new to solidity and I have been trying to print out simple messages using functions in solidity, but I have failed to deploy successfully, and there is an error that I can not figure out what's wrong.
+This is what I have tried so far:
+ pragma solidity ^0.6.0;
+    
+    contract test {
+        
+        string public _feedback;
+        
+        function reply(string memory feedback) public
+        {
+           feedback = ""Well done!"";
+        }
+    }
+The error I am receiving is ""Warning: Function state mutability can be restricted to pure function""",
+41,https://stackoverflow.com/questions/48077773/ethereum-solidity-does-require-use-any-gas,Ethereum Solidity - Does require() use any gas?,"
+Google has failed to give me an concrete answer, does using the require() function in Solidity use up any gas? Even if the statement in the function is evaluated as true?","
+I'm not quite sure if you're asking if the OPCODE itself consumes gas or if gas is consumed if the statement evaluates to true.
+If you're asking about the OPCODE itself, I agree with you that the answer is unclear. I don't see the REVERT OPCODE (which is what require() is compiled to) in the (now very deprecated) Google OPCODE gas usage spreadsheet or in the yellowpaper (Appendix G).
+Running a test in Remix, it looks like it does consume a very small amount of gas. Simply adding a require(true) call at the top of this method increased gas usage by 23.
+contract GasUsage {
+    uint val;
+
+    function someFunc() public returns (bool) {
+        require(true);
+
+        delete val;
+    }
+}
+Execution cost when included:5230
+Execution cost when commented out: 5207
+If you're asking about gas consumption up until the require statement, then the answer is yes. As of the Byzantium release, all gas consumed up to the point of a require statement is consumed, but any remaining gas is returned. Prior to Byzantium, require() and assert() were identical and all gas would be consumed.
+From the Solidity docs:
+Internally, Solidity performs a revert operation (instruction 0xfd) for a require-style exception and executes an invalid operation (instruction 0xfe) to throw an assert-style exception. In both cases, this causes the EVM to revert all changes made to the state...Note that assert-style exceptions consume all gas available to the call, while require-style exceptions will not consume any gas starting from the Metropolis release."
+42,https://stackoverflow.com/questions/70731492/the-transaction-declared-chain-id-5777-but-the-connected-node-is-on-1337,"The transaction declared chain ID 5777, but the connected node is on 1337","
+I am trying to deploy my SimpleStorage.sol contract to a ganache local chain by making a transaction using python. It seems to have trouble connecting to the chain.
+from solcx import compile_standard
+from web3 import Web3
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+with open(""./SimpleStorage.sol"", ""r"") as file:
+    simple_storage_file = file.read()
+
+compiled_sol = compile_standard(
+    {
+        ""language"": ""Solidity"",
+        ""sources"": {""SimpleStorage.sol"": {""content"": simple_storage_file}},
+        ""settings"": {
+            ""outputSelection"": {
+                ""*"": {""*"": [""abi"", ""metadata"", ""evm.bytecode"", ""evm.sourceMap""]}
+            }
+        },
+    },
+    solc_version=""0.6.0"",
+)
+
+with open(""compiled_code.json"", ""w"") as file:
+    json.dump(compiled_sol, file)
+
+
+# get bytecode
+bytecode = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""evm""][
+    ""bytecode""
+][""object""]
+
+
+# get ABI
+abi = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""abi""]
+
+# to connect to ganache blockchain
+w3 = Web3(Web3.HTTPProvider(""HTTP://127.0.0.1:7545""))
+chain_id = 5777
+my_address = ""0xca1EA31e644F13E3E36631382686fD471c62267A""
+private_key = os.getenv(""PRIVATE_KEY"")
+
+
+# create the contract in python
+
+SimpleStorage = w3.eth.contract(abi=abi, bytecode=bytecode)
+
+# get the latest transaction
+nonce = w3.eth.getTransactionCount(my_address)
+
+# 1. Build a transaction
+# 2. Sign a transaction
+# 3. Send a transaction
+
+
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""from"": my_address, ""nonce"": nonce}
+)
+print(transaction)
+It seems to be connected to the ganache chain because it prints the nonce, but when I build and try to print the transaction here is the entire traceback call I am receiving
+Traceback (most recent call last):
+File ""C:\Users\evens\demos\web3_py_simple_storage\deploy.py"", line 
+52, in <module>
+transaction = SimpleStorage.constructor().buildTransaction(
+File ""C:\Python310\lib\site-packages\eth_utils\decorators.py"", line 
+18, in _wrapper
+return self.method(obj, *args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\contract.py"", line 684, in buildTransaction
+return fill_transaction_defaults(self.web3, built_transaction)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\_utils\transactions.py"", line 114, in 
+fill_transaction_defaults
+default_val = default_getter(web3, transaction)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\_utils\transactions.py"", line 60, in <lambda>
+'gas': lambda web3, tx: web3.eth.estimate_gas(tx),
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\eth.py"", line 820, in estimate_gas
+return self._estimate_gas(transaction, block_identifier)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\module.py"", line 57, in caller
+result = w3.manager.request_blocking(method_str,
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\manager.py"", line 197, in request_blocking
+response = self._make_request(method, params)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\manager.py"", line 150, in _make_request
+return request_func(method, params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 76, in 
+apply_formatters
+response = make_request(method, params)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\gas_price_strategy.py"", line 90, in 
+middleware
+return make_request(method, params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 74, in 
+apply_formatters
+response = make_request(method, formatted_params)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\attrdict.py"", line 33, in middleware
+response = make_request(method, params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 74, in 
+apply_formatters
+response = make_request(method, formatted_params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 73, in 
+apply_formatters
+formatted_params = formatter(params)
+File ""cytoolz/functoolz.pyx"", line 503, in 
+cytoolz.functoolz.Compose.__call__
+ret = PyObject_Call(self.first, args, kwargs)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Python310\lib\site-packages\eth_utils\decorators.py"", line 
+91, in wrapper
+return ReturnType(result)  # type: ignore
+File ""C:\Python310\lib\site-packages\eth_utils\applicators.py"", line 
+22, in apply_formatter_at_index
+yield formatter(item)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Python310\lib\site-packages\eth_utils\applicators.py"", line 
+72, in apply_formatter_if
+return formatter(value)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\validation.py"", line 57, in 
+validate_chain_id
+raise ValidationError(
+web3.exceptions.ValidationError: The transaction declared chain ID 
+5777, but the connected node is on 1337
+from solcx import compile_standard
+from web3 import Web3
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+with open(""./SimpleStorage.sol"", ""r"") as file:
+    simple_storage_file = file.read()
+
+compiled_sol = compile_standard(
+    {
+        ""language"": ""Solidity"",
+        ""sources"": {""SimpleStorage.sol"": {""content"": simple_storage_file}},
+        ""settings"": {
+            ""outputSelection"": {
+                ""*"": {""*"": [""abi"", ""metadata"", ""evm.bytecode"", ""evm.sourceMap""]}
+            }
+        },
+    },
+    solc_version=""0.6.0"",
+)
+
+with open(""compiled_code.json"", ""w"") as file:
+    json.dump(compiled_sol, file)
+
+
+# get bytecode
+bytecode = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""evm""][
+    ""bytecode""
+][""object""]
+
+
+# get ABI
+abi = compiled_sol[""contracts""][""SimpleStorage.sol""][""SimpleStorage""][""abi""]
+
+# to connect to ganache blockchain
+w3 = Web3(Web3.HTTPProvider(""HTTP://127.0.0.1:7545""))
+chain_id = 5777
+my_address = ""0xca1EA31e644F13E3E36631382686fD471c62267A""
+private_key = os.getenv(""PRIVATE_KEY"")
+
+
+# create the contract in python
+
+SimpleStorage = w3.eth.contract(abi=abi, bytecode=bytecode)
+
+# get the latest transaction
+nonce = w3.eth.getTransactionCount(my_address)
+
+# 1. Build a transaction
+# 2. Sign a transaction
+# 3. Send a transaction
+
+
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""from"": my_address, ""nonce"": nonce}
+)
+print(transaction)
+Traceback (most recent call last):
+File ""C:\Users\evens\demos\web3_py_simple_storage\deploy.py"", line 
+52, in <module>
+transaction = SimpleStorage.constructor().buildTransaction(
+File ""C:\Python310\lib\site-packages\eth_utils\decorators.py"", line 
+18, in _wrapper
+return self.method(obj, *args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\contract.py"", line 684, in buildTransaction
+return fill_transaction_defaults(self.web3, built_transaction)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\_utils\transactions.py"", line 114, in 
+fill_transaction_defaults
+default_val = default_getter(web3, transaction)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\_utils\transactions.py"", line 60, in <lambda>
+'gas': lambda web3, tx: web3.eth.estimate_gas(tx),
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\eth.py"", line 820, in estimate_gas
+return self._estimate_gas(transaction, block_identifier)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\module.py"", line 57, in caller
+result = w3.manager.request_blocking(method_str,
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\manager.py"", line 197, in request_blocking
+response = self._make_request(method, params)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\manager.py"", line 150, in _make_request
+return request_func(method, params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 76, in 
+apply_formatters
+response = make_request(method, params)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\gas_price_strategy.py"", line 90, in 
+middleware
+return make_request(method, params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 74, in 
+apply_formatters
+response = make_request(method, formatted_params)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\attrdict.py"", line 33, in middleware
+response = make_request(method, params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 74, in 
+apply_formatters
+response = make_request(method, formatted_params)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\formatting.py"", line 73, in 
+apply_formatters
+formatted_params = formatter(params)
+File ""cytoolz/functoolz.pyx"", line 503, in 
+cytoolz.functoolz.Compose.__call__
+ret = PyObject_Call(self.first, args, kwargs)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Python310\lib\site-packages\eth_utils\decorators.py"", line 
+91, in wrapper
+return ReturnType(result)  # type: ignore
+File ""C:\Python310\lib\site-packages\eth_utils\applicators.py"", line 
+22, in apply_formatter_at_index
+yield formatter(item)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Python310\lib\site-packages\eth_utils\applicators.py"", line 
+72, in apply_formatter_if
+return formatter(value)
+File ""cytoolz/functoolz.pyx"", line 250, in 
+cytoolz.functoolz.curry.__call__
+return self.func(*args, **kwargs)
+File ""C:\Users\evens\AppData\Roaming\Python\Python310\site- 
+packages\web3\middleware\validation.py"", line 57, in 
+validate_chain_id
+raise ValidationError(
+web3.exceptions.ValidationError: The transaction declared chain ID 
+5777, but the connected node is on 1337","
+Had this issue myself, apparently it's some sort of Ganache CLI error but the simplest fix I could find was to change the network id in Ganache through settings>server to 1337. It restarts the session so you'd then need to change the address and private key variable.
+If it's the same tutorial I'm doing, you're likely to come unstuck after this... the code for transaction should be:
+transaction = 
+ SimpleStorage.constructor().buildTransaction( {
+    ""gasPrice"": w3.eth.gas_price, 
+    ""chainId"": chain_id, 
+    ""from"": my_address, 
+    ""nonce"": nonce, 
+})
+print(transaction)
+Otherwise you get a value error if you don't set the gasPrice
+transaction = 
+ SimpleStorage.constructor().buildTransaction( {
+    ""gasPrice"": w3.eth.gas_price, 
+    ""chainId"": chain_id, 
+    ""from"": my_address, 
+    ""nonce"": nonce, 
+})
+print(transaction)"
+43,https://stackoverflow.com/questions/73359845/how-to-find-out-in-advance-the-address-of-the-smart-contract-i-am-going-to-deplo,How to find out in advance the address of the smart contract I am going to deploy?,"
+I have a Solidity smart contract ContractFactory which I am deploying on RSK and developing in Hardhat. ContractFactory has a deploy function which produces new Child smart contracts.
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.9;
+
+contract ContractFactory {
+    event ContractDeployed(address owner, address childContract);
+
+    function deploy() public {
+        Child newContract = new Child(msg.sender);
+        emit ContractDeployed(msg.sender, address(newContract));
+    }
+}
+
+contract Child {
+    address owner;
+
+    constructor(address _owner) {
+        owner = _owner;
+    }
+}
+Can I know before invoking the deploy function what address on RSK will a new Child smart contract receive?",
+44,https://stackoverflow.com/questions/48877910/how-can-i-return-an-array-of-struct-in-solidity,How can I return an array of struct in solidity?,"
+I am designing a solution for an ethereum smart contract that does bidding. The use-case includes reserving a name eg. ""myName"" and assigning to an address. And then, people can bid for that name (in this case myName). There can be multiple such biddings happening for multiple names.
+struct Bid {
+  address bidOwner;
+  uint bidAmount;
+  bytes32 nameEntity;
+}
+
+mapping(bytes32 => Bid[]) highestBidder;
+So, as you can see above, Bid struct holds data for one bidder, similarly, the key (eg. myName) in the mapping highestBidder points to an array of such bidders.
+Now, I am facing a problem when I try to return something like highestBidder[myName].
+Apparently, solidity does not support returning an array of structs (dynamic data). I either need to rearchitect my solution or find some workaround to make it work.
+If you guys have any concerns regarding the question, please let me know, I will try to make it clear.
+I am stuck here any help would be appreciated.","
+As you mentioned, this is not yet supported in Solidity. The powers that be are planning on changing it so you can, but for now, you have to retrieve the number of elements and then retrieve the decomposed struct as a tuple.
+function getBidCount(bytes32 name) public constant returns (uint) {
+    return highestBidder[name].length;
+}
+
+function getBid(bytes32 name, uint index) public constant returns (address, uint, bytes32) {
+    Bid storage bid = highestBidder[name][index];
+
+    return (bid.bidOwner, bid.bidAmount, bid.nameEntity);
+}
+Edit to address question in comment regarding storage vs memory in this case
+Local storage variables are pointers to state variables (which are always in storage). From the Solidity docs:
+The type of the local variable x is uint[] storage, but since storage is not dynamically allocated, it has to be assigned from a state variable before it can be used. So no space in storage will be allocated for x, but instead it functions only as an alias for a pre-existing variable in storage.
+This is referring to an example where the varable used is uint[] x. Same applies to my code with Bid bid. In other words, no new storage is being created.
+In terms of cost:
+getBid(""foo"", 0) using Bid memory bid:
+getBid(""foo"", 0) using Bid storage bid:
+In this case, storage is cheaper."
+45,https://stackoverflow.com/questions/43935520/who-is-the-owner-of-the-contracts-deployed-using-truffle,who is the owner of the contracts deployed using truffle?,"
+I am using testrpc and truffle to test my contract.
+When I type truffle migrate , this will deploy my contract to the testrpc network.
+My question is , which account (from testrpc accounts) has been used to deploy the contract.
+In other word, whose the contract owner?
+Thank you in advance","
+By default the owner is accounts[0] so the first account on the list but you can set the owner by adding ""from"" in the truffle.js config file
+module.exports = {
+  networks: {
+    development: {
+      host: ""localhost"",
+      port: 8545,
+      network_id: ""*"",
+      from: ""0xda9b1a939350dc7198165ff84c43ce77a723ef73""
+    }
+  }
+};
+for more information about migration see this https://github.com/trufflesuite/truffle/issues/138"
+46,https://stackoverflow.com/questions/70104101/valueerror-method-eth-maxpriorityfeepergas-not-supported-web3-py-with-ganache,"ValueError: Method eth_maxPriorityFeePerGas not supported, web3.py with ganache","
+I'm running the following code with web3.py:
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""from"": my_address, ""nonce"": nonce}
+)
+And I am running into the following error:
+Traceback (most recent call last):
+  File ""/Users/patrick/code/web3_py_simple_storage/deploy.py"", line 64, in <module>
+    transaction = SimpleStorage.constructor().buildTransaction(
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/eth_utils/decorators.py"", line 18, in _wrapper
+    return self.method(obj, *args, **kwargs)
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/contract.py"", line 684, in buildTransaction
+    return fill_transaction_defaults(self.web3, built_transaction)
+  File ""cytoolz/functoolz.pyx"", line 250, in cytoolz.functoolz.curry.__call__
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/_utils/transactions.py"", line 121, in fill_transaction_defaults
+    default_val = default_getter(web3, transaction)
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/_utils/transactions.py"", line 71, in <lambda>
+    web3.eth.max_priority_fee + (2 * web3.eth.get_block('latest')['baseFeePerGas'])
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/eth.py"", line 549, in max_priority_fee
+    return self._max_priority_fee()
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/module.py"", line 57, in caller
+    result = w3.manager.request_blocking(method_str,
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/manager.py"", line 198, in request_blocking
+    return self.formatted_response(response,
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/manager.py"", line 171, in formatted_response
+    raise ValueError(response[""error""])
+ValueError: {'message': 'Method eth_maxPriorityFeePerGas not supported.', 'code': -32000, 'data': {'stack': 'Error: Method eth_maxPriorityFeePerGas not supported.\n    at GethApiDouble.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/geth_api_double.js:70:16)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at GethDefaults.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/gethdefaults.js:15:12)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at SubscriptionSubprovider.FilterSubprovider.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/subproviders/filters.js:89:7)\n    at SubscriptionSubprovider.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/subproviders/subscriptions.js:137:49)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at DelayedBlockFilter.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/delayedblockfilter.js:31:3)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at RequestFunnel.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/requestfunnel.js:32:12)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at Web3ProviderEngine._handleAsync (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:123:3)\n    at Timeout._onTimeout (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:107:12)\n    at listOnTimeout (internal/timers.js:531:17)\n    at processTimers (internal/timers.js:475:7)', 'name': 'Error'}}
+How do I fix this?
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""from"": my_address, ""nonce"": nonce}
+)
+Traceback (most recent call last):
+  File ""/Users/patrick/code/web3_py_simple_storage/deploy.py"", line 64, in <module>
+    transaction = SimpleStorage.constructor().buildTransaction(
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/eth_utils/decorators.py"", line 18, in _wrapper
+    return self.method(obj, *args, **kwargs)
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/contract.py"", line 684, in buildTransaction
+    return fill_transaction_defaults(self.web3, built_transaction)
+  File ""cytoolz/functoolz.pyx"", line 250, in cytoolz.functoolz.curry.__call__
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/_utils/transactions.py"", line 121, in fill_transaction_defaults
+    default_val = default_getter(web3, transaction)
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/_utils/transactions.py"", line 71, in <lambda>
+    web3.eth.max_priority_fee + (2 * web3.eth.get_block('latest')['baseFeePerGas'])
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/eth.py"", line 549, in max_priority_fee
+    return self._max_priority_fee()
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/module.py"", line 57, in caller
+    result = w3.manager.request_blocking(method_str,
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/manager.py"", line 198, in request_blocking
+    return self.formatted_response(response,
+  File ""/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/web3/manager.py"", line 171, in formatted_response
+    raise ValueError(response[""error""])
+ValueError: {'message': 'Method eth_maxPriorityFeePerGas not supported.', 'code': -32000, 'data': {'stack': 'Error: Method eth_maxPriorityFeePerGas not supported.\n    at GethApiDouble.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/geth_api_double.js:70:16)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at GethDefaults.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/gethdefaults.js:15:12)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at SubscriptionSubprovider.FilterSubprovider.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/subproviders/filters.js:89:7)\n    at SubscriptionSubprovider.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/subproviders/subscriptions.js:137:49)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at DelayedBlockFilter.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/delayedblockfilter.js:31:3)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at RequestFunnel.handleRequest (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/lib/subproviders/requestfunnel.js:32:12)\n    at next (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:136:18)\n    at Web3ProviderEngine._handleAsync (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:123:3)\n    at Timeout._onTimeout (/Applications/Ganache.app/Contents/Resources/static/node/node_modules/ganache-core/node_modules/web3-provider-engine/index.js:107:12)\n    at listOnTimeout (internal/timers.js:531:17)\n    at processTimers (internal/timers.js:475:7)', 'name': 'Error'}}","
+This is an issue from a new edition of web3.py.
+You need to add gasPrice to your transaction, like so:
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""gasPrice"": w3.eth.gas_price, ""from"": my_address, ""nonce"": nonce}
+)
+This is due to EIP1559 changing, and web3.py updating for the change.
+transaction = SimpleStorage.constructor().buildTransaction(
+    {""chainId"": chain_id, ""gasPrice"": w3.eth.gas_price, ""from"": my_address, ""nonce"": nonce}
+)"
+47,https://stackoverflow.com/questions/55154713/error-the-method-eth-sendtransaction-does-not-exist-is-not-available,Error: The method eth_sendTransaction does not exist/is not available,"
+Showing an error while calling solidity contract, which is deployed already in ropsten-infura. I'm using web3(@0.19.1) for calling contract.
+Anybody faced the same issue?",
+48,https://stackoverflow.com/questions/35545625/event-triggering-in-solidity,Event triggering in solidity,"
+I'm currently working on ethereum platform(node.js and solidity). My question is how do I trigger an event in solidity(contract) using node.js?",
+49,https://stackoverflow.com/questions/67511692/how-to-receive-and-send-usdt-in-a-smart-contract,How to receive and send USDT in a smart contract?,"
+Is there any guide or code that can serve as an example to implement the functionality where a smart contract receives and sends USDT to other addresses.
+I appreciate your help","
+The token balance is stored in the token contract (in this case USDT), not in yours. So sending tokens is a straightforward process - you just execute the correct function on the token contract. Mind that your contract needs to hold at least the amount it's about to send, otherwise the transaction would revert.
+pragma solidity ^0.8;
+
+interface IERC20 {
+    function transfer(address _to, uint256 _value) external returns (bool);
+    
+    // don't need to define other functions, only using `transfer()` in this case
+}
+
+contract MyContract {
+    // Do not use in production
+    // This function can be executed by anyone
+    function sendUSDT(address _to, uint256 _amount) external {
+         // This is the mainnet USDT contract address
+         // Using on other networks (rinkeby, local, ...) would fail
+         //  - there's no contract on this address on other networks
+        IERC20 usdt = IERC20(address(0xdAC17F958D2ee523a2206206994597C13D831ec7));
+        
+        // transfers USDT that belong to your contract to the specified address
+        usdt.transfer(_to, _amount);
+    }
+}
+But because the balance is stored in the external contract, you can't just make a user send you tokens by executing a function in your contract. See my other answer that shows an example how this could be misused if it were possible (just replace approve to transfer, but the logic is the same).
+Some token standards (such as ERC-1155 or ERC-721) allow sending a hook to your contract when your contract receives tokens. The hook function names and required parameters are in the linked documents. But whether the token contract sends you a hook, that depends on
+implementation of the token contract (which specifically USDT doesn't implement)
+your contract (you would have to implement the hook function for all token standards that you want to receive - or at least a generic fallback() which would work in some cases)
+and sometimes on the sender as well.
+You can ask your users to approve some USDT to be spent by your address, and then your contract can execute the transferFrom() function of the USDT contract (where the ""from"" is the user who approved you to spend their tokens). However, the approval needs to be done outside of your contract, as the linked other answer suggests.
+You can also have an off-chain app that listens to event logs emitted by the token contract (in your case Transfer() event on the USDT contract). The event logs contain the transfer information including the receiver and amount. So your (off-chain) app can filter only events where your address is the receiver, and perform some action when it handles the event log."
+50,https://stackoverflow.com/questions/50632114/web3-websocket-connection-prevents-node-process-from-exiting,web3 websocket connection prevents node process from exiting,"
+I have a node js process that creates a web3 websocket connection, like so:
+web3 = new Web3('ws://localhost:7545')
+When the process completes (I send it a SIGTERM), it does not exit, but rather hangs forever with no console output.
+I registered a listener on SIGINT and SIGTERM to observe at what handles the process has outstanding with process._getActiveRequests() and process._getActiveHandles(), I see this:
+ Socket {
+    connecting: false,
+    _hadError: false,
+    _handle: 
+     TCP {
+       reading: true,
+       owner: [Circular],
+       onread: [Function: onread],
+       onconnection: null,
+       writeQueueSize: 0 },
+    <snip>
+    _peername: { address: '127.0.0.1', family: 'IPv4', port: 7545 },
+    <snip>
+}
+For completeness, here is the code that's listening for the signals:
+async function stop() {
+  console.log('Shutting down...')
+
+  if (process.env.DEBUG) console.log(process._getActiveHandles())
+
+  process.exit(0)
+}
+
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM')
+  await stop()
+})
+
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT')
+  await stop()
+})
+Looks like web3 is holding a socket open, which makes sense since I never told it to close the connection. Looking through the documentation and googling, it doesn't look like there's a close or end method for the web3 object.
+Manually closing the socket in stop above allows the process to successfully exit:
+web3.currentProvider.connection.close()
+Anyone have a more elegant or officially sanctioned solution? It feels funny to me that you have to manually do this rather than have the object destroy itself on process end. Other clients seem to do this automatically without explicitly telling them to close their connections. Perhaps it is cleaner to tell all the clients created by your node process to close their handles/connections on shutdown anyway, but to me, this was unexpected.
+web3 = new Web3('ws://localhost:7545')
+ Socket {
+    connecting: false,
+    _hadError: false,
+    _handle: 
+     TCP {
+       reading: true,
+       owner: [Circular],
+       onread: [Function: onread],
+       onconnection: null,
+       writeQueueSize: 0 },
+    <snip>
+    _peername: { address: '127.0.0.1', family: 'IPv4', port: 7545 },
+    <snip>
+}
+async function stop() {
+  console.log('Shutting down...')
+
+  if (process.env.DEBUG) console.log(process._getActiveHandles())
+
+  process.exit(0)
+}
+
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM')
+  await stop()
+})
+
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT')
+  await stop()
+})
+web3.currentProvider.connection.close()",
+51,https://stackoverflow.com/questions/55345063/how-to-return-array-of-address-in-solidity,How to return array of address in solidity?,"
+I am creating a smart contract in solidity ^0.5.1 in which I get the following error:
+data location must be a memory for the return parameter in the function, but none was given.
+In the below function I am getting error.
+function getCitizen()public returns(address[]){
+    return citizenArray;
+}
+The smart contract that I have tried so far.
+pragma solidity ^0.5.1;
+
+contract Citizen{
+    
+    
+    struct Citizens{
+        
+        uint age;
+        string fName;
+        string lName;
+        
+    }
+    
+    mapping(address => Citizens) citizenMap;
+    
+    address [] citizenArray;
+    
+    function setCitizen(address _address,uint _age,string memory _fName,string memory _lName) public{
+        
+        //creating the object of the structure in solidity 
+         Citizens storage citizen=citizenMap[_address];
+        
+        
+        citizen.age=_age;
+        citizen.fName=_fName;
+        citizen.lName=_lName;
+        
+        citizenArray.push(_address) -1;
+        
+    }
+    
+    function getCitizen(address _address) public pure returns(uint,string memory ,string memory ){
+        return(citizenMap[_address].age,citizenMap[_address].fName,citizenMap[_address].lName);
+        
+    }
+    
+    function getCitizenAddress()public returns(address[]){
+        return citizenArray;
+    }
+    
+}
+How can I return the array of addresses?
+data location must be a memory for the return parameter in the function, but none was given.","
+It make sense, as you are returning the storage array of address you cannot return it as it is, because it will try to return the actual address of citizenArray in the contract storage. You can send the array by making it in memory. Like this.
+function getCitizenAddress()public view returns( address  [] memory){
+    return citizenArray;
+}
+Once you put it as memory, you will get the warning for this which will state that as you are not changing any state in the function, you should mark it view, I already did that in the above code.
+Lastly, when you resolved this error, you will get another error in this function:
+function getCitizen(address _address) public pure returns(uint,string memory ,string memory ){
+            return(citizenMap[_address].age,citizenMap[_address].fName,citizenMap[_address].lName);
+}
+This error is because you mark this function as pure. There is a little but very important difference between pure and view.
+view means you cannot change the state of the contract in that function.
+pure means you cannot change the state in the function and not even can read the state or storage variables.
+In the above function of getCitizen you are actually doing read operations in your return statement. You can fix this by just putting view instead of pure. Like So:
+function getCitizen(address _address) public view returns(uint,string memory ,string memory ){
+    return(citizenMap[_address].age,citizenMap[_address].fName,citizenMap[_address].lName);
+
+}
+I hope it will resolve all your issues. Thanks"
+52,https://stackoverflow.com/questions/67893318/solidity-how-to-represent-bytes32-as-string,Solidity: How to represent bytes32 as string,"
+This may be simple in other languages but I can't figure out how to do it in Solidity.
+I have a bytes32 like this 0x05416460deb76d57af601be17e777b93592d8d4d4a4096c57876a91c84f4a712.
+I don't want to convert the bytes to a string, rather I just want to represent the whole thing as a string, like ""0x05416460deb76d57af601be17e777b93592d8d4d4a4096c57876a91c84f4a712"".
+How can this be done in Solidity?
+Update:
+Why I need to do this: Basically I connect to an oracle, which does some work off-chain and finally uploads a file to IPFS. I need to get the content identifier into my contract from the oracle. The oracle can only send bytes32 as a response, so I convert it to a multihash and send only the digest as bytes32 from oracle to contract.
+So far so good, I can recreate the multihash in my contract. The problem is that after this I create an ERC721 (NFT) token and I have to store some reference to the IPFS file in the metadata, which can only be in string format. This is where I'm stuck at the moment.","
+While the answer from @Burt looks correct (didn't test it though), there is a much more efficient way to solve the same task:
+function toHex16 (bytes16 data) internal pure returns (bytes32 result) {
+    result = bytes32 (data) & 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000 |
+          (bytes32 (data) & 0x0000000000000000FFFFFFFFFFFFFFFF00000000000000000000000000000000) >> 64;
+    result = result & 0xFFFFFFFF000000000000000000000000FFFFFFFF000000000000000000000000 |
+          (result & 0x00000000FFFFFFFF000000000000000000000000FFFFFFFF0000000000000000) >> 32;
+    result = result & 0xFFFF000000000000FFFF000000000000FFFF000000000000FFFF000000000000 |
+          (result & 0x0000FFFF000000000000FFFF000000000000FFFF000000000000FFFF00000000) >> 16;
+    result = result & 0xFF000000FF000000FF000000FF000000FF000000FF000000FF000000FF000000 |
+          (result & 0x00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000) >> 8;
+    result = (result & 0xF000F000F000F000F000F000F000F000F000F000F000F000F000F000F000F000) >> 4 |
+          (result & 0x0F000F000F000F000F000F000F000F000F000F000F000F000F000F000F000F00) >> 8;
+    result = bytes32 (0x3030303030303030303030303030303030303030303030303030303030303030 +
+           uint256 (result) +
+           (uint256 (result) + 0x0606060606060606060606060606060606060606060606060606060606060606 >> 4 &
+           0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F) * 7);
+}
+
+function toHex (bytes32 data) public pure returns (string memory) {
+    return string (abi.encodePacked (""0x"", toHex16 (bytes16 (data)), toHex16 (bytes16 (data << 128))));
+}
+This code produces upper case output. For lower case output, just change 7 to 39 in the code.
+Explanation
+The idea is to process 16 bytes at once using binary operations.
+The toHex16 function converts a sequence of 16 bytes represented as a bytes16 value into a sequence of 32 hexadecimal digits represented as a bytes32 value. The toHex function splits a bytes32 value into two bytes16 chunks, converts each chunk to hexadecimal representation via the toHex16 function, and finally concatenates the 0x prefix with the converted chunks using abi.encodePacked function.
+The most sophisticated part is how the toHex16 function works. Let's explain it sentence by sentence.
+The first sentence:
+result = bytes32 (data) & 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000 |
+      (bytes32 (data) & 0x0000000000000000FFFFFFFFFFFFFFFF00000000000000000000000000000000) >> 64;
+Here we shift the last 64 bits of the input to the right by 64 bits, basically doing:
+0123456789abcdeffedcba9876543210
+\______________/\______________/
+       |               |
+       |               +---------------+
+ ______V_______                  ______V_______
+/              \                /              \
+0123456789abcdef0000000000000000fedcba9876543210
+The second sentence:
+result = result & 0xFFFFFFFF000000000000000000000000FFFFFFFF000000000000000000000000 |
+      (result & 0x00000000FFFFFFFF000000000000000000000000FFFFFFFF0000000000000000) >> 32;
+Here we shift the last 32 bits of both 64-bit chunks to the right by 32 bits:
+0123456789abcdef0000000000000000fedcba9876543210
+\______/\______/                \______/\______/
+   |       |                       |       |
+   |       +-------+               |       +-------+
+ __V___          __V___          __V___          __V___
+/      \        /      \        /      \        /      \
+012345670000000089abcdef00000000fedcba980000000076543210
+The next sentence:
+result = result & 0xFFFF000000000000FFFF000000000000FFFF000000000000FFFF000000000000 |
+      (result & 0x0000FFFF000000000000FFFF000000000000FFFF000000000000FFFF00000000) >> 16;
+does:
+012345670000000089abcdef00000000fedcba980000000076543210
+\__/\__/        \__/\__/        \__/\__/        \__/\__/
+ |   |           |   |           |   |           |   |
+ |   +---+       |   +---+       |   +---+       |   +---+
+ V_      V_      V_      V_      V_      V_      V_      V_
+/  \    /  \    /  \    /  \    /  \    /  \    /  \    /  \
+012300004567000089ab0000cdef0000fedc0000ba980000765400003210
+And the next one:
+result = result & 0xFF000000FF000000FF000000FF000000FF000000FF000000FF000000FF000000 |
+      (result & 0x00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000) >> 8;
+does:
+012300004567000089ab0000cdef0000fedc0000ba980000765400003210
+\/\/    \/\/    \/\/    \/\/    \/\/    \/\/    \/\/    \/\/
+| |     | |     | |     | |     | |     | |     | |     | |
+| +-+   | +-+   | +-+   | +-+   | +-+   | +-+   | +-+   | +-+
+V   V   V   V   V   V   V   V   V   V   V   V   V   V   V   V
+/\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\
+01002300450067008900ab00cd00ef00fe00dc00ba00980076005400320010
+The final sentence in this series is a bit different:
+result = (result & 0xF000F000F000F000F000F000F000F000F000F000F000F000F000F000F000F000) >> 4 |
+      (result & 0x0F000F000F000F000F000F000F000F000F000F000F000F000F000F000F000F00) >> 8;
+It shifts odd nibbles to the right by 4 bits, and even nibbles by 8 bits:
+01002300450067008900ab00cd00ef00fe00dc00ba00980076005400320010
+|\  |\  |\  |\  |\  |\  |\  |\  |\  |\  |\  |\  |\  |\  |\  |\
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V
+000102030405060708090a0b0c0d0e0f0f0e0d0c0b0a09080706050403020100
+So all the nibbles of the initial data are distributed one per byte.
+Now with every byte x we need to do the following transformation:
+x` = x < 10 ? '0' + x : 'A' + (x - 10)
+Let's rewrite this formula a bit:
+x` = ('0' + x) + (x < 10 ? 0 : 'A' - '0' - 10)
+x` = ('0' + x) + (x < 10 ? 0 : 1) * ('A' - '0' - 10)
+Note, that (x < 10 ? 0 : 1) could be calculated as ((x + 6) >> 4), thus we have:
+x` = ('0' + x) + ((x + 6) >> 4) * ('A' - '0' - 10)
+x` = (0x30 + x) + ((x + 0x06) >> 4) * 7
+The final statement:
+result = bytes32 (0x3030303030303030303030303030303030303030303030303030303030303030 +
+       uint256 (result) +
+       (uint256 (result) + 0x0606060606060606060606060606060606060606060606060606060606060606 >> 4 &
+       0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F) * 7);
+Basically performs the above calculation for every byte. The
+0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F
+mask after the right shift is needed to zero out the bits ""dropped"" by the right shift in the original formula.
+BTW, it would be better to ask questions like this one at https://ethereum.stackexchange.com/"
+53,https://stackoverflow.com/questions/58277234/does-solidity-supports-floating-point-number,Does Solidity supports floating point number,"
+I am new in solidity language. Have seen their documentation. Is there any floating point data type ?","
+There is no floating point in Solidity. You should keep numbers in whole number format.
+You can place decimal place in your front-end code. Take a look at how ERC20 contract was designed.
+Good read: https://medium.com/@jgm.orinoco/understanding-erc-20-token-contracts-a809a7310aa5"
+54,https://stackoverflow.com/questions/60569808/how-to-correctly-import-safemath-sol-into-contract,How to correctly import SafeMath.sol into contract,"
+This has been a problem I've been dealing with for a while now. My temporary solution has been to create a SafeMath.sol file in my Contracts directory and directly import it from there. However, I've been looking for a 'clearer solution' to this... Old way seemed to be directly importing it from a GitHub link, as seen in some repos and other stack overflow posts like such
+However, the proper way do this seems to be installing the corresponding oz package (@openzeppelin/contracts-ethereum-package) and importing the file directly into the needed contract i.e.
+import ""@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol"";
+However, using VSCode, I still get the error Source ""@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol"" not found: File import callback not supported
+That said, how can I properly import SafeMath?
+EDIT: I am using pragma solidity ^0.6.0;",
+55,https://stackoverflow.com/questions/51664226/solidity-error-expected-identifier-got-lparen,"Solidity error: Expected identifier, got 'LParen'","
+I'm getting the error:
+Expected identifier, got 'LParen'
+Problem is, this code is from the Solidity docs! I have tried many thing for this error but to no avail. The link where I got the code is: https://solidity.readthedocs.io/en/latest/solidity-by-example.html
+I have an image attached with the error:
+Can someone explain to me what I'm doing wrong? I have the right version, as per below:
+kalyan@kalyan:/usr/bin$ truffle version
+Truffle v4.1.13 (core: 4.1.13)
+Solidity v0.4.24 (solc-js)
+This is running on Ubuntu 18.04. Is there something else I should be doing?
+EDIT
+The code before constructor is:
+/// Modifiers are a convenient way to validate inputs to
+/// functions. `onlyBefore` is applied to `bid` below:
+/// The new function body is the modifier's body where
+/// `_` is replaced by the old function body.
+modifier onlyBefore(uint _time) { require(now < _time); _; }
+modifier onlyAfter(uint _time) { require(now > _time); _; }","
+See the answer to a similar error here: https://ethereum.stackexchange.com/a/56727/27511 I'm reposting for convenience...
+I had a similar problem. In my case it was the system version of solc I had installed. Here's what I had. I had solc installed through Homebrew, and also truffle installed. when I run truffle version:
+Truffle v4.1.14 (core: 4.1.14)
+Solidity v0.4.24 (solc-js)
+So I had the latest version of truffle and seemingly, solc as well. However, when I run solc --version
+solc, the solidity compiler commandline interface
+Version: 0.4.19+commit.e67f0147.Darwin.appleclang
+My system solidty version was different. I found that I had installed solidity through Homebrew (on Mac), so that was different from the version truffle was using. So the fix in my case, was to upgrade solidity using homebrew, it upgraded from 0.4.19 to 0.4.24 and my problem went away. To upgrade solidity using Homebrew:
+brew update
+brew upgrade
+brew tap ethereum/ethereum
+brew install solidity
+brew linkapps solidity
+The first two lines are probably all you need if you already have solidity installed, but added the rest for completeness.
+This was on Mac, if you're on Linux, it might be a similar problem, make sure you upgrade the system installation of solidity, not what's installed with truffle."
+56,https://stackoverflow.com/questions/68070253/error-truffle-is-currently-using-solc-0-5-16-but-one-or-more-of-your-contracts,"Error: Truffle is currently using solc 0.5.16, but one or more of your contracts specify “pragma solidity ^0.8.0”","
+Error: Truffle is currently using solc 0.5.16, but one or more of your contracts specify “pragma solidity ^0.8.0”
+Here is a photo of the error - https://gyazo.com/2f5ea2f50cc1d4ef5eea2f21d0e04fe7
+All my contracts are using the ^0.8.0 pragma. My truffle-config is also using the same version as you can see here - https://gyazo.com/1ec8b28ca48902c091004f8659cf678d
+Please help. Thank you very much.",
+57,https://stackoverflow.com/questions/38427815/what-is-the-initial-value-of-ethereum-contract-variables,What is the initial value of Ethereum contract variables?,"
+I make some contracts code with mapping data. When I first access data value, ethereum returns 0.
+Is it specification of ethereum? In other word, Can I write a contract on the assumption that variable's initial value is 0?",
+58,https://stackoverflow.com/questions/50022369/upgradable-smart-contracts-with-solidity-interface-vs-library,upgradable smart contracts with Solidity: interface vs library?,"
+In the context of upgradable smart contracts, when should one use interfaces and when libraries? I read several similar questions and blog posts, but none of them give a straight-to-the-point answer:
+(Sub) contract vs. library vs. struct vs. Interface
+How to improve smart contact design in order to distinguish data and their manipulation functions for the same domain object?
+Writing upgradable contracts in Solidity
+Interfaces make your Solidity contracts upgradeable
+Library Driven Development in Solidity
+Proxy Libraries in Solidity
+Exploring Code Reuse in Solidity
+I understand that the main criteria to consider (besides security) when designing for upgradability are:
+modularity - for reusability and easier maintenance
+gas limit - split huge contracts so that they can be deployed in several transactions, so as to not hit the gas limit
+cost of upgrade - how much does each contract upgrade cost. After a (small) change in one contract, which other contracts need to be re-deployed?
+cost of execution - separate contracts may result in gas overhead on each call. Try to keep that overhead low.
+This Medium post suggests to use libraries to encapsulate logic (e.g. when interacting with ""storage contracts"") and to use interfaces to decouple inter-contract communication. Other posts suggest different techniques. As far as I understand, libraries are linked to contracts prior to deployment, so once the contract changes, libraries need to be re-deployed. Why it is not better to use interfaces for interacting with storage contracts?
+Below I present the two solutions I have seen so far - one with library and one with an interface. (I'd like to avoid solutions with inline assembly...)
+Solution with library
+StorageWithLib.sol:
+contract StorageWithLib {
+    uint public data;
+
+    function getData() public returns(uint) {
+        return data;
+    }
+}
+StorageLib.sol:
+import './StorageWithLib.sol';
+
+library StorageLib {
+
+    function getData(address _storageContract) public view returns(uint) {
+        return StorageWithLib(_storageContract).getData();
+    }
+}
+ActionWithLib.sol:
+import './StorageLib.sol';
+
+contract ActionWithLib {
+    using StorageLib for address;
+    address public storageContract;
+
+    function ActionWithLib(address _storageContract) public {
+        storageContract = _storageContract;
+    }
+
+    function doSomething() public {
+        uint data = storageContract.getData();
+        // do something with data ...
+    }
+}
+Solution with interface
+IStorage.sol:
+contract IStorage {     
+    function getData() public returns(uint);
+}
+StorageWithInterface.sol:
+import './IStorage.sol';
+
+contract StorageWithInterface is IStorage {
+    uint public data;
+
+    function getData() public returns(uint) {
+        return data;
+    }
+}
+ActionWithInterface.sol:
+import './IStorage.sol';
+
+contract ActionWithInterface {
+    IStorage public storageContract;
+
+    function ActionWithInterface(address _storageContract) public {
+        storageContract = IStorage(_storageContract);
+    }
+
+    function doSomething() public {
+        uint data = storageContract.getData();
+        // do something with data ...
+    }   
+}
+Considering the above criteria, which solution is preferred for separating storage and logic, and why? In which other cases is the other solution better?",
+59,https://stackoverflow.com/questions/73355583/error-failed-to-fetch-the-solidity-compiler,Error: Failed to fetch the Solidity compiler,"
+I am new to Truffle and going through the Metacoin tutorial; I followed all the steps but when I do truffle compile, I get the following:
+Error: Failed to fetch the Solidity compiler from the following locations: https://relay.trufflesuite.com/solc/bin/,https://solc-bin.ethereum.org/bin/,https://ethereum.github.io/solc-bin/bin/. Are you connected to the internet?
+I am connected to Internet and using: Truffle v5.5.26 (core: 5.5.26) Ganache v7.4.0 Solidity - 0.8.13 (solc-js) Node v16.13.1 Web3.js v1.7.4
+Error: Failed to fetch the Solidity compiler from the following locations: https://relay.trufflesuite.com/solc/bin/,https://solc-bin.ethereum.org/bin/,https://ethereum.github.io/solc-bin/bin/. Are you connected to the internet?",
+60,https://stackoverflow.com/questions/52737409/solidity-how-does-function-parameters-size-affects-gas-cost,Solidity : How does function parameters' size affects gas cost?,"
+before anything here's some context :
+Let's say I'm implementing a dApp, and I want to reduce the number of times users have to call the related smart-contract. In order to do this, all the users' actions are stacked-up, client-side. Eventually, users will have to commit their actions to the smart-contract, in order to update their datas on chain.
+The smart-contract takes a queue of all the users' actions as a parameter, and iterate over it to do mainly some checkings and update. A bit like this :
+function verifyUsersActions(Queue actions) public
+{
+    while(actions.length != 0)
+    {
+        Action currentAction = actions.pop(); 
+            /* tests on currentAction, update datas, etc */
+    }
+}
+My question is: how does the size of the ""actions"" object affects gas cost ? What's the increment in gas, between an ""actions.length = 2"" and an ""actions.length = 3"" ?
+I'm still confused with ""memory"" and ""storage"" variables, and don't know in which category does function call parameters fall in.",
+61,https://stackoverflow.com/questions/70019983/what-is-difference-between-internal-and-private-in-solidity,What is difference between internal and private in Solidity?,"
+In Solidity we have four types of access. Two of them are private and internal. What is the difference if both of them can be used inside smart contract and both of them are not visible after deploying?","
+Access types:
+public - can be used when contract was deployed, can be used in inherited contract
+external can be used when contract was deployed , can NOT be used in inherited contract
+internal - can NOT be used when contract was deployed , can be used in inherited contract
+private - can NOT be used when contract was deployed, can NOT be used in inherited contract"
+62,https://stackoverflow.com/questions/73268120/how-to-limit-token-receiver-callers-to-accepted-token-address,How to limit token receiver callers to accepted token address?,"
+I want to create a payable token which includes a function transferAndCall(TokenReceiver to, uint256 amount, bytes4 selector). By calling this function, you can transfer tokens to the TokenReceiver smart contract address, and then call onTransferReceived(address from,uint tokensPaid, bytes4 selector) on the receiver, which in turn invokes a function specified in thebytes4 selector on the receiver.
+Note that this is similar to/ inspired by ERC1363.
+Here is a simplified version of my receivable token:
+import ""@openzeppelin/contracts/token/ERC20/ERC20.sol"";
+contract MeowToken is ERC20 {
+  constructor() ERC20(""MeowToken"", ""MEO"") {
+    ERC20._mint(msg.sender, 10_000_000);
+  }
+  function transferAndCall(
+    TokenReceiver to,
+    uint256 amount,
+    bytes4 selector
+  ) external {
+    ERC20.transfer(address(to), amount);
+    to.onTransferReceived(msg.sender, amount, selector);
+  }
+}
+And this is a token receiver:
+contract TokenReceiver {
+  address acceptedToken;
+  event PurchaseMade(address from, uint tokensPaid);
+    
+  modifier acceptedTokenOnly () {
+    require(msg.sender == address(acceptedToken), ""Should be called only via the accepted token"");
+    _;
+  }
+    
+  constructor(address _acceptedToken) {
+    acceptedToken = _acceptedToken;
+  }
+    
+  function onTransferReceived(
+    address from,
+    uint tokensPaid,
+    bytes4 selector
+  ) public acceptedTokenOnly {
+    (bool success,) = address(this).call(abi.encodeWithSelector(selector, from, tokensPaid));
+    require(success, ""Function call failed"");
+  }
+
+  function purchase(address from, uint tokensPaid) public acceptedTokenOnly {
+    emit PurchaseMade(from, tokensPaid);
+  }
+}
+I want to make sure that public functions on the receiver are only called via the payable token. For this reason I added acceptedTokenOnly modifier to both of them. However after adding the modifier my test began to fail:
+it('Transfer Tokens and call Purchase', async () => {
+    const tokenAmount = 100;
+    const tx = meowToken.transferAndCall(
+      tokenReceiver.address,
+      tokenAmount,
+      tokenReceiver.interface.getSighash('purchase'),
+    );
+    await expect(tx)
+      .to.emit(tokenReceiver, 'PurchaseMade')
+      .withArgs(deployer.address, tokenAmount);
+});
+1) Transfer and call
+       Transfer Tokens and call Purchase:
+     Error: VM Exception while processing transaction: reverted with reason string 'Function call failed'
+Why does this happen? How to make sure the receiver's functions are invoked only by the accepted token?
+For reference, I am developing and testing smart contracts in Hardhat and deploying on RSK.
+it('Transfer Tokens and call Purchase', async () => {
+    const tokenAmount = 100;
+    const tx = meowToken.transferAndCall(
+      tokenReceiver.address,
+      tokenAmount,
+      tokenReceiver.interface.getSighash('purchase'),
+    );
+    await expect(tx)
+      .to.emit(tokenReceiver, 'PurchaseMade')
+      .withArgs(deployer.address, tokenAmount);
+});",
+63,https://stackoverflow.com/questions/72356857/how-to-receive-a-value-returned-by-a-solidity-smart-contract-transacting-functio,How to receive a value returned by a Solidity smart contract transacting function?,"
+I am writing an NFT smart contract which I am going to test via Hardhat and deploy on RSK.
+//SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.0;
+
+import ""@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol"";
+
+contract MyNFT is ERC721URIStorage {
+    uint private _counter;
+    address private _owner;
+
+    constructor() ERC721(""My NFT"", ""MNFT"") {
+      _owner = msg.sender;
+    }
+
+    function owner() public view returns (address) {
+      return _owner;
+    }
+
+    function mintNFT(address recipient, string memory tokenURI)
+        public returns (uint256)
+    {
+        require(msg.sender == owner(), ""Only owner is allowed to mint"");
+        uint newItemId = ++_counter;
+        ERC721._mint(recipient, newItemId);
+        ERC721URIStorage._setTokenURI(newItemId, tokenURI);
+
+        return newItemId;
+    }
+}
+Here I have two public functions: owner and mintNFT both returning some values. In my tests I would like to read the return values coming from these two functions. These are the tests I am running on Hardhat:
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""My NFT"", () => {
+  let deployer;
+  let myNFT;
+
+  // deploy NFT before the tests
+  before(async () => {
+    [deployer] = await ethers.getSigners();
+    const MyNFT = await ethers.getContractFactory('MyNFT');
+    myNFT = await MyNFT.deploy();
+    await myNFT.deployed();
+  });
+
+  describe('Receiving a value returned by a view function', () => {
+    it('The deployer should be the s/c owner', async  () => {
+      const owner = await myNFT.owner();
+      expect(owner).to.equal(deployer.address);
+    });
+  });
+  
+  describe('Receiving a value returned by a transacting function', () => {
+    it('Should return a correct ID of the newly minted item', async () => {
+      const newMintItem = {
+        id: 1,
+        uri: 'ipfs://Qme3QxqsJih5psasse4d2FFLFLwaKx7wHXW3Topk3Q8b14',
+      };
+      const newItemId = await myNFT.mintNFT(deployer.address, newMintItem.uri);
+      expect(newItemId).to.equal(newMintItem.id);
+    });
+  });
+});
+In the case of the owner function I get what I expect: It returns my account address, and the first test passes successfully. However, when it comes to the mintNFT function, I don't get what I expect: Instead of the newly created item ID I get something very different and my second test fails.
+Why do two very similar tests give me different results? How do I get a return value from a function that sends a transaction? For reference, this is the hardhat.config.js file I'm using:
+require(""@nomiclabs/hardhat-waffle"");
+
+module.exports = {
+  solidity: ""0.8.4"",
+  defaultNetwork: 'rskregtest',
+  networks: {
+    rskregtest: {
+      chainId: 33,
+      url: 'http://localhost:4444',
+    },
+  },
+};
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""My NFT"", () => {
+  let deployer;
+  let myNFT;
+
+  // deploy NFT before the tests
+  before(async () => {
+    [deployer] = await ethers.getSigners();
+    const MyNFT = await ethers.getContractFactory('MyNFT');
+    myNFT = await MyNFT.deploy();
+    await myNFT.deployed();
+  });
+
+  describe('Receiving a value returned by a view function', () => {
+    it('The deployer should be the s/c owner', async  () => {
+      const owner = await myNFT.owner();
+      expect(owner).to.equal(deployer.address);
+    });
+  });
+  
+  describe('Receiving a value returned by a transacting function', () => {
+    it('Should return a correct ID of the newly minted item', async () => {
+      const newMintItem = {
+        id: 1,
+        uri: 'ipfs://Qme3QxqsJih5psasse4d2FFLFLwaKx7wHXW3Topk3Q8b14',
+      };
+      const newItemId = await myNFT.mintNFT(deployer.address, newMintItem.uri);
+      expect(newItemId).to.equal(newMintItem.id);
+    });
+  });
+});
+require(""@nomiclabs/hardhat-waffle"");
+
+module.exports = {
+  solidity: ""0.8.4"",
+  defaultNetwork: 'rskregtest',
+  networks: {
+    rskregtest: {
+      chainId: 33,
+      url: 'http://localhost:4444',
+    },
+  },
+};",
+64,https://stackoverflow.com/questions/62073437/how-to-make-an-api-call-in-solidity,How to make an API call in solidity?,"
+I have a smart contract that I’m trying to make, it pays out the winners of my League of Legends tournament. However I’m running into an issue. I need to make an API call to get the winner of the match, I have a simple URL that I’ve make.
+""example-winner.com/winner""
+And it returns simple JSON with the address of the winner:
+{""winner"":""0xa7D0.......""}
+However, I’m not sure how to make the API call to the outside function. I know I need to use some sort of oracle technology.
+Any thoughts? Below is my code:
+pragma solidity ^0.4.24;
+contract LeagueWinners{
+    address public manager;
+    address[] public players;
+    uint256 MINIMUM = 1000000000000000;
+    constructor() public{
+        manager = msg.sender;
+    }
+    function enter() public payable{
+        assert(msg.value > MINIMUM);
+        players.push(msg.sender);
+    }
+    function getWinner() public{
+        assert(msg.sender == manager);
+        // TODO
+        // Get the winner from the API call
+        result = 0; // the result of the API call
+        players[result].transfer(address(this).balance);
+        // returns an adress object
+        // all units of transfer are in wei
+        players = new address[](0);
+        // this empties the dynamic array
+    }
+}","
+You can use Chainlink as your Oracle.
+As many have mentioned, you will need an oracle to get your API call. Something that is important to note, your contract is actually asking an oracle to make your API call for you, and not making the API call itself. This is because the blockchain is deterministic. For more information see this thread.
+To answer your question, you can use the decentralized oracle service Chainlink.
+You'd add a function:
+  function getWinner() 
+    public
+    onlyOwner
+  {
+    Chainlink.Request memory req = buildChainlinkRequest(JOB, address(this), this.fulfill.selector);
+    req.add(""get"", ""example-winner.com/winner"");
+    req.add(""path"", ""winner"");
+    sendChainlinkRequestTo(ORACLE, req, ORACLE_PAYMENT);
+  }
+For the purpose of the following exmaple, we are going to pretend you want to return a uint256 instead of an address. You can return a bytes32 and then convert it to an address, but for simplicity let's say the API returns the index of the winner. You'll have to find a node and jobId that can make a http.get request and return a uint256 object. You can find nodes and jobs from market.link. Each testnet (Ropsten, Mainnet, Kovan, etc) has different node addresses, so make sure you pick the right ones.
+For this demo, we are going to use LinkPool's ropsten node
+address ORACLE=0x83F00b902cbf06E316C95F51cbEeD9D2572a349a;
+bytes32 JOB= ""c179a8180e034cf5a341488406c32827"";
+Ideally, you'd choose a number of nodes to run your job, to make it trustless and decentralized. You can read here for more information on precoordinators and aggregating data. disclosure I am the author of that blog
+Your full contract would look like:
+pragma solidity ^0.6.0;
+
+import ""github.com/smartcontractkit/chainlink/evm-contracts/src/v0.6/ChainlinkClient.sol"";
+
+
+contract GetData is ChainlinkClient {
+    uint256 indexOfWinner;
+    address public manager;
+    address payable[] public players;
+    uint256 MINIMUM = 1000000000000000;
+  
+  // The address of an oracle 
+    address ORACLE=0x83F00b902cbf06E316C95F51cbEeD9D2572a349a;
+    //bytes32 JOB= ""93fedd3377a54d8dac6b4ceadd78ac34"";
+    bytes32 JOB= ""c179a8180e034cf5a341488406c32827"";
+    uint256 ORACLE_PAYMENT = 1 * LINK;
+
+  constructor() public {
+    setPublicChainlinkToken();
+    manager = msg.sender;
+  }
+
+function getWinnerAddress() 
+    public
+    onlyOwner
+  {
+    Chainlink.Request memory req = buildChainlinkRequest(JOB, address(this), this.fulfill.selector);
+    req.add(""get"", ""example-winner.com/winner"");
+    req.add(""path"", ""winner"");
+    sendChainlinkRequestTo(ORACLE, req, ORACLE_PAYMENT);
+  }
+
+  // When the URL finishes, the response is routed to this function
+  function fulfill(bytes32 _requestId, uint256 _index)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+    indexOfWinner = _index;
+    assert(msg.sender == manager);
+    players[indexOfWinner].transfer(address(this).balance);
+    players = new address payable[](0);
+  }
+  
+  function enter() public payable{
+        assert(msg.value > MINIMUM);
+        players.push(msg.sender);
+    } 
+    
+  modifier onlyOwner() {
+    require(msg.sender == manager);
+    _;
+  }
+    
+    // Allows the owner to withdraw their LINK on this contract
+  function withdrawLink() external onlyOwner() {
+    LinkTokenInterface _link = LinkTokenInterface(chainlinkTokenAddress());
+    require(_link.transfer(msg.sender, _link.balanceOf(address(this))), ""Unable to transfer"");
+  }
+  
+  
+}
+This would do about everything you need.
+If you can't adjust the API to return a uint, you can return a bytes32 and then convert it to an address or a string.
+ function bytes32ToStr(bytes32 _bytes32) public pure returns (string memory) {
+     bytes memory bytesArray = new bytes(32);
+     for (uint256 i; i < 32; i++) {
+         bytesArray[i] = _bytes32[i];
+         }
+     return string(bytesArray);
+     }"
+65,https://stackoverflow.com/questions/53795971/solidity-solidity-code-to-input-json-description,Solidity - Solidity code to Input JSON Description,"
+I want to compile my ethereum HelloWorld.sol smart contract. In all the tutorials is that you do it like this:
+var solc = require('solc');
+var compiledContract = solc.compile(fs.readFileSync('HelloWorld.sol').toString();
+where HelloWorld.sol is:
+pragma solidity ^0.5.1;
+
+contract HelloWorld {
+    bytes32 message;
+    constructor(bytes32 myMessage) public {
+        message = myMessage;
+    }
+
+    function getMessage() public view returns(bytes32){
+        return message;
+    }
+}
+In other words, I put my raw Solidity contract code into the solc.compile() method. But this process gives me this error in compiledContract:
+'{""errors"":[{""component"":""general"",""formattedMessage"":""* Line 1, Column 1\\n  Syntax error: value, object or array expected.\\n* Line 1, Column 2\\n  Extra non-whitespace after JSON value.\\n"",""message"":""* Line 1, Column 1\\n  Syntax error: value, object or array expected.\\n* Line 1, Column 2\\n  Extra non-whitespace after JSON value.\\n"",""severity"":""error"",""type"":""JSONError""}]}'
+I was looking for a solution for quite a long time, but the only thing I found is that
+""The high-level API consists of a single method, compile, which expects the Compiler Standard Input and Output JSON.""
+(link). The standard input JSON looks like some combination of JSON and this solidity code. So my question is -
+How to transfer the solidity contract code into a compiler standard input JSON?
+Am I correct that this is the only way how to compile the contract?","
+This code works for me, index.js
+const solc = require('solc')
+const fs = require('fs')
+
+const CONTRACT_FILE = 'HelloWorld.sol'
+
+const content = fs.readFileSync(CONTRACT_FILE).toString()
+
+const input = {
+  language: 'Solidity',
+  sources: {
+    [CONTRACT_FILE]: {
+      content: content
+    }
+  },
+  settings: {
+    outputSelection: {
+      '*': {
+        '*': ['*']
+      }
+    }
+  }
+}
+
+const output = JSON.parse(solc.compile(JSON.stringify(input)))
+
+for (const contractName in output.contracts[CONTRACT_FILE]) {
+  console.log(output.contracts[CONTRACT_FILE][contractName].evm.bytecode.object)
+}
+HelloWorld.sol
+contract HelloWorld {
+    bytes32 message;
+    constructor(bytes32 myMessage) public {
+        message = myMessage;
+    }
+
+    function getMessage() public view returns(bytes32){
+        return message;
+    }
+}"
+66,https://stackoverflow.com/questions/69089799/how-to-locally-unit-test-chainlinks-verifiable-random-function,How to locally unit-test Chainlink's Verifiable Random Function?,"
+Context
+While trying to set up a basic self-hosted unit testing environment (and CI) that tests this Chainlink VRF random number contract, I am experiencing slight difficulties in how to simulate any relevant blockchains/testnets locally.
+For example, I found this repository that tests Chainlinks VRF. However, for default deployment it suggests/requires a free KOVAN_RPC_URL e.g. from Infura's site and even for ""local deployment"" it suggests/requires a free MAINNET_RPC_URL from e.g. Alchemy's site.
+Attempt/baseline
+I adopted a unit test environment from the waffle framework which is described as:
+Filestructure
+src____AmIRichAlready.sol
+   |____RandomNumberConsumer.sol
+   |
+test____AmIRichAlready.test.ts
+   |____mocha.opts
+package.json
+tsconfig.json
+waffle.json
+yarn.lock
+Filecontents
+AmIRichAlready.sol
+pragma solidity ^0.6.2;
+
+interface IERC20 {
+    function balanceOf(address account) external view returns (uint256);
+}
+
+contract AmIRichAlready {
+    IERC20 private tokenContract;
+    uint public richness = 1000000 * 10 ** 18;
+
+    constructor (IERC20 _tokenContract) public {
+        tokenContract = _tokenContract;
+    }
+
+    function check() public view returns (bool) {
+        uint balance = tokenContract.balanceOf(msg.sender);
+        return balance > richness;
+    }
+
+    // IS THIS NEEDED???
+    function setRichness(uint256 _richness) public {
+      richness = _richness;
+    }
+}
+The RandomNumberConsumer.sol filecontent is already on stackexange over here.
+AmIRichAlready.test.ts
+import {expect, use} from 'chai';
+import {Contract, utils, Wallet} from 'ethers';
+import {deployContract, deployMockContract, MockProvider, solidity} from 'ethereum-waffle';
+
+import IERC20 from '../build/IERC20.json';
+import AmIRichAlready from '../build/AmIRichAlready.json';
+
+use(solidity);
+
+describe('Am I Rich Already', () => {
+  let mockERC20: Contract;
+  let contract: Contract;
+  let vrfContract: Contract;
+  let wallet: Wallet;
+
+  beforeEach(async () => {
+    [wallet] = new MockProvider().getWallets();
+    mockERC20 = await deployMockContract(wallet, IERC20.abi);
+    contract = await deployContract(wallet, AmIRichAlready, [mockERC20.address]);
+    vrfContract = await deployContract(wallet, RandomNumberConsumer);
+  });
+
+  it('checks if contract called balanceOf with certain wallet on the ERC20 token', async () => {
+    await mockERC20.mock.balanceOf
+      .withArgs(wallet.address)
+      .returns(utils.parseEther('999999'));
+    await contract.check();
+    expect('balanceOf').to.be.calledOnContractWith(mockERC20, [wallet.address]);
+  });
+
+  it('returns false if the wallet has less than 1000000 coins', async () => {
+    await mockERC20.mock.balanceOf
+      .withArgs(wallet.address)
+      .returns(utils.parseEther('999999'));
+    expect(await contract.check()).to.be.equal(false);
+  });
+
+  it('returns true if the wallet has at least 1000000 coins', async () => {
+    await mockERC20.mock.balanceOf
+      .withArgs(wallet.address)
+      .returns(utils.parseEther('1000000'));
+    expect(await contract.check()).to.be.equal(false);
+  });
+});
+mocha.opts
+-r ts-node/register/transpile-only
+--timeout 50000
+--no-warnings
+test/**/*.test.{js,ts}
+package.json
+{
+  ""name"": ""example-dynamic-mocking-and-testing-calls"",
+  ""version"": ""1.0.0"",
+  ""main"": ""index.js"",
+  ""license"": ""MIT"",
+  ""scripts"": {
+    ""test"": ""export NODE_ENV=test && mocha"",
+    ""build"": ""waffle"",
+    ""lint"": ""eslint '{src,test}/**/*.ts'"",
+    ""lint:fix"": ""eslint --fix '{src,test}/**/*.ts'""
+  },
+  ""devDependencies"": {
+    ""@openzeppelin/contracts"": ""^4.3.1"",
+    ""@types/chai"": ""^4.2.3"",
+    ""@types/mocha"": ""^5.2.7"",
+    ""@typescript-eslint/eslint-plugin"": ""^2.30.0"",
+    ""@typescript-eslint/parser"": ""^2.30.0"",
+    ""chai"": ""^4.3.4"",
+    ""eslint"": ""^6.8.0"",
+    ""eslint-plugin-import"": ""^2.20.2"",
+    ""ethereum-waffle"": ""^3.4.0"",
+    ""ethers"": ""^5.0.17"",
+    ""mocha"": ""^7.2.0"",
+    ""ts-node"": ""^8.9.1"",
+    ""typescript"": ""^3.8.3""
+  }
+}
+tsconfig.json
+{
+  ""compilerOptions"": {
+    ""declaration"": true,
+    ""esModuleInterop"": true,
+    ""lib"": [
+      ""ES2018""
+    ],
+    ""module"": ""CommonJS"",
+    ""moduleResolution"": ""node"",
+    ""outDir"": ""dist"",
+    ""resolveJsonModule"": true,
+    ""skipLibCheck"": true,
+    ""strict"": true,
+    ""target"": ""ES2018""
+  }
+
+  // custom test in vrfContract
+  it('Tests if a random number is returned', async () => {
+    expect(await vrfContract.getRandomNumber()).to.be.equal(7);
+  });
+}
+waffle.json
+{
+  ""compilerType"": ""solcjs"",
+  ""compilerVersion"": ""0.6.2"",
+  ""sourceDirectory"": ""./src"",
+  ""outputDirectory"": ""./build""
+}
+The yarn.lock file content is a bit large, and it's auto-generated, so you can find it on the Waffle framework repository. Similarly, the package.json can be found here, in the same repository.
+Commands
+One can also simply clone the repo with the specified filestructure here, and run the tests with the following commands:
+git clone git@github.com:a-t-2/chainlink.git
+git clone git@github.com:a-t-2/test_vrf3.git
+cd test_vrf3
+sudo apt install npm
+npm install
+npm audit fix
+npm install --save-dev ethereum-waffle
+npm install @openzeppelin/contracts -D
+npm i chai -D
+npm i mocha -D
+rm -r build
+npx waffle
+npx mocha
+npm test
+Test Output
+This will test the AmIRichAlready.sol file and output:
+  Am I Rich Already
+    ✓ checks if contract called balanceOf with certain wallet on the ERC20 token (249ms)
+    ✓ returns false if the wallet has less than 1000000 coins (190ms)
+    ✓ returns true if the wallet has at least 1000000 coins (159ms)
+    Tests if a random number is returned:
+     Error: cannot estimate gas; transaction may fail or may require manual gas limit (error={""name"":""RuntimeError"",""results"":{""0x0a0b028de6cf6e8446853a300061305501136cefa5f5eb3e96afd95dbd73dd92"":{""error"":""revert"",""program_counter"":609,""return"":""0x""}},""hashes"":[""0x0a0b028de6cf6e8446853a300061305501136cefa5f5eb3e96afd95dbd73dd92""],""message"":""VM Exception while processing transaction: revert""}, tx={""data"":""0xdbdff2c1"",""to"":{},""from"":""0x17ec8597ff92C3F44523bDc65BF0f1bE632917ff"",""gasPrice"":{""type"":""BigNumber"",""hex"":""0x77359400""},""type"":0,""nonce"":{},""gasLimit"":{},""chainId"":{}}, code=UNPREDICTABLE_GAS_LIMIT, version=abstract-signer/5.4.1)
+      at Logger.makeError (node_modules/@ethersproject/logger/src.ts/index.ts:225:28)
+      at Logger.throwError (node_modules/@ethersproject/logger/src.ts/index.ts:237:20)
+      at /home/name/git/trucol/tested/new_test/test_vrf3/node_modules/@ethersproject/abstract-signer/src.ts/index.ts:301:31
+      at process._tickCallback (internal/process/next_tick.js:68:7)
+
+
+
+  3 passing (4s)
+Question
+Which set of files, file structure and commands do I need to automatically test whether the getRandomNumber() contract returns an integer if sufficient ""gas"" is provided, and an error otherwise?","
+I faced this problem too and solved by mocking. Here is my MockVRFCoordinator:
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import ""@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol"";
+
+contract MockVRFCoordinator {
+    uint256 internal counter = 0;
+
+    function requestRandomWords(
+        bytes32,
+        uint64,
+        uint16,
+        uint32,
+        uint32
+    ) external returns (uint256 requestId) {
+        VRFConsumerBaseV2 consumer = VRFConsumerBaseV2(msg.sender);
+        uint256[] memory randomWords = new uint256[](1);
+        randomWords[0] = counter;
+        consumer.rawFulfillRandomWords(requestId, randomWords);
+        counter += 1;
+    }
+}
+You can see test example in my repository"
+67,https://stackoverflow.com/questions/65846335/how-to-send-erc20-token-to-smart-contract-balance,How to send ERC20 token to smart contract balance?,"
+I'm trying to build a smart contract and inherit some functions to swap ERC20 tokens,
+Here are my questions?
+Question A: Is it possible to transfer ERC20 token to smart contract balance?, Please provide an example, i.e. We can create a function to send ETH to smart contract
+function contribute() external payable {}
+
+//It will allow us to send ETH to smart contract balance,but how to send,for example, ""BAND"" token
+//to smart contract balance?
+Question B: If A is possible, how to get contract's token balance? i.e. We can get the contract ETH balance from this function:
+// Get ETH balance
+function getBalance() external view returns(uint) {
+    return address(this).balance;    
+}
+
+// How to return contract's BAND balance, if A is possible ...
+Question C:
+If ""A"" is possible, How to make a swap to BAND/ETH liquidity pool, using Uniswap or Sushiswap API, Is it better to handle that process on server side proccesses using NodeJS, or implement it in solidity?
+Full smart contract code:
+pragma solidity ^0.5.11; 
+
+contract SwapTest {
+    address public manager;
+    
+    constructor() public {
+        manager = msg.sender;
+    }
+    
+    modifier OnlyManager() {
+        require(msg.sender == manager);
+        _;
+    }
+    
+    // Add funds to contract
+    function contribute() external payable {}
+    
+    
+    // Get ETH balance
+    function getBalance() external view returns(uint) {
+        return address(this).balance;    
+    } 
+    
+    // Send provided amount of WEI to recipient
+    function sendEther (address payable recipient, uint weiAmount) external OnlyManager{
+        recipient.transfer(weiAmount);    
+    }
+    
+    // Send contract balance to recipient
+    function withdrawBalance (address payable recipient) external OnlyManager{
+        recipient.transfer(address(this).balance);
+    }
+}
+Looking forward to hearing back from you guys, Thanks in advance.
+function contribute() external payable {}
+
+//It will allow us to send ETH to smart contract balance,but how to send,for example, ""BAND"" token
+//to smart contract balance?
+// Get ETH balance
+function getBalance() external view returns(uint) {
+    return address(this).balance;    
+}
+
+// How to return contract's BAND balance, if A is possible ...
+pragma solidity ^0.5.11; 
+
+contract SwapTest {
+    address public manager;
+    
+    constructor() public {
+        manager = msg.sender;
+    }
+    
+    modifier OnlyManager() {
+        require(msg.sender == manager);
+        _;
+    }
+    
+    // Add funds to contract
+    function contribute() external payable {}
+    
+    
+    // Get ETH balance
+    function getBalance() external view returns(uint) {
+        return address(this).balance;    
+    } 
+    
+    // Send provided amount of WEI to recipient
+    function sendEther (address payable recipient, uint weiAmount) external OnlyManager{
+        recipient.transfer(weiAmount);    
+    }
+    
+    // Send contract balance to recipient
+    function withdrawBalance (address payable recipient) external OnlyManager{
+        recipient.transfer(address(this).balance);
+    }
+}","
+When dealing with external contracts first include an interface definition, so you can call the contract's functions.
+interface ERC20 {
+  function balanceOf(address owner) external view returns (unit);
+  function allowance(address owner, address spender) external view returns (unit);
+  function approve(address spender, uint value) external returns (bool);
+  function transfer(address to, uint value) external returns (bool);
+  function transferFrom(address from, address to, uint value) external returns (bool); 
+}
+A: Tokens can be transferred directly to the contract's address, no additional functions need to be specified. Although, depending on your use case you can also write a function that will transfer tokens to itself.
+function transferToMe(address _owner, address _token, unit _amount) public {
+  ERC20(_token).transferFrom(_owner, address(this), _amount);
+}
+B: You can use this:
+function getBalanceOfToken(address _address) public view returns (unit) {
+  return ERC20(_address).balanceOf(address(this));
+}
+C: If you need your contract to be able to swap tokens you need to include the corresponding functions. Please refer to the Uniswap or Sushiswap documentation as they describe this in-depth.
+interface ERC20 {
+  function balanceOf(address owner) external view returns (unit);
+  function allowance(address owner, address spender) external view returns (unit);
+  function approve(address spender, uint value) external returns (bool);
+  function transfer(address to, uint value) external returns (bool);
+  function transferFrom(address from, address to, uint value) external returns (bool); 
+}
+function transferToMe(address _owner, address _token, unit _amount) public {
+  ERC20(_token).transferFrom(_owner, address(this), _amount);
+}
+function getBalanceOfToken(address _address) public view returns (unit) {
+  return ERC20(_address).balanceOf(address(this));
+}"
+68,https://stackoverflow.com/questions/69854414/why-and-when-is-setapprovalforall-called,why and when is setApprovalForAll called?,"
+I'm having a hard time understanding why and when SetApprovalForAll is called on NFT generating contracts.
+Take Cool Cats, for example. And for convenience there's a screen shot of relevant transactions, below.
+I've noticed that for this contract and others, Set Approval For All is repeatedly called. In my own limited experience with a contract that allows minting, via _safeMint, I'm seeing a SetApprovalForAll transaction in the logs too. It's not called directly in my code.
+Why is it being called? Are wallets doing it as part of the minting process?",
+69,https://stackoverflow.com/questions/69785119/metamask-not-connecting-to-localhost-8545,Metamask not connecting to localhost 8545,"
+I was trying to follow a tutorial from devto.io and to send transactions to the smart contract, I would need to connect my MetaMask wallet using one of the accounts created when I ran npx hardhat node command. To do so, I opened MetaMask and updated the network to be Localhost 8545, but Metamask didn't connect to it and showed errors like the following screenshot.",
+70,https://stackoverflow.com/questions/68891025/what-is-the-solidity-interface-for-the-rsk-bridge-smart-contract,What is the Solidity interface for the RSK Bridge smart contract?,"
+The RSK Bridge exposes its interface through a smart contract deployed at 0x1000006. I was able to find the ABI file for the Bridge on github.
+I'm after a Solidity interface file instead - is there one available, and if so where can I find it?",
+71,https://stackoverflow.com/questions/48515633/deleting-mapping-from-mapping-in-solidity,Deleting mapping from mapping in Solidity,"
+I have something like this:
+mapping (address => mapping(string => uint)) m_Map;
+It can be accessed as m_Map[strCampaignName][addrRecipient], campaign can have multiple recipients...
+Now at some point (ICO failed), I need to remove that campaign with all recipients. I don't think a simple delete m_Map[strCampaignName] will work. If I use m_Map[strCampaignName] = null, I think data will not be deleted. If I iterate through a list of all recipients, I will run out of gas.
+How should this situation be handled? Min: I want m_Map[strCampaignName] to be empty, Max: I want to stop wasting memory on it.",
+72,https://stackoverflow.com/questions/61973747/how-to-send-an-array-of-structs-from-web3js-to-solidity-contract,How to send an array of structs from web3js to solidity contract?,"
+I am getting an error when passing (javascript array of objects) from web3js, To solidity function that takes (array of structs) as a parameter.
+could you help me?
+below is the code and the error
+// web3js code
+
+let slctedItems = [{name:'item1', qty:2},{name:'item2', qty:3}];
+
+contract.methods.calcItems(slctedItems).call((err, total) => {
+
+      // code
+
+    })
+//solidity code
+
+ struct Item{
+
+        string name;
+        uint qty;
+
+    }
+
+function calcItems(Item[] memory _items) public view returns(uint){
+
+        //code 
+       // return uint
+    }
+// the error i got
+Uncaught TypeError: Cannot read property 'forEach' of undefined
+    at r (web3.min.js:1)
+    at web3.min.js:1
+    at Array.map (<anonymous>)
+    at i.encodeParameters (web3.min.js:1)
+    at web3.min.js:1
+    at Array.map (<anonymous>)
+    at Object.o._encodeMethodABI (web3.min.js:1)
+    at Object.o._processExecuteArguments (web3.min.js:1)
+    at Object.o._executeMethod (web3.min.js:1)
+    at calc_loads (main.js:97)
+online example of the issue and the code I wrote. in the link below:
+https://malaak-habashy.github.io/
+I've found an issue on web3js github. see the link below:
+https://github.com/ethereum/web3.js/issues/3538
+// web3js code
+
+let slctedItems = [{name:'item1', qty:2},{name:'item2', qty:3}];
+
+contract.methods.calcItems(slctedItems).call((err, total) => {
+
+      // code
+
+    })
+// the error i got
+Uncaught TypeError: Cannot read property 'forEach' of undefined
+    at r (web3.min.js:1)
+    at web3.min.js:1
+    at Array.map (<anonymous>)
+    at i.encodeParameters (web3.min.js:1)
+    at web3.min.js:1
+    at Array.map (<anonymous>)
+    at Object.o._encodeMethodABI (web3.min.js:1)
+    at Object.o._processExecuteArguments (web3.min.js:1)
+    at Object.o._executeMethod (web3.min.js:1)
+    at calc_loads (main.js:97)",
+73,https://stackoverflow.com/questions/48217795/unhandled-rejection-error-invalid-json-rpc-response,"Unhandled rejection Error: Invalid JSON RPC response: """"","
+I am trying to call a method on my ERC20 token contract. I am connecting to 'https://rinkeby.infura.io/' httpProvider. I can call() constant methods but when i want to change the state of the contract by calling send() function i get this mentioned error. If you think posting the ABI JSON or the Solidity contract helps, i can provide it as well. I thought my issue is purely web3 related. I think i need to sign transactions (logically) but the web3 documentation doesn't mention anything. http://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#methods-mymethod-send
+This is the error i've been getting:
+Unhandled rejection Error: Invalid JSON RPC response: """"
+at Object.InvalidResponse (/opt/backend/node_modules/web3-core-helpers/src/errors.js:42:16)
+at XMLHttpRequest.request.onreadystatechange (/opt/backend/node_modules/web3-providers-http/src/index.js:60:32)
+at XMLHttpRequestEventTarget.dispatchEvent (/opt/backend/node_modules/xhr2/lib/xhr2.js:64:18)
+at XMLHttpRequest._setReadyState (/opt/backend/node_modules/xhr2/lib/xhr2.js:354:12)
+at XMLHttpRequest._onHttpResponseEnd (/opt/backend/node_modules/xhr2/lib/xhr2.js:509:12)
+at IncomingMessage.<anonymous> (/opt/backend/node_modules/xhr2/lib/xhr2.js:469:24)
+at emitNone (events.js:111:20)
+at IncomingMessage.emit (events.js:208:7)
+at endReadableNT (_stream_readable.js:1055:12)
+at _combinedTickCallback (internal/process/next_tick.js:138:11)
+at process._tickCallback (internal/process/next_tick.js:180:9)
+From previous event:
+at PromiEvent (/opt/backend/node_modules/web3-core-promievent/src/index.js:35:24)
+at send (/opt/backend/node_modules/web3-core-method/src/index.js:446:21)
+at Object._executeMethod (/opt/backend/node_modules/web3-eth-contract/src/index.js:890:24)
+at Object.currencyToken.sendSignUpBonousTokens (/opt/backend/server/common/token/currency-token.js:86:56)
+at <anonymous>
+From calling this method:
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+const ABIjson = require('./ABI.json');
+
+const web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/my_access_token_here'));
+const contractAddress = '0x31cF32fa91286168B1A896Db4F99d106246932Bc';
+const ownerAddress = '0x44Ba8c5a905D634c485dE6f8fD43df9682AfD342';
+
+const token = new web3.eth.Contract(ABIjson, contractAddress);
+try
+{
+    const gasAmount = await token.methods.transfer(company.walletAddress, 10000).estimateGas({from: ownerAddress});
+
+    token.methods.transfer(company.walletAddress, 550).send(
+      {
+        from: ownerAddress,
+        gasPrice: '20000000000',
+        gas: gasAmount
+      })
+      .then(function(receipt)
+      {
+        console.log(receipt);
+      });
+}
+catch (error)
+{
+    console.error(error);
+}
+Here is the ABI snippet for the method:
+{  
+""constant"":false,
+""inputs"":[  
+  {  
+    ""name"":""_to"",
+    ""type"":""address""
+  },
+  {  
+    ""name"":""_value"",
+    ""type"":""uint256""
+  }
+],
+""name"":""transfer"",
+""outputs"":[  
+  {  
+    ""name"":""success"",
+    ""type"":""bool""
+  }
+],
+""payable"":true,
+""stateMutability"":""payable"",
+""type"":""function""
+},
+Unhandled rejection Error: Invalid JSON RPC response: """"
+at Object.InvalidResponse (/opt/backend/node_modules/web3-core-helpers/src/errors.js:42:16)
+at XMLHttpRequest.request.onreadystatechange (/opt/backend/node_modules/web3-providers-http/src/index.js:60:32)
+at XMLHttpRequestEventTarget.dispatchEvent (/opt/backend/node_modules/xhr2/lib/xhr2.js:64:18)
+at XMLHttpRequest._setReadyState (/opt/backend/node_modules/xhr2/lib/xhr2.js:354:12)
+at XMLHttpRequest._onHttpResponseEnd (/opt/backend/node_modules/xhr2/lib/xhr2.js:509:12)
+at IncomingMessage.<anonymous> (/opt/backend/node_modules/xhr2/lib/xhr2.js:469:24)
+at emitNone (events.js:111:20)
+at IncomingMessage.emit (events.js:208:7)
+at endReadableNT (_stream_readable.js:1055:12)
+at _combinedTickCallback (internal/process/next_tick.js:138:11)
+at process._tickCallback (internal/process/next_tick.js:180:9)
+From previous event:
+at PromiEvent (/opt/backend/node_modules/web3-core-promievent/src/index.js:35:24)
+at send (/opt/backend/node_modules/web3-core-method/src/index.js:446:21)
+at Object._executeMethod (/opt/backend/node_modules/web3-eth-contract/src/index.js:890:24)
+at Object.currencyToken.sendSignUpBonousTokens (/opt/backend/server/common/token/currency-token.js:86:56)
+at <anonymous>
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+const ABIjson = require('./ABI.json');
+
+const web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/my_access_token_here'));
+const contractAddress = '0x31cF32fa91286168B1A896Db4F99d106246932Bc';
+const ownerAddress = '0x44Ba8c5a905D634c485dE6f8fD43df9682AfD342';
+
+const token = new web3.eth.Contract(ABIjson, contractAddress);
+try
+{
+    const gasAmount = await token.methods.transfer(company.walletAddress, 10000).estimateGas({from: ownerAddress});
+
+    token.methods.transfer(company.walletAddress, 550).send(
+      {
+        from: ownerAddress,
+        gasPrice: '20000000000',
+        gas: gasAmount
+      })
+      .then(function(receipt)
+      {
+        console.log(receipt);
+      });
+}
+catch (error)
+{
+    console.error(error);
+}
+{  
+""constant"":false,
+""inputs"":[  
+  {  
+    ""name"":""_to"",
+    ""type"":""address""
+  },
+  {  
+    ""name"":""_value"",
+    ""type"":""uint256""
+  }
+],
+""name"":""transfer"",
+""outputs"":[  
+  {  
+    ""name"":""success"",
+    ""type"":""bool""
+  }
+],
+""payable"":true,
+""stateMutability"":""payable"",
+""type"":""function""
+},",
+74,https://stackoverflow.com/questions/43318077/solidity-type-address-not-convertible-to-type-uint256,Solidity-Type address not convertible to type uint256,"
+I created an array of structures and then tried to get the values of each account of an array. But I failed with an array while passing the address variable which contains msg.sender and the type is not visibly convertible to uint256. How can I do it?",

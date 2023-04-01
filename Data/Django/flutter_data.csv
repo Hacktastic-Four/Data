@@ -1,0 +1,4252 @@
+,Links,Header-Question,Full-Question,Answers
+0,https://stackoverflow.com/questions/48893935/how-can-i-remove-the-debug-banner-in-flutter,How can I remove the debug banner in Flutter?,"
+I'm using flutter screenshot and I expected the screenshot to not have a banner, but it has.
+Note that I get a not supported for emulator message for profile and release mode.","
+On your MaterialApp set debugShowCheckedModeBanner to false.
+MaterialApp(
+  debugShowCheckedModeBanner: false,
+)
+The debug banner will also automatically be removed on the release build.
+MaterialApp(
+  debugShowCheckedModeBanner: false,
+)"
+1,https://stackoverflow.com/questions/50081213/how-do-i-use-hexadecimal-color-strings-in-flutter,How do I use hexadecimal color strings in Flutter?,"
+How do I convert a hexadecimal color string like #b74093 to a Color in Flutter?
+I want to use a HEX color code in Dart.","
+In Flutter, the Color class only accepts integers as parameters, or there is the possibility to use the named constructors fromARGB and fromRGBO.
+So we only need to convert the string #b74093 to an integer value. Also we need to respect that opacity always needs to be specified.
+255 (full) opacity is represented by the hexadecimal value FF. This already leaves us with 0xFF. Now, we just need to append our color string like this:
+const color = const Color(0xffb74093); // Second `const` is optional in assignments.
+The letters can by choice be capitalized or not:
+const color = const Color(0xFFB74093);
+If you want to use percentage opacity values, you can replace the first FF with the values from this table (also works for the other color channels).
+Extension class
+Starting with Dart 2.6.0, you can create an extension for the Color class that lets you use hexadecimal color strings to create a Color object:
+extension HexColor on Color {
+  /// String is in the format ""aabbcc"" or ""ffaabbcc"" with an optional leading ""#"".
+  static Color fromHex(String hexString) {
+    final buffer = StringBuffer();
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+    buffer.write(hexString.replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
+  }
+
+  /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
+  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+      '${alpha.toRadixString(16).padLeft(2, '0')}'
+      '${red.toRadixString(16).padLeft(2, '0')}'
+      '${green.toRadixString(16).padLeft(2, '0')}'
+      '${blue.toRadixString(16).padLeft(2, '0')}';
+}
+The fromHex method could also be declared in a mixin or class because the HexColor name needs to be explicitly specified in order to use it, but the extension is useful for the toHex method, which can be used implicitly. Here is an example:
+void main() {
+  final Color color = HexColor.fromHex('#aabbcc');
+
+  print(color.toHex());
+  print(const Color(0xffaabbcc).toHex());
+}
+Disadvantage of using hex strings
+Many of the other answers here show how you can dynamically create a Color from a hex string, like I did above. However, doing this means that the color cannot be a const.
+Ideally, you would assign your colors the way I explained in the first part of this answer, which is more efficient when instantiating colors a lot, which is usually the case for Flutter widgets.
+const color = const Color(0xffb74093); // Second `const` is optional in assignments.
+const color = const Color(0xFFB74093);
+extension HexColor on Color {
+  /// String is in the format ""aabbcc"" or ""ffaabbcc"" with an optional leading ""#"".
+  static Color fromHex(String hexString) {
+    final buffer = StringBuffer();
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+    buffer.write(hexString.replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
+  }
+
+  /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
+  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+      '${alpha.toRadixString(16).padLeft(2, '0')}'
+      '${red.toRadixString(16).padLeft(2, '0')}'
+      '${green.toRadixString(16).padLeft(2, '0')}'
+      '${blue.toRadixString(16).padLeft(2, '0')}';
+}
+void main() {
+  final Color color = HexColor.fromHex('#aabbcc');
+
+  print(color.toHex());
+  print(const Color(0xffaabbcc).toHex());
+}"
+2,https://stackoverflow.com/questions/49991444/create-a-rounded-button-button-with-border-radius-in-flutter,Create a rounded button / button with border-radius in Flutter,"
+I'm currently developing an Android app in Flutter. How can I add a rounded button?","
+1. Solution Summary
+FlatButton and RaisedButton are deprecated.
+So, you can use shape which placed in the style property, for TextButton and ElevatedButton.
+There are some changes since Flutter 2.0:
+style: the property type has changed to ButtonStyle
+shape: the property type has changed to MaterialStateProperty<T>
+2. Rounded Button
+Inside the style property exists the shape property:
+style: ButtonStyle(
+  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18.0),
+      side: BorderSide(color: Colors.red)
+    )
+  )
+)
+Square Button
+For a square button you can use ElevatedButton or otherwise add:
+style: ButtonStyle(
+  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.zero,
+      side: BorderSide(color: Colors.red)
+    )
+  )
+)
+Complete Example
+Row(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    TextButton(
+      child: Text(
+        ""Add to cart"".toUpperCase(),
+        style: TextStyle(fontSize: 14)
+      ),
+      style: ButtonStyle(
+        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(15)),
+        foregroundColor: MaterialStateProperty.all<Color>(Colors.red),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+            side: BorderSide(color: Colors.red)
+          )
+        )
+      ),
+      onPressed: () => null
+    ),
+    SizedBox(width: 10),
+    ElevatedButton(
+      child: Text(
+        ""Buy now"".toUpperCase(),
+        style: TextStyle(fontSize: 14)
+      ),
+      style: ButtonStyle(
+        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+        backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+            side: BorderSide(color: Colors.red)
+          )
+        )
+      ),
+      onPressed: () => null
+    )
+  ]
+)
+style: ButtonStyle(
+  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18.0),
+      side: BorderSide(color: Colors.red)
+    )
+  )
+)
+style: ButtonStyle(
+  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.zero,
+      side: BorderSide(color: Colors.red)
+    )
+  )
+)
+Row(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    TextButton(
+      child: Text(
+        ""Add to cart"".toUpperCase(),
+        style: TextStyle(fontSize: 14)
+      ),
+      style: ButtonStyle(
+        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(15)),
+        foregroundColor: MaterialStateProperty.all<Color>(Colors.red),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+            side: BorderSide(color: Colors.red)
+          )
+        )
+      ),
+      onPressed: () => null
+    ),
+    SizedBox(width: 10),
+    ElevatedButton(
+      child: Text(
+        ""Buy now"".toUpperCase(),
+        style: TextStyle(fontSize: 14)
+      ),
+      style: ButtonStyle(
+        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+        backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+            side: BorderSide(color: Colors.red)
+          )
+        )
+      ),
+      onPressed: () => null
+    )
+  ]
+)"
+3,https://stackoverflow.com/questions/43928702/how-to-change-the-application-launcher-icon-on-flutter,How to change the application launcher icon on Flutter?,"
+When I create an app with a flutter create command, the flutter logo is used as an application icon for both platforms.
+If I want to change the app icon, shall I go to both platforms directories and replace images there?, by platforms directories I mean myapp/ios/Runner/Assets.xcassets/AppIcon.appiconset for iOS and myapp/android/app/src/main/res for Android.
+Or is it possible to define an image as a Flutter Asset and the icons are generated somehow?.","
+Flutter Launcher Icons has been designed to help quickly generate launcher icons for both Android and iOS: https://pub.dartlang.org/packages/flutter_launcher_icons
+Add the package to your pubspec.yaml file (within your Flutter project) to use it
+Within pubspec.yaml file specify the path of the icon you wish to use for the app and then choose whether you want to use the icon for the iOS app, Android app or both.
+Run the package
+Voila! The default launcher icons have now been replaced with your custom icon
+I'm hoping to add a video to the GitHub README to demonstrate it
+Video showing how to run the tool can be found here.
+If anyone wants to suggest improvements / report bugs, please add it as an issue on the GitHub project.
+Update: As of Wednesday 24th January 2018, you should be able to create new icons without overriding the old existing launcher icons in your Flutter project.
+Update 2: As of v0.4.0 (8th June 2018) you can specify one image for your Android icon and a separate image for your iOS icon.
+Update 3: As of v0.5.2 (20th June 2018) you can now add adaptive launcher icons for the Android app of your Flutter project"
+4,https://stackoverflow.com/questions/47423297/how-can-i-add-a-border-to-a-widget-in-flutter,How can I add a border to a widget in Flutter?,"
+I'm using Flutter and I'd like to add a border to a widget (in this case, a Text widget).
+I tried TextStyle and Text, but I didn't see how to add a border.","
+You can add the Text as a child to a Container that has a BoxDecoration with border property:
+Container(
+  margin: const EdgeInsets.all(15.0),
+  padding: const EdgeInsets.all(3.0),
+  decoration: BoxDecoration(
+    border: Border.all(color: Colors.blueAccent)
+  ),
+  child: Text('My Awesome Border'),
+)
+Container(
+  margin: const EdgeInsets.all(15.0),
+  padding: const EdgeInsets.all(3.0),
+  decoration: BoxDecoration(
+    border: Border.all(color: Colors.blueAccent)
+  ),
+  child: Text('My Awesome Border'),
+)"
+5,https://stackoverflow.com/questions/51534616/how-to-change-package-name-in-flutter,How to change package name in flutter?,"
+Is there any way to change Package Name of Flutter project?
+I want to change package name and application name in flutter project.","
+For Android App Name
+Change the label name in your AndroidManifest.xml file:
+ <application
+    android:name=""io.flutter.app.FlutterApplication""
+    android:label=""TheNameOfYourApp""   
+For Package Name
+Change the package name in your AndroidManifest.xml (in 3 of them, folders: main, debug and profile, according what environment you want to deploy) file:
+<manifest xmlns:android=""http://schemas.android.com/apk/res/android""
+    package=""your.package.name"">
+Also in your build.gradle file inside app folder
+defaultConfig {
+    applicationId ""your.package.name""
+    minSdkVersion 16
+    targetSdkVersion 27
+    versionCode 1
+    versionName ""1.0""
+    testInstrumentationRunner ""android.support.test.runner.AndroidJUnitRunner""
+}
+Finally, change the package in your MainActivity.java class (if the MainActivity.java is not available, check the MainActivity.kt)
+    package your.package.name;
+
+    import android.os.Bundle;
+    import io.flutter.app.FlutterActivity;
+    import io.flutter.plugins.GeneratedPluginRegistrant;
+    public class MainActivity extends FlutterActivity {
+Change the directory name:
+From:
+  android\app\src\main\java\com\example\name
+To:
+  android\app\src\main\java\your\package\name
+  
+EDITED : 27-Dec-18
+for package name just change in build build.gradle only
+defaultConfig {
+    applicationId ""your.package.name""
+    minSdkVersion 16
+    targetSdkVersion 27
+    versionCode 1
+    versionName ""1.0""
+    testInstrumentationRunner ""android.support.test.runner.AndroidJUnitRunner""
+}
+For iOS
+Change the bundle identifier from your Info.plist file inside your ios/Runner directory.
+<key>CFBundleIdentifier</key>
+<string>com.your.packagename</string>
+UPDATE
+To avoid renaming the package and bundle identifier, you can start your project using this command in your terminal:
+flutter create --org com.yourdomain appname
+ <application
+    android:name=""io.flutter.app.FlutterApplication""
+    android:label=""TheNameOfYourApp""   
+<manifest xmlns:android=""http://schemas.android.com/apk/res/android""
+    package=""your.package.name"">
+defaultConfig {
+    applicationId ""your.package.name""
+    minSdkVersion 16
+    targetSdkVersion 27
+    versionCode 1
+    versionName ""1.0""
+    testInstrumentationRunner ""android.support.test.runner.AndroidJUnitRunner""
+}
+    package your.package.name;
+
+    import android.os.Bundle;
+    import io.flutter.app.FlutterActivity;
+    import io.flutter.plugins.GeneratedPluginRegistrant;
+    public class MainActivity extends FlutterActivity {
+  android\app\src\main\java\com\example\name
+  android\app\src\main\java\your\package\name
+  
+defaultConfig {
+    applicationId ""your.package.name""
+    minSdkVersion 16
+    targetSdkVersion 27
+    versionCode 1
+    versionName ""1.0""
+    testInstrumentationRunner ""android.support.test.runner.AndroidJUnitRunner""
+}
+<key>CFBundleIdentifier</key>
+<string>com.your.packagename</string>
+flutter create --org com.yourdomain appname"
+6,https://stackoverflow.com/questions/63492211/no-firebase-app-default-has-been-created-call-firebase-initializeapp-in,No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp() in Flutter and Firebase,"
+I am building a Flutter application and I have integrated Firebase, but I keep getting this error when I click on a button either to register, login, or logout. I have seen other people have asked the same question, but none seems to work for me. I am using Flutter and Android Studio. How can I fix this problem?
+This is an excerpt of my code
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.red,
+      body: Center(
+        child: Container(
+          child: RaisedButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut().then((value) {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            LoginScreen()));
+              });
+            },
+            child: Text(""Logout""),
+          )
+        )
+      )
+    );
+  }
+}
+Below is the thrown exception
+══╡ EXCEPTION CAUGHT BY GESTURE ╞═══════════════════════════════════════════════════════════════════
+The following FirebaseException was thrown while handling a gesture:
+[core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+
+When the exception was thrown, this was the stack:
+
+#0      MethodChannelFirebase.app (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:118:5)
+#1      Firebase.app (package:firebase_core/src/firebase.dart:52:41)
+#2      FirebaseAuth.instance (package:firebase_auth/src/firebase_auth.dart:37:47)
+#3      _HomeScreenState.build.<anonymous closure> (package:cosytok/screens/home.dart:20:28)
+#4      _InkResponseState._handleTap (package:flutter/src/material/ink_well.dart:992:19)
+#5      _InkResponseState.build.<anonymous closure> (package:flutter/src/material/ink_well.dart:1098:38)
+#6      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:184:24)
+#7      TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:524:11)
+#8      BaseTapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:284:5)
+#9      BaseTapGestureRecognizer.handlePrimaryPointer (package:flutter/src/gestures/tap.dart:219:7)
+#10     PrimaryPointerGestureRecognizer.handleEvent (package:flutter/src/gestures/recognizer.dart:477:9)
+#11     PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:78:12)
+#12     PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:124:9)
+#13     _LinkedHashMapMixin.forEach (dart:collection-patch/compact_hash.dart:377:8)
+#14     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:122:18)
+#15     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:108:7)
+#16     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:220:19)
+#17     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:200:22)
+#18     GestureBinding._handlePointerEvent (package:flutter/src/gestures/binding.dart:158:7)
+#19     GestureBinding._flushPointerEventQueue (package:flutter/src/gestures/binding.dart:104:7)
+#20     GestureBinding._handlePointerDataPacket (package:flutter/src/gestures/binding.dart:88:7)
+#24     _invoke1 (dart:ui/hooks.dart:267:10)
+#25     _dispatchPointerDataPacket (dart:ui/hooks.dart:176:5)
+(elided 3 frames from dart:async)
+
+Handler: ""onTap""
+Recognizer:
+  TapGestureRecognizer#f0104
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+════════ Exception caught by gesture ═══════════════════════════════════════════════════════════════
+The following FirebaseException was thrown while handling a gesture:
+[core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.red,
+      body: Center(
+        child: Container(
+          child: RaisedButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut().then((value) {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            LoginScreen()));
+              });
+            },
+            child: Text(""Logout""),
+          )
+        )
+      )
+    );
+  }
+}
+══╡ EXCEPTION CAUGHT BY GESTURE ╞═══════════════════════════════════════════════════════════════════
+The following FirebaseException was thrown while handling a gesture:
+[core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+
+When the exception was thrown, this was the stack:
+
+#0      MethodChannelFirebase.app (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:118:5)
+#1      Firebase.app (package:firebase_core/src/firebase.dart:52:41)
+#2      FirebaseAuth.instance (package:firebase_auth/src/firebase_auth.dart:37:47)
+#3      _HomeScreenState.build.<anonymous closure> (package:cosytok/screens/home.dart:20:28)
+#4      _InkResponseState._handleTap (package:flutter/src/material/ink_well.dart:992:19)
+#5      _InkResponseState.build.<anonymous closure> (package:flutter/src/material/ink_well.dart:1098:38)
+#6      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:184:24)
+#7      TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:524:11)
+#8      BaseTapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:284:5)
+#9      BaseTapGestureRecognizer.handlePrimaryPointer (package:flutter/src/gestures/tap.dart:219:7)
+#10     PrimaryPointerGestureRecognizer.handleEvent (package:flutter/src/gestures/recognizer.dart:477:9)
+#11     PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:78:12)
+#12     PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:124:9)
+#13     _LinkedHashMapMixin.forEach (dart:collection-patch/compact_hash.dart:377:8)
+#14     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:122:18)
+#15     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:108:7)
+#16     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:220:19)
+#17     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:200:22)
+#18     GestureBinding._handlePointerEvent (package:flutter/src/gestures/binding.dart:158:7)
+#19     GestureBinding._flushPointerEventQueue (package:flutter/src/gestures/binding.dart:104:7)
+#20     GestureBinding._handlePointerDataPacket (package:flutter/src/gestures/binding.dart:88:7)
+#24     _invoke1 (dart:ui/hooks.dart:267:10)
+#25     _dispatchPointerDataPacket (dart:ui/hooks.dart:176:5)
+(elided 3 frames from dart:async)
+
+Handler: ""onTap""
+Recognizer:
+  TapGestureRecognizer#f0104
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+════════ Exception caught by gesture ═══════════════════════════════════════════════════════════════
+The following FirebaseException was thrown while handling a gesture:
+[core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()","
+Starting Since August 17 2020
+All Firebase versions have been updated and now you have to call Firebase.initializeApp() before using any Firebase product, for example:
+First, all Firebase products now depend on firebase_core version (0.5.0+), therefore you need to add it in the pubspec.yaml file:
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core : ^0.5.0
+  # cloud_firestore: ^0.14.0 other firebase dependencies
+Then you have to call Firebase.initializeApp():
+First Example
+import 'package:flutter/material.dart';
+
+// Import the firebase_core plugin
+import 'package:firebase_core/firebase_core.dart';
+
+void main() {
+  runApp(App());
+}
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      // Initialize FlutterFire
+      future: Firebase.initializeApp(),
+      builder: (context, snapshot) {
+        // Check for errors
+        if (snapshot.hasError) {
+          return SomethingWentWrong();
+        }
+
+        // Once complete, show your application
+        if (snapshot.connectionState == ConnectionState.done) {
+          return MyAwesomeApp();
+        }
+
+        // Otherwise, show something whilst waiting for initialization to complete
+        return Loading();
+      },
+    );
+  }
+}
+Second Example with Firestore:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: FirstRoute(title: 'First Route'),
+    );
+  }
+}
+
+class FirstRoute extends StatefulWidget {
+  FirstRoute({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  _FirstRouteState createState() => _FirstRouteState();
+}
+
+class _FirstRouteState extends State<FirstRoute> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(""test""),
+        ),
+        body: FutureBuilder(
+          future: getData(),
+          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Column(
+                children: [
+                  Container(
+                    height: 27,
+                    child: Text(
+                      ""Name: ${snapshot.data.data()['name']}"",
+                      overflow: TextOverflow.fade,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ],
+              );
+            } else if (snapshot.connectionState == ConnectionState.none) {
+              return Text(""No data"");
+            }
+            return CircularProgressIndicator();
+          },
+        ));
+  }
+
+  Future<DocumentSnapshot> getData() async {
+    await Firebase.initializeApp();
+    return await FirebaseFirestore.instance
+        .collection(""users"")
+        .doc(""docID"")
+        .get();
+  }
+}
+Third Example:
+Initialize it in initState() then call setState() which will call the build() method.
+  @override
+  void initState() {
+    super.initState();
+    Firebase.initializeApp().whenComplete(() { 
+      print(""completed"");
+      setState(() {});
+    });
+  }
+Fourth Example:
+Initialize it in the main() method after calling WidgetsFlutterBinding.ensureInitialized();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
+Note: You only have to call initializeApp() once
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core : ^0.5.0
+  # cloud_firestore: ^0.14.0 other firebase dependencies
+import 'package:flutter/material.dart';
+
+// Import the firebase_core plugin
+import 'package:firebase_core/firebase_core.dart';
+
+void main() {
+  runApp(App());
+}
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      // Initialize FlutterFire
+      future: Firebase.initializeApp(),
+      builder: (context, snapshot) {
+        // Check for errors
+        if (snapshot.hasError) {
+          return SomethingWentWrong();
+        }
+
+        // Once complete, show your application
+        if (snapshot.connectionState == ConnectionState.done) {
+          return MyAwesomeApp();
+        }
+
+        // Otherwise, show something whilst waiting for initialization to complete
+        return Loading();
+      },
+    );
+  }
+}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: FirstRoute(title: 'First Route'),
+    );
+  }
+}
+
+class FirstRoute extends StatefulWidget {
+  FirstRoute({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  _FirstRouteState createState() => _FirstRouteState();
+}
+
+class _FirstRouteState extends State<FirstRoute> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(""test""),
+        ),
+        body: FutureBuilder(
+          future: getData(),
+          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Column(
+                children: [
+                  Container(
+                    height: 27,
+                    child: Text(
+                      ""Name: ${snapshot.data.data()['name']}"",
+                      overflow: TextOverflow.fade,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ],
+              );
+            } else if (snapshot.connectionState == ConnectionState.none) {
+              return Text(""No data"");
+            }
+            return CircularProgressIndicator();
+          },
+        ));
+  }
+
+  Future<DocumentSnapshot> getData() async {
+    await Firebase.initializeApp();
+    return await FirebaseFirestore.instance
+        .collection(""users"")
+        .doc(""docID"")
+        .get();
+  }
+}
+  @override
+  void initState() {
+    super.initState();
+    Firebase.initializeApp().whenComplete(() { 
+      print(""completed"");
+      setState(() {});
+    });
+  }
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}"
+7,https://stackoverflow.com/questions/44991968/how-can-i-dismiss-the-on-screen-keyboard,How can I dismiss the on screen keyboard?,"
+I am collecting user input with a TextFormField and when the user presses a FloatingActionButton indicating they are done, I want to dismiss the on screen keyboard.
+How do I make the keyboard go away automatically?
+import 'package:flutter/material.dart';
+
+class MyHomePage extends StatefulWidget {
+  MyHomePageState createState() => new MyHomePageState();
+}
+
+class MyHomePageState extends State<MyHomePage> {
+  TextEditingController _controller = new TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(),
+      floatingActionButton: new FloatingActionButton(
+        child: new Icon(Icons.send),
+        onPressed: () {
+          setState(() {
+            // send message
+            // dismiss on screen keyboard here
+            _controller.clear();
+          });
+        },
+      ),
+      body: new Container(
+        alignment: FractionalOffset.center,
+        padding: new EdgeInsets.all(20.0),
+        child: new TextFormField(
+          controller: _controller,
+          decoration: new InputDecoration(labelText: 'Example Text'),
+        ),
+      ),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      home: new MyHomePage(),
+    );
+  }
+}
+
+void main() {
+  runApp(new MyApp());
+}
+import 'package:flutter/material.dart';
+
+class MyHomePage extends StatefulWidget {
+  MyHomePageState createState() => new MyHomePageState();
+}
+
+class MyHomePageState extends State<MyHomePage> {
+  TextEditingController _controller = new TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(),
+      floatingActionButton: new FloatingActionButton(
+        child: new Icon(Icons.send),
+        onPressed: () {
+          setState(() {
+            // send message
+            // dismiss on screen keyboard here
+            _controller.clear();
+          });
+        },
+      ),
+      body: new Container(
+        alignment: FractionalOffset.center,
+        padding: new EdgeInsets.all(20.0),
+        child: new TextFormField(
+          controller: _controller,
+          decoration: new InputDecoration(labelText: 'Example Text'),
+        ),
+      ),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      home: new MyHomePage(),
+    );
+  }
+}
+
+void main() {
+  runApp(new MyApp());
+}","
+For Flutter version 2 or latest :
+Since Flutter 2 with null safety this is the best way:
+FocusManager.instance.primaryFocus?.unfocus();
+Note: using old ways leads to some problems like keep rebuild states;
+For Flutter version < 2 :
+As of Flutter v1.7.8+hotfix.2, the way to go is:
+FocusScope.of(context).unfocus();
+Comment on PR about that:
+Now that #31909 (be75fb3) has landed, you should use FocusScope.of(context).unfocus() instead of FocusScope.of(context).requestFocus(FocusNode()), since FocusNodes are ChangeNotifiers, and should be disposed properly.
+-> DO NOT use ̶r̶e̶q̶u̶e̶s̶t̶F̶o̶c̶u̶s̶(̶F̶o̶c̶u̶s̶N̶o̶d̶e̶(̶)̶ anymore.
+ F̶o̶c̶u̶s̶S̶c̶o̶p̶e̶.̶o̶f̶(̶c̶o̶n̶t̶e̶x̶t̶)̶.̶r̶e̶q̶u̶e̶s̶t̶F̶o̶c̶u̶s̶(̶F̶o̶c̶u̶s̶N̶o̶d̶e̶(̶)̶)̶;̶
+Read more about the FocusScope class in the flutter docs.
+FocusManager.instance.primaryFocus?.unfocus();
+FocusScope.of(context).unfocus();
+ F̶o̶c̶u̶s̶S̶c̶o̶p̶e̶.̶o̶f̶(̶c̶o̶n̶t̶e̶x̶t̶)̶.̶r̶e̶q̶u̶e̶s̶t̶F̶o̶c̶u̶s̶(̶F̶o̶c̶u̶s̶N̶o̶d̶e̶(̶)̶)̶;̶"
+8,https://stackoverflow.com/questions/45924474/how-do-you-detect-the-host-platform-from-dart-code,How do you detect the host platform from Dart code?,"
+For UI that should differ slightly on iOS and Android, i.e. on different platforms, there must be a way to detect which one the app is running on, but I couldn't find it in the docs. What is it?",
+9,https://stackoverflow.com/questions/44579918/flutter-wrap-text-on-overflow-like-insert-ellipsis-or-fade,"Flutter - Wrap text on overflow, like insert ellipsis or fade","
+I'm trying to create a line in which center text has a maximum size, and if the text content is too large, it fits in size.
+I insert the TextOverflow.ellipsis property to shorten the text and inserting the triple points ... but it is not working.
+main.dart
+import 'package:flutter/material.dart';
+
+void main() {
+runApp(new MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      home: new HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => new Scaffold(
+    appBar: new AppBar(
+      backgroundColor: new Color(0xFF26C6DA),
+    ),
+    body: new ListView  (
+      children: <Widget>[
+        new Card(
+          child: new Container(
+            padding: new EdgeInsets.symmetric(horizontal: 16.0, vertical: 18.0),
+            child: new Row(
+              children: <Widget>[
+                new Container(
+                  padding: new EdgeInsets.only(right: 24.0),
+                  child: new CircleAvatar(
+                    backgroundColor: new Color(0xFFF5F5F5),
+                    radius: 16.0,
+                  )
+                ),
+                new Container(
+                  padding: new EdgeInsets.only(right: 13.0),
+                  child: new Text(
+                    'Text lar...',
+                    overflow: TextOverflow.ellipsis,
+                    style: new TextStyle(
+                      fontSize: 13.0,
+                      fontFamily: 'Roboto',
+                      color: new Color(0xFF212121),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                new Container(
+                  child: new Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      new Row(
+                        children: <Widget>[
+                          new Text(
+                            'Bill  ',
+                            style: new TextStyle(
+                              fontSize: 12.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF9E9E9E)
+                            ),
+                          ),
+                          new Text(
+                            '\$ -999.999.999,95',
+                            style: new TextStyle(
+                              fontSize: 14.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF212121)
+                            ),
+                          ),
+                        ],
+                      ),
+                      new Row(
+                        children: <Widget>[
+                          new Text(
+                            'Limit  ',
+                            style: new TextStyle(
+                              fontSize: 12.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF9E9E9E)
+                            ),
+                          ),
+                          new Text(
+                            'R\$ 900.000.000,95',
+                            style: new TextStyle(
+                              fontSize: 14.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF9E9E9E)
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]
+                  )
+                )
+              ],
+            ),
+          )
+        ),
+      ]
+    )
+  );
+}
+result:
+expected:
+import 'package:flutter/material.dart';
+
+void main() {
+runApp(new MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      home: new HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => new Scaffold(
+    appBar: new AppBar(
+      backgroundColor: new Color(0xFF26C6DA),
+    ),
+    body: new ListView  (
+      children: <Widget>[
+        new Card(
+          child: new Container(
+            padding: new EdgeInsets.symmetric(horizontal: 16.0, vertical: 18.0),
+            child: new Row(
+              children: <Widget>[
+                new Container(
+                  padding: new EdgeInsets.only(right: 24.0),
+                  child: new CircleAvatar(
+                    backgroundColor: new Color(0xFFF5F5F5),
+                    radius: 16.0,
+                  )
+                ),
+                new Container(
+                  padding: new EdgeInsets.only(right: 13.0),
+                  child: new Text(
+                    'Text lar...',
+                    overflow: TextOverflow.ellipsis,
+                    style: new TextStyle(
+                      fontSize: 13.0,
+                      fontFamily: 'Roboto',
+                      color: new Color(0xFF212121),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                new Container(
+                  child: new Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      new Row(
+                        children: <Widget>[
+                          new Text(
+                            'Bill  ',
+                            style: new TextStyle(
+                              fontSize: 12.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF9E9E9E)
+                            ),
+                          ),
+                          new Text(
+                            '\$ -999.999.999,95',
+                            style: new TextStyle(
+                              fontSize: 14.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF212121)
+                            ),
+                          ),
+                        ],
+                      ),
+                      new Row(
+                        children: <Widget>[
+                          new Text(
+                            'Limit  ',
+                            style: new TextStyle(
+                              fontSize: 12.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF9E9E9E)
+                            ),
+                          ),
+                          new Text(
+                            'R\$ 900.000.000,95',
+                            style: new TextStyle(
+                              fontSize: 14.0,
+                              fontFamily: 'Roboto',
+                              color: new Color(0xFF9E9E9E)
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]
+                  )
+                )
+              ],
+            ),
+          )
+        ),
+      ]
+    )
+  );
+}","
+You should wrap your Container in a Flexible to let your Row know that it's ok for the Container to be narrower than its intrinsic width. Expanded will also work.
+Flexible(
+  child: new Container(
+    padding: new EdgeInsets.only(right: 13.0),
+    child: new Text(
+      'Text largeeeeeeeeeeeeeeeeeeeeeee',
+      overflow: TextOverflow.ellipsis,
+      style: new TextStyle(
+        fontSize: 13.0,
+        fontFamily: 'Roboto',
+        color: new Color(0xFF212121),
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  ),
+),
+Flexible(
+  child: new Container(
+    padding: new EdgeInsets.only(right: 13.0),
+    child: new Text(
+      'Text largeeeeeeeeeeeeeeeeeeeeeee',
+      overflow: TextOverflow.ellipsis,
+      style: new TextStyle(
+        fontSize: 13.0,
+        fontFamily: 'Roboto',
+        color: new Color(0xFF212121),
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  ),
+),"
+10,https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1,How to run CocoaPods on Apple Silicon (M1),"
+I have a Flutter project that I'm trying to run on iOS. It runs normally on my Intel-based Mac, but on my new Apple Silicon-based M1 Mac it fails to install pods.
+LoadError - dlsym(0x7f8926035eb0, Init_ffi_c): symbol not found - /Library/Ruby/Gems/2.6.0/gems/ffi-1.13.1/lib/ffi_c.bundle
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/ffi-1.13.1/lib/ffi.rb:6:in `rescue in <top (required)>'
+/Library/Ruby/Gems/2.6.0/gems/ffi-1.13.1/lib/ffi.rb:3:in `<top (required)>'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/ethon-0.12.0/lib/ethon.rb:2:in `<top (required)>'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/typhoeus-1.4.0/lib/typhoeus.rb:2:in `<top (required)>'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/sources_manager.rb:74:in `cdn_url?'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/sources_manager.rb:36:in `create_source_with_url'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/sources_manager.rb:21:in `find_or_create_source_with_url'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:178:in `block in sources'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:177:in `map'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:177:in `sources'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:1073:in `block in resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/user_interface.rb:64:in `section'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:1072:in `resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:124:in `analyze'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:414:in `analyze'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:239:in `block in resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/user_interface.rb:64:in `section'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:238:in `resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:160:in `install!'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/command/install.rb:52:in `run'
+/Library/Ruby/Gems/2.6.0/gems/claide-1.0.3/lib/claide/command.rb:334:in `run'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/command.rb:52:in `run'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/bin/pod:55:in `<top (required)>'
+/usr/local/bin/pod:23:in `load'
+/usr/local/bin/pod:23:in `<main>'
+Based on a Github workaround, I tried to run Terminal using rosetta, but the issue remains the same: https://github.com/CocoaPods/CocoaPods/issues/9907#issuecomment-655870749
+Realising it's still early for Macs with Apple Silicon. Is there a way to make this work for the time being?
+LoadError - dlsym(0x7f8926035eb0, Init_ffi_c): symbol not found - /Library/Ruby/Gems/2.6.0/gems/ffi-1.13.1/lib/ffi_c.bundle
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/ffi-1.13.1/lib/ffi.rb:6:in `rescue in <top (required)>'
+/Library/Ruby/Gems/2.6.0/gems/ffi-1.13.1/lib/ffi.rb:3:in `<top (required)>'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/ethon-0.12.0/lib/ethon.rb:2:in `<top (required)>'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/typhoeus-1.4.0/lib/typhoeus.rb:2:in `<top (required)>'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/rubygems/core_ext/kernel_require.rb:54:in `require'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/sources_manager.rb:74:in `cdn_url?'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/sources_manager.rb:36:in `create_source_with_url'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/sources_manager.rb:21:in `find_or_create_source_with_url'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:178:in `block in sources'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:177:in `map'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:177:in `sources'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:1073:in `block in resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/user_interface.rb:64:in `section'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:1072:in `resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer/analyzer.rb:124:in `analyze'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:414:in `analyze'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:239:in `block in resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/user_interface.rb:64:in `section'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:238:in `resolve_dependencies'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/installer.rb:160:in `install!'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/command/install.rb:52:in `run'
+/Library/Ruby/Gems/2.6.0/gems/claide-1.0.3/lib/claide/command.rb:334:in `run'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/lib/cocoapods/command.rb:52:in `run'
+/Library/Ruby/Gems/2.6.0/gems/cocoapods-1.10.0/bin/pod:55:in `<top (required)>'
+/usr/local/bin/pod:23:in `load'
+/usr/local/bin/pod:23:in `<main>'","
+EDIT: I recently disabled Rosetta, and Cocoapods runs just fine with the addition of the ffi gem.
+For anyone else struggling with this issue, I just found a way to solve it. In addition to running terminal in Rosetta:
+Right-click on Terminal in Finder
+Get Info
+Open with Rosetta
+I installed a gem that seems to be related to the symbol not found in the error:
+sudo gem install ffi
+After doing this, cocoapods runs as expected.
+sudo gem install ffi"
+11,https://stackoverflow.com/questions/68236007/i-am-getting-error-cmdline-tools-component-is-missing-after-installing-flutter,"I am getting error ""cmdline-tools component is missing"" after installing Flutter and Android Studio... I added the Android SDK. How can I solve them?","
+Android toolchain - I develop for Android devices (Android SDK version 30.0.3):
+X cmdline-tools component is missing
+  Run `path/to/sdkmanager --install ""cmdline-tools;latest""`
+  See https://developer.android.com/studio/command-line for more details.
+X cmdline-tools component is missing
+  Run `path/to/sdkmanager --install ""cmdline-tools;latest""`
+  See https://developer.android.com/studio/command-line for more details.","
+The solution for me was opening Android Studio and going to SDK Manager, switch to the SDK Tools tab and check Android SDK Command-line Tools (latest).
+Don't forget to add to your PATH the tools and platform-tools folder that are inside your SDK."
+12,https://stackoverflow.com/questions/51513429/how-to-do-rounded-corners-image-in-flutter,How to do Rounded Corners Image in Flutter,"
+I am using Flutter to make a list of information about movies. Now I want the cover image on the left to be a rounded corners picture. I did the following, but it didn’t work. Thanks!
+    getItem(var subject) {
+    var row = Container(
+      margin: EdgeInsets.all(8.0),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 100.0,
+            height: 150.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              color: Colors.redAccent,
+            ),
+            child: Image.network(
+              subject['images']['large'],
+              height: 150.0,
+              width: 100.0,
+            ),
+          ),
+        ],
+      ),
+    );
+    return Card(
+      color: Colors.blueGrey,
+      child: row,
+    );
+  }
+as follows
+    getItem(var subject) {
+    var row = Container(
+      margin: EdgeInsets.all(8.0),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 100.0,
+            height: 150.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              color: Colors.redAccent,
+            ),
+            child: Image.network(
+              subject['images']['large'],
+              height: 150.0,
+              width: 100.0,
+            ),
+          ),
+        ],
+      ),
+    );
+    return Card(
+      color: Colors.blueGrey,
+      child: row,
+    );
+  }","
+Use ClipRRect it will work perfectly.
+ClipRRect(
+    borderRadius: BorderRadius.circular(8.0),
+    child: Image.network(
+        subject['images']['large'],
+        height: 150.0,
+        width: 100.0,
+    ),
+)
+ClipRRect(
+    borderRadius: BorderRadius.circular(8.0),
+    child: Image.network(
+        subject['images']['large'],
+        height: 150.0,
+        width: 100.0,
+    ),
+)"
+13,https://stackoverflow.com/questions/49577781/how-to-create-number-input-field-in-flutter,How to create number input field in Flutter?,"
+I'm unable to find a way to create an input field in Flutter that would open up a numeric keyboard and should take numeric input only. Is this possible with Flutter material widgets? Some GitHub discussions seem to indicate this is a supported feature but I'm unable to find any documentation about it.","
+You can specify the number as keyboardType for the TextField using:
+keyboardType: TextInputType.number
+Check my main.dart file
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+void main() => runApp(new MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new MaterialApp(
+      home: new HomePage(),
+      theme: new ThemeData(primarySwatch: Colors.blue),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return new HomePageState();
+  }
+}
+
+class HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      backgroundColor: Colors.white,
+      body: new Container(
+          padding: const EdgeInsets.all(40.0),
+          child: new Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new TextField(
+            decoration: new InputDecoration(labelText: ""Enter your number""),
+            keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+    FilteringTextInputFormatter.digitsOnly
+], // Only numbers can be entered
+          ),
+        ],
+      )),
+    );
+  }
+}
+keyboardType: TextInputType.number
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+void main() => runApp(new MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new MaterialApp(
+      home: new HomePage(),
+      theme: new ThemeData(primarySwatch: Colors.blue),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return new HomePageState();
+  }
+}
+
+class HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      backgroundColor: Colors.white,
+      body: new Container(
+          padding: const EdgeInsets.all(40.0),
+          child: new Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new TextField(
+            decoration: new InputDecoration(labelText: ""Enter your number""),
+            keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+    FilteringTextInputFormatter.digitsOnly
+], // Only numbers can be entered
+          ),
+        ],
+      )),
+    );
+  }
+}"
+14,https://stackoverflow.com/questions/49353199/how-can-i-change-the-app-display-name-build-with-flutter,How can I change the app display name build with Flutter?,"
+I have created the app using Flutter create testapp. Now, I want to change the app name from ""testapp"" to ""My Trips Tracker"". How can I do that?
+I have tried changing from the AndroidManifest.xml, and it got changed, but is there a way that Flutter provides to do that?","
+UPDATE: From the comments this answer seems to be out of date
+The Flutter documentation points out where you can change the display name of your application for both Android and iOS. This may be what you are looking for:
+Preparing an Android App for Release
+Preparing an iOS App for Release
+For Android
+It seems you have already found this in the AndroidManifest.xml as the application entry.
+Review the default App Manifest file AndroidManifest.xml located in /android/app/src/main/ and verify the values are correct, especially:
+application: Edit the android:label in the application tag to reflect the final name of the app.
+For iOS
+See the Review Xcode project settings section:
+Navigate to your target’s settings in Xcode:
+In Xcode, open Runner.xcworkspace in your app’s ios folder.
+To view your app’s settings, select the Runner project in the Xcode project navigator. Then, in the main view sidebar, select the Runner target.
+Select the General tab. Next, you’ll verify the most important settings:
+Display Name: the name of the app to be displayed on the home screen and elsewhere."
+15,https://stackoverflow.com/questions/51679269/waiting-for-another-flutter-command-to-release-the-startup-lock,Waiting for another flutter command to release the startup lock,"
+When I run my flutter application it show
+Waiting for another flutter command to release the startup lock
+this messages and not proceed further.","
+In my case, the following command in Terminal helped (as suggested by Günter Zöchbauer's comment):
+killall -9 dart
+On Windows, run the following in a Command Prompt or PowerShell window (as suggested by upupming's comment):
+taskkill /F /IM dart.exe
+(You can read about taskkill flags in Windows here)
+killall -9 dart
+taskkill /F /IM dart.exe"
+16,https://stackoverflow.com/questions/45669202/how-to-add-a-listview-to-a-column-in-flutter,How to add a ListView to a Column in Flutter?,"
+I'm trying to construct a simple login page for my Flutter app. I've successfully built the TextFields and log in/Sign in buttons. I want to add a horizontal ListView. When I run the code my elements disappear, if I do it without the ListView, it's fine again. How can I do this correctly?
+return new MaterialApp(
+        home: new Scaffold(
+          appBar: new AppBar(
+            title: new Text(""Login / Signup""),
+          ),
+          body: new Container(
+            child: new Center(
+              child: new Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new TextField(
+                    decoration: new InputDecoration(
+                      hintText: ""E M A I L    A D D R E S S""
+                    ),
+                  ),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new TextField(obscureText: true,
+                    decoration: new InputDecoration(
+                      hintText: ""P A S S W O R D""
+                    ),
+                    ),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new TextField(decoration: new InputDecoration(
+                    hintText: ""U S E R N A M E""
+                  ),),
+                  new RaisedButton(onPressed: null,
+                  child:  new Text(""SIGNUP""),),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new RaisedButton(onPressed: null,
+                  child: new Text(""LOGIN""),),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new ListView(scrollDirection: Axis.horizontal,
+                  children: <Widget>[
+                    new RaisedButton(onPressed: null,
+                    child: new Text(""Facebook""),),
+                    new Padding(padding: new EdgeInsets.all(5.00)),
+                    new RaisedButton(onPressed: null,
+                    child: new Text(""Google""),)
+                  ],)
+
+                ],
+              ),
+            ),
+            margin: new EdgeInsets.all(15.00),
+          ),
+        ),
+      );
+return new MaterialApp(
+        home: new Scaffold(
+          appBar: new AppBar(
+            title: new Text(""Login / Signup""),
+          ),
+          body: new Container(
+            child: new Center(
+              child: new Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new TextField(
+                    decoration: new InputDecoration(
+                      hintText: ""E M A I L    A D D R E S S""
+                    ),
+                  ),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new TextField(obscureText: true,
+                    decoration: new InputDecoration(
+                      hintText: ""P A S S W O R D""
+                    ),
+                    ),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new TextField(decoration: new InputDecoration(
+                    hintText: ""U S E R N A M E""
+                  ),),
+                  new RaisedButton(onPressed: null,
+                  child:  new Text(""SIGNUP""),),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new RaisedButton(onPressed: null,
+                  child: new Text(""LOGIN""),),
+                  new Padding(padding: new EdgeInsets.all(15.00)),
+                  new ListView(scrollDirection: Axis.horizontal,
+                  children: <Widget>[
+                    new RaisedButton(onPressed: null,
+                    child: new Text(""Facebook""),),
+                    new Padding(padding: new EdgeInsets.all(5.00)),
+                    new RaisedButton(onPressed: null,
+                    child: new Text(""Google""),)
+                  ],)
+
+                ],
+              ),
+            ),
+            margin: new EdgeInsets.all(15.00),
+          ),
+        ),
+      );","
+You can check console output. It prints error:
+The following assertion was thrown during performResize(): The horizontal viewport was given unbounded height. Viewports expand in the cross axis to fill their container and constrain their children to match their extent in the cross axis. In this case, a horizontal viewport was given an unlimited amount of vertical space in which to expand.
+You need to add a height constraint to your horizontal list. E.g. wrap in Container with height:
+Container(
+  height: 44.0,
+  child: ListView(
+    scrollDirection: Axis.horizontal,
+    children: <Widget>[
+      RaisedButton(
+        onPressed: null,
+        child: Text(""Facebook""),
+      ),
+      Padding(padding: EdgeInsets.all(5.00)),
+      RaisedButton(
+        onPressed: null,
+        child: Text(""Google""),
+      )
+    ],
+  ),
+)
+Container(
+  height: 44.0,
+  child: ListView(
+    scrollDirection: Axis.horizontal,
+    children: <Widget>[
+      RaisedButton(
+        onPressed: null,
+        child: Text(""Facebook""),
+      ),
+      Padding(padding: EdgeInsets.all(5.00)),
+      RaisedButton(
+        onPressed: null,
+        child: Text(""Google""),
+      )
+    ],
+  ),
+)"
+17,https://stackoverflow.com/questions/49045393/message-flutter-run-no-connected-devices,"Message ""flutter run: No connected devices""","
+I am trying to create a sample application with Flutter (fresh installation). Android Studio is also installed (fresh installation).
+Here is the output of flutter run
+flutter run
+No connected devices.
+The output of flutter doctor:
+Doctor summary (to see all details, run flutter doctor -v):
+[✓] Flutter (Channel beta, v0.1.5, on Linux, locale en_US.UTF-8)
+[✓] Android toolchain - develop for Android devices (Android SDK 27.0.3)
+[✓] Android Studio (version 3.0)
+[!] VS Code (version 1.20.1)
+[!] Connected devices
+! No devices available
+
+! Doctor found issues in 2 categories.
+Is there a solution to this problem?
+flutter run
+No connected devices.
+Doctor summary (to see all details, run flutter doctor -v):
+[✓] Flutter (Channel beta, v0.1.5, on Linux, locale en_US.UTF-8)
+[✓] Android toolchain - develop for Android devices (Android SDK 27.0.3)
+[✓] Android Studio (version 3.0)
+[!] VS Code (version 1.20.1)
+[!] Connected devices
+! No devices available
+
+! Doctor found issues in 2 categories.","
+Flutter supports both iOS and Android device/simulators.
+In the terminal, run the flutter devices command to verify that Flutter recognizes your connected Android device.
+Here is a reference document on how you can set up a device/simulator to run your application.
+For, Android (on a Mac system)
+Set up your Android device
+To prepare to run and test your Flutter app on an Android device, you’ll need an Android device running Android 4.1 (API level 16) or higher.
+Enable Developer options and USB debugging on your device. Detailed instructions are available in the Android documentation.
+Using a USB cable, plug your phone into your computer. If prompted on your device, authorize your computer to access your device.
+In the terminal, run the flutter devices command to verify that Flutter recognizes your connected Android device.
+Start your app by running flutter run.
+By default, Flutter uses the version of the Android SDK where your ADB tool is based. If you want Flutter to use a different installation of the Android SDK, you must set the ANDROID_HOME environment variable to that installation directory.
+Set up the Android emulator
+To prepare to run and test your Flutter app on the Android emulator, follow these steps:
+Enable VM acceleration on your machine.
+Launch Android Studio → menu Tools → AVD Manager and select Create Virtual Device.
+Choose a device definition and select Next.
+Select one or more system images for the Android versions you want to emulate, and select Next. An x86 or x86_64 image is recommended.
+Under Emulated Performance, select Hardware - GLES 2.0 to enable hardware acceleration.
+Verify the AVD configuration is correct, and select Finish.
+For details on the above steps, see Managing AVDs.
+In Android Virtual Device Manager, click Run in the toolbar. The emulator starts up and displays the default canvas for your selected OS version and device.
+Start your app by running flutter run. The connected device name is Android SDK built for <platform>, where platform is the chip family, such as x86.
+Here is another document, if you're using (Microsoft) Windows System: Get Started: Install on Windows
+Open & Connect Device using Android Studio:
+Here is an easier way to open and connect simulators/devices.
+Android Studio shows a list of emulators/simulators (installed in your system) or devices (connected to your system). Just select a device you want to open from a list, and run the project."
+18,https://stackoverflow.com/questions/48650831/dart-sdk-is-not-configured,Dart SDK is not configured,"
+I installed Flutter and set up Android Studio. Then I cloned an example of flutter on GitHub (https://github.com/flutter/flutter) and launched it in Android Studio, but it warns me ""Dart SDK is not configured"", this happened to my co-worker as well. But if I create a new project in Android Studio, no problem at all.
+What I have done:
+Installed Flutter
+Installed Android Studio, along with Flutter plugin including Dart plugin
+Flutter run in command line works fine, all five tests passed. (See below)
+[✓] Flutter (on Mac OS X 10.13.3 17D47, locale en-US, channel dev) • Flutter version 0.0.22 at /Users/katelyn/flutter • Framework revision 3001b3307d (7 days ago), 2018-01-30 11:37:15 -0800 • Engine revision 8f2d72b183 • Tools Dart version 2.0.0-dev.16.0 • Engine Dart version 2.0.0-edge.7af4db0ea091dddca6b2da851e6dda8d7f9467e8
+[✓] Android toolchain - develop for Android devices (Android SDK 27.0.3) • Android SDK at /Users/katelyn/Library/Android/sdk • Android NDK location not configured (optional; useful for native profiling support) • Platform android-27, build-tools 27.0.3 • Java binary at: /Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin/java • Java version OpenJDK Runtime Environment (build 1.8.0_152-release-915-b08)
+[✓] iOS toolchain - develop for iOS devices (Xcode 9.2) • Xcode at /Applications/Xcode.app/Contents/Developer • Xcode 9.2, Build version 9C40b • ios-deploy 1.9.2 • CocoaPods version 1.4.0
+[✓] Android Studio (version 3.0) • Android Studio at /Applications/Android Studio.app/Contents • Java version OpenJDK Runtime Environment (build 1.8.0_152-release-915-b08)
+[✓] Connected devices • Android SDK built for x86 • emulator-5554 • android-x86 • Android 7.1.1 (API 25) (emulator)
+Last week, I can run their example thru command line (in that dir),
+flutter run 
+but now I it shows some errors with Gradle.
+Launching lib/main.dart on Android SDK built for x86 in debug mode... Initializing gradle... 0.7s Resolving dependencies...
+Error running Gradle: Exit code 1 from: /Users/katelyn/AndroidStudioProjects/flutter/examples/flutter_gallery/android/gradlew app:properties:
+FAILURE: Build failed with an exception.
+Where: Build file '/Users/katelyn/AndroidStudioProjects/flutter/examples/flutter_gallery/android/app/build.gradle' line: 20
+What went wrong: A problem occurred evaluating project ':app'. 3
+Try: Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+Get more help at https://help.gradle.org
+BUILD FAILED in 0s
+Please review your Gradle project setup in the android/ folder.
+flutter run ",
+19,https://stackoverflow.com/questions/51304568/scaffold-of-called-with-a-context-that-does-not-contain-a-scaffold,Scaffold.of() called with a context that does not contain a Scaffold,"
+As you can see, my button is inside the Scaffold's body. But I get this exception:
+Scaffold.of() called with a context that does not contain a Scaffold.
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('SnackBar Playground'),
+      ),
+      body: Center(
+        child: RaisedButton(
+          color: Colors.pink,
+          textColor: Colors.white,
+          onPressed: _displaySnackBar(context),
+          child: Text('Display SnackBar'),
+        ),
+      ),
+    );
+  }
+}
+
+_displaySnackBar(BuildContext context) {
+  final snackBar = SnackBar(content: Text('Are you talkin\' to me?'));
+  Scaffold.of(context).showSnackBar(snackBar);
+}
+EDIT:
+I found another solution to this problem. If we give the Scaffold a key which is the GlobalKey<ScaffoldState>, we can display the SnackBar as following without the need to wrap our body within the Builder widget. The widget which returns the Scaffold should be a Stateful widget though.
+ _scaffoldKey.currentState.showSnackBar(snackbar); 
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('SnackBar Playground'),
+      ),
+      body: Center(
+        child: RaisedButton(
+          color: Colors.pink,
+          textColor: Colors.white,
+          onPressed: _displaySnackBar(context),
+          child: Text('Display SnackBar'),
+        ),
+      ),
+    );
+  }
+}
+
+_displaySnackBar(BuildContext context) {
+  final snackBar = SnackBar(content: Text('Are you talkin\' to me?'));
+  Scaffold.of(context).showSnackBar(snackBar);
+}
+ _scaffoldKey.currentState.showSnackBar(snackbar); ","
+This exception happens because you are using the context of the widget that instantiated Scaffold. Not the context of a child of Scaffold.
+You can solve this by just using a different context :
+Scaffold(
+    appBar: AppBar(
+        title: Text('SnackBar Playground'),
+    ),
+    body: Builder(
+        builder: (context) => 
+            Center(
+            child: RaisedButton(
+            color: Colors.pink,
+            textColor: Colors.white,
+            onPressed: () => _displaySnackBar(context),
+            child: Text('Display SnackBar'),
+            ),
+        ),
+    ),
+);
+Note that while we're using Builder here, this is not the only way to obtain a different BuildContext.
+It is also possible to extract the subtree into a different Widget (usually using extract widget refactor)
+Scaffold(
+    appBar: AppBar(
+        title: Text('SnackBar Playground'),
+    ),
+    body: Builder(
+        builder: (context) => 
+            Center(
+            child: RaisedButton(
+            color: Colors.pink,
+            textColor: Colors.white,
+            onPressed: () => _displaySnackBar(context),
+            child: Text('Display SnackBar'),
+            ),
+        ),
+    ),
+);"
+20,https://stackoverflow.com/questions/43214271/how-do-i-supply-an-initial-value-to-a-text-field,How do I supply an initial value to a text field?,"
+I'd like to supply an initial value to a text field and redraw it with an empty value to clear the text. What's the best approach to do that with Flutter's APIs?",
+21,https://stackoverflow.com/questions/24795079/error1-0-plugin-with-id-com-android-application-not-found,"Error:(1, 0) Plugin with id 'com.android.application' not found","
+This is my first attempt at Android Studio. I installed 0.8.0 and updated to 0.8.2. As soon as a project is created I get the error message:
+Error:(1, 0) Plugin with id 'com.android.application' not found
+C:\Users\Bob\AndroidStudioProjects\HelloAgain6\app\build.gradle
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion ""20.0.0""
+
+    defaultConfig {
+        applicationId ""com.example.bob.helloagain6""
+        minSdkVersion 15
+        targetSdkVersion 20
+        versionCode 1
+        versionName ""1.0""
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+and C:\Users\Bob\AndroidStudioProjects\HelloAgain6\build.gradle
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.12.+'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion ""20.0.0""
+
+    defaultConfig {
+        applicationId ""com.example.bob.helloagain6""
+        minSdkVersion 15
+        targetSdkVersion 20
+        versionCode 1
+        versionName ""1.0""
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.12.+'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}",
+22,https://stackoverflow.com/questions/49713189/how-to-use-conditional-statement-within-child-attribute-of-a-flutter-widget-cen,How to use conditional statement within child attribute of a Flutter Widget (Center Widget),"
+So far whenever I needed to use a conditional statement within a Widget I have done the following (Using Center and Containers as simplified dummy examples):
+new Center(
+  child: condition == true ? new Container() : new Container()
+)
+Though when I tried using an if/else statement it would lead to an Dead code warning:
+new Center(
+  child: 
+    if(condition == true){
+      new Container();
+    }else{
+      new Container();
+    }
+)
+Interestingly enough I tried with a switch case statement and it gives me the same warning and thus I cannot run the code. Am I doing something wrong or is it so that one cannot use if/else or switch statements without flutter thinking there is dead code?
+new Center(
+  child: condition == true ? new Container() : new Container()
+)
+new Center(
+  child: 
+    if(condition == true){
+      new Container();
+    }else{
+      new Container();
+    }
+)",
+23,https://stackoverflow.com/questions/52060516/flutter-how-to-change-android-minsdkversion-in-flutter-project,Flutter : How to change Android minSdkVersion in Flutter Project?,"
+I was trying to start a flutter project for an App using bluetooth to communicate. For that, I was using flutter blue.
+Unfortunately, when trying to run (on an Android device) the first example I created I was met with the following error:
+FAILURE: Build failed with an exception.
+
+  * What went wrong:
+  Execution failed for task ':app:processDebugManifest'.
+  > Manifest merger failed : uses-sdk:minSdkVersion 16 cannot be smaller than version 19 declared in library [:flutter_blue] /home/maldus/Projects/flutter/polmac/build/flutter_blue/intermediates/manifests/full/debug/AndroidManifest.xml as the library might be using APIs not available in 16
+    Suggestion: use a compatible library with a minSdk of at most 16,
+            or increase this project's minSdk version to at least 19,
+            or use tools:overrideLibrary=""com.pauldemarco.flutterblue"" to force usage (may lead to runtime failures)
+If I were on Android Studio, I'd know how to bump up the Android minSdkVersion, but on a flutter project (using VSCode) I was a little lost.
+Is it possible to increase the minSdkVersion with flutter, and how?
+FAILURE: Build failed with an exception.
+
+  * What went wrong:
+  Execution failed for task ':app:processDebugManifest'.
+  > Manifest merger failed : uses-sdk:minSdkVersion 16 cannot be smaller than version 19 declared in library [:flutter_blue] /home/maldus/Projects/flutter/polmac/build/flutter_blue/intermediates/manifests/full/debug/AndroidManifest.xml as the library might be using APIs not available in 16
+    Suggestion: use a compatible library with a minSdk of at most 16,
+            or increase this project's minSdk version to at least 19,
+            or use tools:overrideLibrary=""com.pauldemarco.flutterblue"" to force usage (may lead to runtime failures)","
+It is indeed possible to increase minSdkVersion, but it took me way too much time to find it out because google searches mostly yields as result discussions about the absolute minimum Sdk version flutter should be able to support, not how to increase it in your own project.
+Like in an Android Studio project, you have to edit the build.gradle file. In a flutter project, it is found at the path ./android/app/build.gradle.
+The parameter that needs to be changed is, of course, minSdkVersion 16, bumping it up to what you need (in this case 19).
+defaultConfig {
+    // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+    applicationId ""com.example.projectname""
+    minSdkVersion 19 //*** This is the part that needs to be changed, previously was 16
+    targetSdkVersion 28
+    versionCode 1
+    versionName ""1.0""
+    testInstrumentationRunner ""android.support.test.runner.AndroidJUnitRunner""
+}
+Seems obvious now, but took me long enough to figure it out on my own.
+defaultConfig {
+    // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+    applicationId ""com.example.projectname""
+    minSdkVersion 19 //*** This is the part that needs to be changed, previously was 16
+    targetSdkVersion 28
+    versionCode 1
+    versionName ""1.0""
+    testInstrumentationRunner ""android.support.test.runner.AndroidJUnitRunner""
+}"
+24,https://stackoverflow.com/questions/50287995/passing-data-to-statefulwidget-and-accessing-it-in-its-state-in-flutter,Passing data to StatefulWidget and accessing it in it's state in Flutter,"
+I have 2 screens in my Flutter app: a list of records and a screen for creating and editing records.
+If I pass an object to the second screen that means I am going to edit this and if I pass null it means that I am creating a new item. The editing screen is a Stateful widget and I am not sure how to use this approach https://flutter.io/cookbook/navigation/passing-data/ for my case.
+class RecordPage extends StatefulWidget {
+  final Record recordObject;
+
+  RecordPage({Key key, @required this.recordObject}) : super(key: key);
+
+  @override
+  _RecordPageState createState() => new _RecordPageState();
+}
+
+class _RecordPageState extends State<RecordPage> {
+  @override
+  Widget build(BuildContext context) {
+   //.....
+  }
+}
+How can I access recordObject inside _RecordPageState?
+class RecordPage extends StatefulWidget {
+  final Record recordObject;
+
+  RecordPage({Key key, @required this.recordObject}) : super(key: key);
+
+  @override
+  _RecordPageState createState() => new _RecordPageState();
+}
+
+class _RecordPageState extends State<RecordPage> {
+  @override
+  Widget build(BuildContext context) {
+   //.....
+  }
+}","
+To use recordObject in _RecordPageState, you have to just write widget.objectname like below
+class _RecordPageState extends State<RecordPage> {
+  @override
+  Widget build(BuildContext context) {
+   .....
+   widget.recordObject
+   .....
+  }
+}
+class _RecordPageState extends State<RecordPage> {
+  @override
+  Widget build(BuildContext context) {
+   .....
+   widget.recordObject
+   .....
+  }
+}"
+25,https://stackoverflow.com/questions/43122113/sizing-elements-to-percentage-of-screen-width-height,Sizing elements to percentage of screen width/height,"
+Is there a simple (non-LayoutBuilder) way to size an element relative to screen size (width/height)? For example: how do I set the width of a CardView to be 65% of the screen width.
+It can't be done inside the build method (obviously) so it would have to be deferred until post build. Is there a preferred place to put logic like this?","
+FractionallySizedBox may also be useful. You can also read the screen width directly out of MediaQuery.of(context).size and create a sized box based on that
+MediaQuery.of(context).size.width * 0.65
+if you really want to size as a fraction of the screen regardless of what the layout is.
+MediaQuery.of(context).size.width * 0.65"
+26,https://stackoverflow.com/questions/43122113/sizing-elements-to-percentage-of-screen-width-height,Sizing elements to percentage of screen width/height,"
+Is there a simple (non-LayoutBuilder) way to size an element relative to screen size (width/height)? For example: how do I set the width of a CardView to be 65% of the screen width.
+It can't be done inside the build method (obviously) so it would have to be deferred until post build. Is there a preferred place to put logic like this?","
+FractionallySizedBox may also be useful. You can also read the screen width directly out of MediaQuery.of(context).size and create a sized box based on that
+MediaQuery.of(context).size.width * 0.65
+if you really want to size as a fraction of the screen regardless of what the layout is.
+MediaQuery.of(context).size.width * 0.65"
+27,https://stackoverflow.com/questions/61993738/flutter-doctor-android-licenses-gives-a-java-error,flutter doctor --android-licenses gives a java error,"
+Exception in thread ""main"" java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema
+    at com.android.repository.api.SchemaModule$SchemaModuleVersion.<init>(SchemaModule.java:156)
+    at com.android.repository.api.SchemaModule.<init>(SchemaModule.java:75)
+    at com.android.sdklib.repository.AndroidSdkHandler.<clinit>(AndroidSdkHandler.java:81)
+    at com.android.sdklib.tool.sdkmanager.SdkManagerCli.main(SdkManagerCli.java:73)
+    at com.android.sdklib.tool.sdkmanager.SdkManagerCli.main(SdkManagerCli.java:48)
+Caused by: java.lang.ClassNotFoundException: javax.xml.bind.annotation.XmlSchema
+    at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:581)
+    at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:178)
+    at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:521)
+    ... 5 more
+I get this error above when running flutter doctor --android-licenses. Does anyone know why this is happening and how I can fix it? I'm already running it on the flutter console.
+Exception in thread ""main"" java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema
+    at com.android.repository.api.SchemaModule$SchemaModuleVersion.<init>(SchemaModule.java:156)
+    at com.android.repository.api.SchemaModule.<init>(SchemaModule.java:75)
+    at com.android.sdklib.repository.AndroidSdkHandler.<clinit>(AndroidSdkHandler.java:81)
+    at com.android.sdklib.tool.sdkmanager.SdkManagerCli.main(SdkManagerCli.java:73)
+    at com.android.sdklib.tool.sdkmanager.SdkManagerCli.main(SdkManagerCli.java:48)
+Caused by: java.lang.ClassNotFoundException: javax.xml.bind.annotation.XmlSchema
+    at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:581)
+    at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:178)
+    at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:521)
+    ... 5 more",
+28,https://stackoverflow.com/questions/49418332/flutter-how-to-prevent-device-orientation-changes-and-force-portrait,Flutter: how to prevent device orientation changes and force portrait?,"
+I would like to prevent my application from changing its orientation and force the layout to stick to ""portrait"".
+In the main.dart, I put:
+void main(){
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]);
+  runApp(new MyApp());
+}
+but when I use the Android Simulator rotate buttons, the layout ""follows"" the new device orientation...
+How could I solve this?
+Thanks
+void main(){
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]);
+  runApp(new MyApp());
+}",
+29,https://stackoverflow.com/questions/53234825/what-is-the-difference-between-functions-and-classes-to-create-reusable-widgets,What is the difference between functions and classes to create reusable widgets?,"
+I have realized that it is possible to create widgets using plain functions instead of subclassing StatelessWidget. An example would be this:
+Widget function({ String title, VoidCallback callback }) {
+  return GestureDetector(
+    onTap: callback,
+    child: // some widget
+  );
+}
+This is interesting because it requires far less code than a full-blown class. Example:
+class SomeWidget extends StatelessWidget {
+  final VoidCallback callback;
+  final String title;
+
+  const SomeWidget({Key key, this.callback, this.title}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+      return GestureDetector(
+        onTap: callback,
+        child: // some widget
+      );
+  }
+}
+So I've been wondering: Is there any difference besides syntax between functions and classes to create widgets? And is it a good practice to use functions?
+Widget function({ String title, VoidCallback callback }) {
+  return GestureDetector(
+    onTap: callback,
+    child: // some widget
+  );
+}
+class SomeWidget extends StatelessWidget {
+  final VoidCallback callback;
+  final String title;
+
+  const SomeWidget({Key key, this.callback, this.title}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+      return GestureDetector(
+        onTap: callback,
+        child: // some widget
+      );
+  }
+}","
+Edit: The Flutter team has now taken an official stance on the matter and stated that classes are preferable. See https://www.youtube.com/watch?v=IOyq-eTRhvo
+TL;DR: Prefer using classes over functions to make reusable widget-tree.
+EDIT: To make up for some misunderstanding: This is not about functions causing problems, but classes solving some.
+Flutter wouldn't have StatelessWidget if a function could do the same thing.
+Similarly, it is mainly directed at public widgets, made to be reused. It doesn't matter as much for private functions made to be used only once – although being aware of this behavior is still good.
+There is an important difference between using functions instead of classes, that is: The framework is unaware of functions, but can see classes.
+Consider the following ""widget"" function:
+Widget functionWidget({ Widget child}) {
+  return Container(child: child);
+}
+used this way:
+functionWidget(
+  child: functionWidget(),
+);
+And it's class equivalent:
+class ClassWidget extends StatelessWidget {
+  final Widget child;
+
+  const ClassWidget({Key key, this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: child,
+    );
+  }
+}
+used like that:
+new ClassWidget(
+  child: new ClassWidget(),
+);
+On paper, both seem to do exactly the same thing: Create 2 Container, with one nested into the other. But the reality is slightly different.
+In the case of functions, the generated widget tree looks like this:
+Container
+  Container
+While with classes, the widget tree is:
+ClassWidget
+  Container
+    ClassWidget
+      Container
+This is important because it changes how the framework behaves when updating a widget.
+Why that matters
+By using functions to split your widget tree into multiple widgets, you expose yourself to bugs and miss on some performance optimizations.
+There is no guarantee that you will have bugs by using functions, but by using classes, you are guaranteed to not face these issues.
+Here are a few interactive examples on Dartpad that you can run yourself to better understand the issues:
+https://dartpad.dev/?id=bcae5878ccced764b35dd9a659a593db
+This example showcases how by splitting your app into functions, you may accidentally break things like AnimatedSwitcher
+https://dartpad.dev/?id=481a2c301c2e4bed6c30ba651d01bacb This example showcases how classes allow more granular rebuilds of the widget tree, improving performances
+https://dartpad.dev/?id=8bcb85ba535102bed652e5bf1540ac3b This example showcases how, by using functions, you expose yourself to misusing BuildContext and facing bugs when using InheritedWidgets (such as Theme or providers)
+Conclusion
+Here's a curated list of the differences between using functions and classes:
+Classes:
+allow performance optimization (const constructor, more granular rebuild)
+ensure that switching between two different layouts correctly disposes of the resources (functions may reuse some previous state)
+ensures that hot-reload works properly (using functions could break hot-reload for showDialogs & similar)
+are integrated into the widget inspector.
+We see ClassWidget in the widget-tree showed by the devtool, which helps understanding what is on screen
+We can override debugFillProperties to print what the parameters passed to a widget are
+better error messages
+If an exception happens (like ProviderNotFound), the framework will give you the name of the currently building widget. If you've split your widget tree only in functions + Builder, your errors won't have a helpful name
+can define keys
+can use the context API
+Functions:
+have less code (which can be solved using code-generation functional_widget)
+Overall, it is considered a bad practice to use functions over classes for reusing widgets because of these reasons.
+You can, but it may bite you in the future.
+Widget functionWidget({ Widget child}) {
+  return Container(child: child);
+}
+functionWidget(
+  child: functionWidget(),
+);
+class ClassWidget extends StatelessWidget {
+  final Widget child;
+
+  const ClassWidget({Key key, this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: child,
+    );
+  }
+}
+new ClassWidget(
+  child: new ClassWidget(),
+);
+Container
+  Container
+ClassWidget
+  Container
+    ClassWidget
+      Container"
+30,https://stackoverflow.com/questions/50252569/vertical-viewport-was-given-unbounded-height,Vertical viewport was given unbounded height,"
+This is my code:
+@override
+Widget build(BuildContext context) {
+  return new Material(
+    color: Colors.deepPurpleAccent,
+    child: new Column(
+     mainAxisAlignment: MainAxisAlignment.center,
+        children:<Widget>[new GridView.count(crossAxisCount: _column,children: new List.generate(_row*_column, (index) {
+          return new Center(
+              child: new CellWidget()
+          );
+        }),)]
+    )
+  );
+}
+Exception as follows:
+I/flutter ( 9925): ══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+I/flutter ( 9925): The following assertion was thrown during performResize():
+I/flutter ( 9925): Vertical viewport was given unbounded height.
+I/flutter ( 9925): Viewports expand in the scrolling direction to fill their container.In this case, a vertical
+I/flutter ( 9925): viewport was given an unlimited amount of vertical space in which to expand. This situation
+I/flutter ( 9925): typically happens when a scrollable widget is nested inside another scrollable widget.
+I/flutter ( 9925): If this widget is always nested in a scrollable widget there is no need to use a viewport because
+I/flutter ( 9925): there will always be enough vertical space for the children. In this case, consider using a Column
+I/flutter ( 9925): instead. Otherwise, consider using the ""shrinkWrap"" property (or a ShrinkWrappingViewport) to size
+I/flutter ( 9925): the height of the viewport to the sum of the heights of its children.
+I/flutter ( 9925): 
+I/flutter ( 9925): When the exception was thrown, this was the stack:
+I/flutter ( 9925): #0      RenderViewport.performResize.<anonymous closure> (package:flutter/src/rendering/viewport.dart:827:15)
+I/flutter ( 9925): #1      RenderViewport.performResize (package:flutter/src/rendering/viewport.dart:880:6)
+I/flutter ( 9925): #2      RenderObject.layout (package:flutter/src/rendering/object.dart:1555:9)
+@override
+Widget build(BuildContext context) {
+  return new Material(
+    color: Colors.deepPurpleAccent,
+    child: new Column(
+     mainAxisAlignment: MainAxisAlignment.center,
+        children:<Widget>[new GridView.count(crossAxisCount: _column,children: new List.generate(_row*_column, (index) {
+          return new Center(
+              child: new CellWidget()
+          );
+        }),)]
+    )
+  );
+}
+I/flutter ( 9925): ══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+I/flutter ( 9925): The following assertion was thrown during performResize():
+I/flutter ( 9925): Vertical viewport was given unbounded height.
+I/flutter ( 9925): Viewports expand in the scrolling direction to fill their container.In this case, a vertical
+I/flutter ( 9925): viewport was given an unlimited amount of vertical space in which to expand. This situation
+I/flutter ( 9925): typically happens when a scrollable widget is nested inside another scrollable widget.
+I/flutter ( 9925): If this widget is always nested in a scrollable widget there is no need to use a viewport because
+I/flutter ( 9925): there will always be enough vertical space for the children. In this case, consider using a Column
+I/flutter ( 9925): instead. Otherwise, consider using the ""shrinkWrap"" property (or a ShrinkWrappingViewport) to size
+I/flutter ( 9925): the height of the viewport to the sum of the heights of its children.
+I/flutter ( 9925): 
+I/flutter ( 9925): When the exception was thrown, this was the stack:
+I/flutter ( 9925): #0      RenderViewport.performResize.<anonymous closure> (package:flutter/src/rendering/viewport.dart:827:15)
+I/flutter ( 9925): #1      RenderViewport.performResize (package:flutter/src/rendering/viewport.dart:880:6)
+I/flutter ( 9925): #2      RenderObject.layout (package:flutter/src/rendering/object.dart:1555:9)","
+Adding this two lines
+ListView.builder(
+    scrollDirection: Axis.vertical,
+    shrinkWrap: true,
+...
+ListView.builder(
+    scrollDirection: Axis.vertical,
+    shrinkWrap: true,
+..."
+31,https://stackoverflow.com/questions/47114639/yellow-lines-under-text-widgets-in-flutter,Yellow lines under Text Widgets in Flutter?,"
+The main app screen doesn't have this issue, all the texts show up as they should.
+However, in the new screen, all the text widget have some weird yellow line / double-line underneath.
+Any ideas on why this is happening?","
+The problem is having a Scaffold or not. Scaffold is a helper for Material apps (AppBar, Drawer, that sort of stuff). But you're not forced to use Material.
+What you're missing is an instance of DefaultTextStyle as a parent:
+DefaultTextStyle(
+  style: TextStyle(...),
+  child: Text('Hello world'),
+)
+Various widgets add one to change the default text theme, such as Scaffold, Dialog, AppBar, ListTile, ...
+It's DefaultTextStyle that allows your app-bar title to be bold by default for example.
+DefaultTextStyle(
+  style: TextStyle(...),
+  child: Text('Hello world'),
+)"
+32,https://stackoverflow.com/questions/49466556/flutter-run-method-on-widget-build-complete,Flutter: Run method on Widget build complete,"
+I would like to be able to run functions once a Widget has finished building/loading but I am unsure how.
+My current use case is to check if a user is authenticated and if not, redirect to a login view. I do not want to check before and push either the login view or the main view, it needs to happen after the main view has loaded.
+Is there anything I can use to do this?",
+33,https://stackoverflow.com/questions/49040679/flutter-how-to-make-a-textfield-with-hinttext-but-no-underline,Flutter: how to make a TextField with HintText but no Underline?,"
+This is what I'm trying to make:
+In the Flutter docs for Text Fields (https://flutter.io/text-input/) it says you can remove the underline by passing null to the decoration. However, that also gets rid of the hint text.
+I do not want any underline whether the text field is focused or not.
+UPDATE: updated accepted answer to reflect changes in Flutter SDK as of April 2020.","
+Do it like this:
+TextField(
+  decoration: new InputDecoration.collapsed(
+    hintText: 'Username'
+  ),
+),
+or if you need other stuff like icon, set the border with InputBorder.none
+InputDecoration(
+    border: InputBorder.none,
+    hintText: 'Username',
+  ),
+),
+TextField(
+  decoration: new InputDecoration.collapsed(
+    hintText: 'Username'
+  ),
+),
+InputDecoration(
+    border: InputBorder.none,
+    hintText: 'Username',
+  ),
+),"
+34,https://stackoverflow.com/questions/45986093/textfield-inside-of-row-causes-layout-exception-unable-to-calculate-size,TextField inside of Row causes layout exception: Unable to calculate size,"
+I’m getting a rendering exception that I don’t understand how to fix. I’m attempting to create a column that has 3 rows.
+Row [Image]
+Row [TextField ]
+Row [Buttons]
+Here is my code to build the container:
+Container buildEnterAppContainer(BuildContext context) {
+    var container = new Container(
+      padding: const EdgeInsets.all(8.0),
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          buildImageRow(context),
+          buildAppEntryRow(context),
+          buildButtonRow(context)
+        ],
+      ),
+    );
+    return container;
+  }
+and my buildAppEntryRow code for the text container
+Widget buildAppEntryRow(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new TextField(
+          decoration: const InputDecoration(helperText: ""Enter App ID""),
+          style: Theme.of(context).textTheme.body1,
+        )
+      ],
+    );
+  }
+When I run I get the following exception:
+I/flutter ( 7674): BoxConstraints forces an infinite width.
+I/flutter ( 7674): These invalid constraints were provided to RenderStack's layout() function by the following
+I/flutter ( 7674): function, which probably computed the invalid constraints in question:
+I/flutter ( 7674):   RenderConstrainedBox.performLayout (package:flutter/src/rendering/proxy_box.dart:256:13)
+I/flutter ( 7674): The offending constraints were:
+I/flutter ( 7674):   BoxConstraints(w=Infinity, 0.0<=h<=Infinity)
+If i change buildAppEntryRow to just a TextField instead like this
+ Widget buildAppEntryRow2(BuildContext context) {
+    return new TextField(
+      decoration: const InputDecoration(helperText: ""Enter App ID""),
+      style: Theme.of(context).textTheme.body1,
+    );
+  }
+I no longer get the exception. What am I missing with the Row implementation that is causing it to not be able to calculate the size of that row?
+Container buildEnterAppContainer(BuildContext context) {
+    var container = new Container(
+      padding: const EdgeInsets.all(8.0),
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          buildImageRow(context),
+          buildAppEntryRow(context),
+          buildButtonRow(context)
+        ],
+      ),
+    );
+    return container;
+  }
+Widget buildAppEntryRow(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new TextField(
+          decoration: const InputDecoration(helperText: ""Enter App ID""),
+          style: Theme.of(context).textTheme.body1,
+        )
+      ],
+    );
+  }
+I/flutter ( 7674): BoxConstraints forces an infinite width.
+I/flutter ( 7674): These invalid constraints were provided to RenderStack's layout() function by the following
+I/flutter ( 7674): function, which probably computed the invalid constraints in question:
+I/flutter ( 7674):   RenderConstrainedBox.performLayout (package:flutter/src/rendering/proxy_box.dart:256:13)
+I/flutter ( 7674): The offending constraints were:
+I/flutter ( 7674):   BoxConstraints(w=Infinity, 0.0<=h<=Infinity)
+ Widget buildAppEntryRow2(BuildContext context) {
+    return new TextField(
+      decoration: const InputDecoration(helperText: ""Enter App ID""),
+      style: Theme.of(context).textTheme.body1,
+    );
+  }","
+(I assume you're using a Row because you want to put other widgets beside the TextField in the future.)
+The Row widget wants to determine the intrinsic size of its non-flexible children so it knows how much space that it has left for the flexible ones. However, TextField doesn't have an intrinsic width; it only knows how to size itself to the full width of its parent container. Try wrapping it in a Flexible or Expanded to tell the Row that you're expecting the TextField to take up the remaining space:
+      new Row(
+        children: <Widget>[
+          new Flexible(
+            child: new TextField(
+              decoration: const InputDecoration(helperText: ""Enter App ID""),
+              style: Theme.of(context).textTheme.body1,
+            ),
+          ),
+        ],
+      ),
+      new Row(
+        children: <Widget>[
+          new Flexible(
+            child: new TextField(
+              decoration: const InputDecoration(helperText: ""Enter App ID""),
+              style: Theme.of(context).textTheme.body1,
+            ),
+          ),
+        ],
+      ),"
+35,https://stackoverflow.com/questions/49351648/how-do-i-disable-a-button-in-flutter,How do I disable a Button in Flutter?,"
+I'm just starting to get the hang of Flutter, but I'm having trouble figuring out how to set the enabled state of a button.
+From the docs, it says to set onPressed to null to disable a button, and give it a value to enable it. This is fine if the button continues to be in the same state for the lifecycle.
+I get the impression I need to create a custom Stateful widget that will allow me to update the button's enabled state (or onPressed callback) somehow.
+So my question is how would I do that? This seems like a pretty straightforward requirement, but I can't find anything in the docs on how to do it.
+Thanks.","
+I think you may want to introduce some helper functions to build your button as well as a Stateful widget along with some property to key off of.
+Use a StatefulWidget/State and create a variable to hold your condition (e.g. isButtonDisabled)
+Set this to true initially (if that's what you desire)
+When rendering the button, don't directly set the onPressed value to either null or some function onPressed: () {}
+Instead, conditionally set it using a ternary or a helper function (example below)
+Check the isButtonDisabled as part of this conditional and return either null or some function.
+When the button is pressed (or whenever you want to disable the button) use setState(() => isButtonDisabled = true) to flip the conditional variable.
+Flutter will call the build() method again with the new state and the button will be rendered with a null press handler and be disabled.
+Here's is some more context using the Flutter counter project.
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => new _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+  bool _isButtonDisabled;
+
+  @override
+  void initState() {
+    _isButtonDisabled = false;
+  }
+
+  void _incrementCounter() {
+    setState(() {
+      _isButtonDisabled = true;
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(""The App""),
+      ),
+      body: new Center(
+        child: new Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            new Text(
+              'You have pushed the button this many times:',
+            ),
+            new Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.display1,
+            ),
+            _buildCounterButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCounterButton() {
+    return new RaisedButton(
+      child: new Text(
+        _isButtonDisabled ? ""Hold on..."" : ""Increment""
+      ),
+      onPressed: _isButtonDisabled ? null : _incrementCounter,
+    );
+  }
+}
+In this example I am using an inline ternary to conditionally set the Text and onPressed, but it may be more appropriate for you to extract this into a function (you can use this same method to change the text of the button as well):
+Widget _buildCounterButton() {
+    return new RaisedButton(
+      child: new Text(
+        _isButtonDisabled ? ""Hold on..."" : ""Increment""
+      ),
+      onPressed: _counterButtonPress(),
+    );
+  }
+
+  Function _counterButtonPress() {
+    if (_isButtonDisabled) {
+      return null;
+    } else {
+      return () {
+        // do anything else you may want to here
+        _incrementCounter();
+      };
+    }
+  }
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => new _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+  bool _isButtonDisabled;
+
+  @override
+  void initState() {
+    _isButtonDisabled = false;
+  }
+
+  void _incrementCounter() {
+    setState(() {
+      _isButtonDisabled = true;
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(""The App""),
+      ),
+      body: new Center(
+        child: new Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            new Text(
+              'You have pushed the button this many times:',
+            ),
+            new Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.display1,
+            ),
+            _buildCounterButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCounterButton() {
+    return new RaisedButton(
+      child: new Text(
+        _isButtonDisabled ? ""Hold on..."" : ""Increment""
+      ),
+      onPressed: _isButtonDisabled ? null : _incrementCounter,
+    );
+  }
+}
+Widget _buildCounterButton() {
+    return new RaisedButton(
+      child: new Text(
+        _isButtonDisabled ? ""Hold on..."" : ""Increment""
+      ),
+      onPressed: _counterButtonPress(),
+    );
+  }
+
+  Function _counterButtonPress() {
+    if (_isButtonDisabled) {
+      return null;
+    } else {
+      return () {
+        // do anything else you may want to here
+        _incrementCounter();
+      };
+    }
+  }"
+36,https://stackoverflow.com/questions/44489804/how-to-show-hide-widgets-programmatically-in-flutter,How to show/hide widgets programmatically in Flutter,"
+In Android, every single View subclass has a setVisibility() method that allows you modify the visibility of a View object
+There are 3 options of setting the visibility:
+Visible: Renders the View visible inside the layout
+Invisible: Hides the View, but leaves a gap that is equivalent to what the View would occupy if it were visible
+Gone: Hides the View, and removes it entirely from the layout. It's as if its height and width were 0dp
+Is there something equivalent to the above for Widgets in Flutter?
+For a quick reference: https://developer.android.com/reference/android/view/View.html#attr_android:visibility","
+UPDATE: Since this answer was written, Visibility was introduced and provides the best solution to this problem.
+You can use Opacity with an opacity: of 0.0 to draw make an element hidden but still occupy space.
+To make it not occupy space, replace it with an empty Container().
+EDIT: To wrap it in an Opacity object, do the following:
+            new Opacity(opacity: 0.0, child: new Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+              ),
+              child: new Icon(pencil, color: CupertinoColors.activeBlue),
+            ))
+Google Developers quick tutorial on Opacity: https://youtu.be/9hltevOHQBw
+            new Opacity(opacity: 0.0, child: new Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+              ),
+              child: new Icon(pencil, color: CupertinoColors.activeBlue),
+            ))"
+37,https://stackoverflow.com/questions/44489804/how-to-show-hide-widgets-programmatically-in-flutter,How to show/hide widgets programmatically in Flutter,"
+In Android, every single View subclass has a setVisibility() method that allows you modify the visibility of a View object
+There are 3 options of setting the visibility:
+Visible: Renders the View visible inside the layout
+Invisible: Hides the View, but leaves a gap that is equivalent to what the View would occupy if it were visible
+Gone: Hides the View, and removes it entirely from the layout. It's as if its height and width were 0dp
+Is there something equivalent to the above for Widgets in Flutter?
+For a quick reference: https://developer.android.com/reference/android/view/View.html#attr_android:visibility","
+UPDATE: Since this answer was written, Visibility was introduced and provides the best solution to this problem.
+You can use Opacity with an opacity: of 0.0 to draw make an element hidden but still occupy space.
+To make it not occupy space, replace it with an empty Container().
+EDIT: To wrap it in an Opacity object, do the following:
+            new Opacity(opacity: 0.0, child: new Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+              ),
+              child: new Icon(pencil, color: CupertinoColors.activeBlue),
+            ))
+Google Developers quick tutorial on Opacity: https://youtu.be/9hltevOHQBw
+            new Opacity(opacity: 0.0, child: new Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+              ),
+              child: new Icon(pencil, color: CupertinoColors.activeBlue),
+            ))"
+38,https://stackoverflow.com/questions/45948168/how-to-create-toast-in-flutter,How to create Toast in Flutter,"
+Can I create something similar to Toasts in Flutter?
+Just a tiny notification window that is not directly in the face of the user and does not lock or fade the view behind it.","
+UPDATE: Scaffold.of(context).showSnackBar is deprecated in Flutter 2.0.0 (stable)
+You can access the parent ScaffoldMessengerState using ScaffoldMessenger.of(context).
+Then do something like
+ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(""Sending Message""),
+    ));
+Snackbars are the official ""Toast"" from material design. See Snackbars.
+Here is a fully working example:
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Home(),
+    );
+  }
+}
+
+class Home extends StatelessWidget {
+  const Home({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Snack bar'),
+      ),
+      body: Center(
+        child: RaisedButton(
+          onPressed: () => _showToast(context),
+          child: const Text('Show toast'),
+        ),
+      ),
+    );
+  }
+
+  void _showToast(BuildContext context) {
+    final scaffold = ScaffoldMessenger.of(context);
+    scaffold.showSnackBar(
+      SnackBar(
+        content: const Text('Added to favorite'),
+        action: SnackBarAction(label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
+      ),
+    );
+  }
+}
+ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(""Sending Message""),
+    ));
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Home(),
+    );
+  }
+}
+
+class Home extends StatelessWidget {
+  const Home({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Snack bar'),
+      ),
+      body: Center(
+        child: RaisedButton(
+          onPressed: () => _showToast(context),
+          child: const Text('Show toast'),
+        ),
+      ),
+    );
+  }
+
+  void _showToast(BuildContext context) {
+    final scaffold = ScaffoldMessenger.of(context);
+    scaffold.showSnackBar(
+      SnackBar(
+        content: const Text('Added to favorite'),
+        action: SnackBarAction(label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
+      ),
+    );
+  }
+}"
+39,https://stackoverflow.com/questions/44179889/how-do-i-set-background-image-in-flutter,How do I Set Background image in Flutter?,"
+I am trying to set a background image for the home page. I am getting the image place from start of the screen and filling the width but not the height. Am I missing something in my code? Are there image standards for flutter? Do images scale based on each phone's screen resolution?
+class BaseLayout extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return  Scaffold(
+      body:  Container(
+        child:  Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+             Image.asset(""assets/images/bulb.jpg"") 
+          ]
+        )
+      )
+    );
+  }
+}
+class BaseLayout extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return  Scaffold(
+      body:  Container(
+        child:  Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+             Image.asset(""assets/images/bulb.jpg"") 
+          ]
+        )
+      )
+    );
+  }
+}","
+I'm not sure I understand your question, but if you want the image to fill the entire screen you can use a DecorationImage with a fit of BoxFit.cover.
+class BaseLayout extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(""assets/images/bulb.jpg""),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: null /* add child content here */,
+      ),
+    );
+  }
+}
+For your second question, here is a link to the documentation on how to embed resolution-dependent asset images into your app.
+class BaseLayout extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(""assets/images/bulb.jpg""),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: null /* add child content here */,
+      ),
+    );
+  }
+}"
+40,https://stackoverflow.com/questions/52249578/how-to-deal-with-unwanted-widget-build,How to deal with unwanted widget build?,"
+For various reasons, sometimes the build method of my widgets is called again.
+I know that it happens because a parent updated. But this causes undesired effects. A typical situation where it causes problems is when using FutureBuilder this way:
+@override
+Widget build(BuildContext context) {
+  return FutureBuilder(
+    future: httpCall(),
+    builder: (context, snapshot) {
+      // create some layout here
+    },
+  );
+}
+In this example, if the build method were to be called again, it would trigger another HTTP request. Which is undesired.
+Considering this, how to deal with the unwanted build? Is there any way to prevent a build call?
+@override
+Widget build(BuildContext context) {
+  return FutureBuilder(
+    future: httpCall(),
+    builder: (context, snapshot) {
+      // create some layout here
+    },
+  );
+}","
+The build method is designed in such a way that it should be pure/without side effects. This is because many external factors can trigger a new widget build, such as:
+Route pop/push
+Screen resize, usually due to keyboard appearance or orientation change
+The parent widget recreated its child
+An InheritedWidget the widget depends on (Class.of(context) pattern) change
+This means that the build method should not trigger an http call or modify any state.
+How is this related to the question?
+The problem you are facing is that your build method has side effects/is not pure, making extraneous build calls troublesome.
+Instead of preventing build calls, you should make your build method pure, so that it can be called anytime without impact.
+In the case of your example, you'd transform your widget into a StatefulWidget then extract that HTTP call to the initState of your State:
+class Example extends StatefulWidget {
+  @override
+  _ExampleState createState() => _ExampleState();
+}
+
+class _ExampleState extends State<Example> {
+  Future<int> future;
+
+  @override
+  void initState() {
+    future = Future.value(42);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: future,
+      builder: (context, snapshot) {
+        // create some layout here
+      },
+    );
+  }
+}
+I know this already. I came here because I really want to optimize rebuilds
+It is also possible to make a widget capable of rebuilding without forcing its children to build too.
+When the instance of a widget stays the same; Flutter purposefully won't rebuild children. It implies that you can cache parts of your widget tree to prevent unnecessary rebuilds.
+The easiest way is to use dart const constructors:
+@override
+Widget build(BuildContext context) {
+  return const DecoratedBox(
+    decoration: BoxDecoration(),
+    child: Text(""Hello World""),
+  );
+}
+Thanks to that const keyword, the instance of DecoratedBox will stay the same even if the build was called hundreds of times.
+But you can achieve the same result manually:
+@override
+Widget build(BuildContext context) {
+  final subtree = MyWidget(
+    child: Text(""Hello World"")
+  );
+
+  return StreamBuilder<String>(
+    stream: stream,
+    initialData: ""Foo"",
+    builder: (context, snapshot) {
+      return Column(
+        children: <Widget>[
+          Text(snapshot.data),
+          subtree,
+        ],
+      );
+    },
+  );
+}
+In this example when StreamBuilder is notified of new values, subtree won't rebuild even if the StreamBuilder/Column does. It happens because, thanks to the closure, the instance of MyWidget didn't change.
+This pattern is used a lot in animations. Typical uses are AnimatedBuilder and all transitions such as AlignTransition.
+You could also store subtree into a field of your class, although less recommended as it breaks the hot-reload feature.
+class Example extends StatefulWidget {
+  @override
+  _ExampleState createState() => _ExampleState();
+}
+
+class _ExampleState extends State<Example> {
+  Future<int> future;
+
+  @override
+  void initState() {
+    future = Future.value(42);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: future,
+      builder: (context, snapshot) {
+        // create some layout here
+      },
+    );
+  }
+}
+@override
+Widget build(BuildContext context) {
+  return const DecoratedBox(
+    decoration: BoxDecoration(),
+    child: Text(""Hello World""),
+  );
+}
+@override
+Widget build(BuildContext context) {
+  final subtree = MyWidget(
+    child: Text(""Hello World"")
+  );
+
+  return StreamBuilder<String>(
+    stream: stream,
+    initialData: ""Foo"",
+    builder: (context, snapshot) {
+      return Column(
+        children: <Widget>[
+          Text(snapshot.data),
+          subtree,
+        ],
+      );
+    },
+  );
+}"
+41,https://stackoverflow.com/questions/52227846/how-can-i-add-shadow-to-the-widget-in-flutter,How can I add shadow to the widget in flutter?,"
+How can I add shadow to the widget like in the picture below?
+This is my current widget code.",
+42,https://stackoverflow.com/questions/47592301/setstate-or-markneedsbuild-called-during-build,setState() or markNeedsBuild called during build,"
+class MyHome extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => new MyHomePage2();
+}
+
+class MyHomePage2 extends State<MyHome> {
+  List items = new List();
+
+  buildlist(String s) {
+    setState(() {
+      print(""entered buildlist"" + s);
+      List refresh = new List();
+      if (s == 'button0') {
+        refresh = [
+          new Refreshments(""Watermelon"", 250),
+          new Refreshments(""Orange"", 275),
+          new Refreshments(""Pine"", 300),
+          new Refreshments(""Papaya"", 225),
+          new Refreshments(""Apple"", 250),
+        ];
+      } else if (s == 'button1') {
+        refresh = [
+          new Refreshments(""Pina Colada"", 250),
+          new Refreshments(""Bloody Mary"", 275),
+          new Refreshments(""Long Island Ice tea"", 300),
+          new Refreshments(""Screwdriver"", 225),
+          new Refreshments(""Fusion Cocktail"", 250),
+        ];
+      } else if (s == 'button2') {
+        refresh = [
+          new Refreshments(""Virgin Pina Colada"", 250),
+          new Refreshments(""Virgin Mary"", 275),
+          new Refreshments(""Strawberry Flush"", 300),
+          new Refreshments(""Mango Diver"", 225),
+          new Refreshments(""Peach Delight"", 250),
+        ];
+      } else {
+        refresh = [
+          new Refreshments(""Absolute"", 250),
+          new Refreshments(""Smirnoff"", 275),
+          new Refreshments(""White Mischief"", 300),
+          new Refreshments(""Romanov"", 225),
+          new Refreshments(""Blender's Pride"", 250),
+        ];
+      }
+
+      for (var item in refresh) {
+        items.add(new ItemsList(item));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var abc = MediaQuery.of(context).size;
+
+    print(abc.width);
+
+    var width = abc.width / 4;
+
+    Text text = new Text(""Dev"");
+    Text text2 = new Text(""Sneha"");
+    Text text3 = new Text(""Prashant"");
+    Text text4 = new Text(""Vikesh"");
+
+    var pad = const EdgeInsets.all(10.0);
+
+    Padding pad1 = new Padding(child: text, padding: pad);
+    Padding pad2 = new Padding(child: text2, padding: pad);
+    Padding pad3 = new Padding(child: text3, padding: pad);
+    Padding pad4 = new Padding(child: text4, padding: pad);
+
+    ListView listView = new ListView(children: <Widget>[
+      new Image.asset('images/party.jpg'),
+      pad1,
+      pad2,
+      pad3,
+      pad4
+    ]);
+
+    Drawer drawer = new Drawer(child: listView);
+
+    return new Scaffold(
+      drawer: drawer,
+
+      appBar: new AppBar(
+        title: new Text('Booze Up'),
+      ),
+      body: new Column(children: <Widget>[
+        new ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: 4,
+          itemBuilder: (BuildContext context, int index) {
+            return new Column(children: <Widget>[
+              new Container(
+                child: new Flexible(
+                    child: new FlatButton(
+                  child: new Image.asset('images/party.jpg',
+                      width: width, height: width),
+                  onPressed: buildlist('button' + index.toString()),
+                )),
+                width: width,
+                height: width,
+              )
+            ]);
+          },
+        ),
+        new Expanded(
+            child: new ListView(
+          padding: new EdgeInsets.fromLTRB(10.0, 10.0, 0.0, 10.0),
+          children: items,
+          scrollDirection: Axis.vertical,
+        )),
+      ]),
+
+      floatingActionButton: new FloatingActionButton(
+        onPressed: null,
+        child: new Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class Refreshments {
+  String name;
+  int price;
+
+  Refreshments(this.name, this.price);
+}
+
+class ItemsList extends StatelessWidget {
+  final Refreshments refreshments;
+
+  ItemsList(this.refreshments);
+
+  @override
+  Widget build(BuildContext context) {
+    return new ListTile(
+      onTap: null,
+      title: new Text(refreshments.name),
+    );
+  }
+}
+Full code
+I am having two errors:
+1] Horizontal viewport was given unbounded height . A horizontal viewport was given an unlimited amount of vertical space in which to expand.
+2] setState() or markNeedsBuild called during build A vertical renderflex overflowed by 99488 pixels.
+Please help me with it . I am creating this app where on each image click a list should be shown below . The images will be in a row and the list should be shown below the row.
+Thank you.
+class MyHome extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => new MyHomePage2();
+}
+
+class MyHomePage2 extends State<MyHome> {
+  List items = new List();
+
+  buildlist(String s) {
+    setState(() {
+      print(""entered buildlist"" + s);
+      List refresh = new List();
+      if (s == 'button0') {
+        refresh = [
+          new Refreshments(""Watermelon"", 250),
+          new Refreshments(""Orange"", 275),
+          new Refreshments(""Pine"", 300),
+          new Refreshments(""Papaya"", 225),
+          new Refreshments(""Apple"", 250),
+        ];
+      } else if (s == 'button1') {
+        refresh = [
+          new Refreshments(""Pina Colada"", 250),
+          new Refreshments(""Bloody Mary"", 275),
+          new Refreshments(""Long Island Ice tea"", 300),
+          new Refreshments(""Screwdriver"", 225),
+          new Refreshments(""Fusion Cocktail"", 250),
+        ];
+      } else if (s == 'button2') {
+        refresh = [
+          new Refreshments(""Virgin Pina Colada"", 250),
+          new Refreshments(""Virgin Mary"", 275),
+          new Refreshments(""Strawberry Flush"", 300),
+          new Refreshments(""Mango Diver"", 225),
+          new Refreshments(""Peach Delight"", 250),
+        ];
+      } else {
+        refresh = [
+          new Refreshments(""Absolute"", 250),
+          new Refreshments(""Smirnoff"", 275),
+          new Refreshments(""White Mischief"", 300),
+          new Refreshments(""Romanov"", 225),
+          new Refreshments(""Blender's Pride"", 250),
+        ];
+      }
+
+      for (var item in refresh) {
+        items.add(new ItemsList(item));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var abc = MediaQuery.of(context).size;
+
+    print(abc.width);
+
+    var width = abc.width / 4;
+
+    Text text = new Text(""Dev"");
+    Text text2 = new Text(""Sneha"");
+    Text text3 = new Text(""Prashant"");
+    Text text4 = new Text(""Vikesh"");
+
+    var pad = const EdgeInsets.all(10.0);
+
+    Padding pad1 = new Padding(child: text, padding: pad);
+    Padding pad2 = new Padding(child: text2, padding: pad);
+    Padding pad3 = new Padding(child: text3, padding: pad);
+    Padding pad4 = new Padding(child: text4, padding: pad);
+
+    ListView listView = new ListView(children: <Widget>[
+      new Image.asset('images/party.jpg'),
+      pad1,
+      pad2,
+      pad3,
+      pad4
+    ]);
+
+    Drawer drawer = new Drawer(child: listView);
+
+    return new Scaffold(
+      drawer: drawer,
+
+      appBar: new AppBar(
+        title: new Text('Booze Up'),
+      ),
+      body: new Column(children: <Widget>[
+        new ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: 4,
+          itemBuilder: (BuildContext context, int index) {
+            return new Column(children: <Widget>[
+              new Container(
+                child: new Flexible(
+                    child: new FlatButton(
+                  child: new Image.asset('images/party.jpg',
+                      width: width, height: width),
+                  onPressed: buildlist('button' + index.toString()),
+                )),
+                width: width,
+                height: width,
+              )
+            ]);
+          },
+        ),
+        new Expanded(
+            child: new ListView(
+          padding: new EdgeInsets.fromLTRB(10.0, 10.0, 0.0, 10.0),
+          children: items,
+          scrollDirection: Axis.vertical,
+        )),
+      ]),
+
+      floatingActionButton: new FloatingActionButton(
+        onPressed: null,
+        child: new Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class Refreshments {
+  String name;
+  int price;
+
+  Refreshments(this.name, this.price);
+}
+
+class ItemsList extends StatelessWidget {
+  final Refreshments refreshments;
+
+  ItemsList(this.refreshments);
+
+  @override
+  Widget build(BuildContext context) {
+    return new ListTile(
+      onTap: null,
+      title: new Text(refreshments.name),
+    );
+  }
+}",
+43,https://stackoverflow.com/questions/49471063/how-to-run-code-after-some-delay-in-flutter,How to run code after some delay in Flutter?,"
+I'd like to execute a function after a certain delay after my Widget is built. What's the idiomatic way of doing this in Flutter?
+What I'm trying to achieve: I'd like to start with a default FlutterLogo Widget and then change its style property after some duration.","
+Figured it out 😎
+class AnimatedFlutterLogo extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => new _AnimatedFlutterLogoState();
+}
+
+class _AnimatedFlutterLogoState extends State<AnimatedFlutterLogo> {
+  Timer _timer;
+  FlutterLogoStyle _logoStyle = FlutterLogoStyle.markOnly;
+
+  _AnimatedFlutterLogoState() {
+    _timer = new Timer(const Duration(milliseconds: 400), () {
+      setState(() {
+        _logoStyle = FlutterLogoStyle.horizontal;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _timer.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new FlutterLogo(
+      size: 200.0,
+      textColor: Palette.white,
+      style: _logoStyle,
+    );
+  }
+}
+class AnimatedFlutterLogo extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => new _AnimatedFlutterLogoState();
+}
+
+class _AnimatedFlutterLogoState extends State<AnimatedFlutterLogo> {
+  Timer _timer;
+  FlutterLogoStyle _logoStyle = FlutterLogoStyle.markOnly;
+
+  _AnimatedFlutterLogoState() {
+    _timer = new Timer(const Duration(milliseconds: 400), () {
+      setState(() {
+        _logoStyle = FlutterLogoStyle.horizontal;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _timer.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new FlutterLogo(
+      size: 200.0,
+      textColor: Palette.white,
+      style: _logoStyle,
+    );
+  }
+}"
+44,https://stackoverflow.com/questions/44978216/flutter-remove-back-button-on-appbar,flutter remove back button on appbar,"
+I am wondering, if anyone knows of a way to remove the back button that shows up on the appBar in a flutter app when you use Navigator.pushNamed to go to another page. The reason I do not want it on this resulting page is that it is coming from the navigation and I want users to use the logout button instead, so that the session starts over.","
+You can remove the back button by passing an empty new Container() as the leading argument to your AppBar.
+If you find yourself doing this, you probably don't want the user to be able to press the device's back button to get back to the earlier route. Instead of calling pushNamed, try calling Navigator.pushReplacementNamed to cause the earlier route to disappear.
+The function pushReplacementNamed will remove the previous route in the backstack and replace it with the new route.
+Full code sample for the latter is below.
+import 'package:flutter/material.dart';
+
+class LogoutPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(""Logout Page""),
+      ),
+      body: new Center(
+        child: new Text('You have been logged out'),
+      ),
+    );
+  }
+
+}
+class MyHomePage extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(""Remove Back Button""),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        child: new Icon(Icons.fullscreen_exit),
+        onPressed: () {
+          Navigator.pushReplacementNamed(context, ""/logout"");
+        },
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(new MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      title: 'Flutter Demo',
+      home: new MyHomePage(),
+      routes: {
+        ""/logout"": (_) => new LogoutPage(),
+      },
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class LogoutPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(""Logout Page""),
+      ),
+      body: new Center(
+        child: new Text('You have been logged out'),
+      ),
+    );
+  }
+
+}
+class MyHomePage extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(""Remove Back Button""),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        child: new Icon(Icons.fullscreen_exit),
+        onPressed: () {
+          Navigator.pushReplacementNamed(context, ""/logout"");
+        },
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(new MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      title: 'Flutter Demo',
+      home: new MyHomePage(),
+      routes: {
+        ""/logout"": (_) => new LogoutPage(),
+      },
+    );
+  }
+}"
+45,https://stackoverflow.com/questions/51281702/unable-to-find-bundled-java-version-on-flutter,Unable to find bundled Java version on Flutter,"
+I have Android Studio version 3.0. When I use the command flutter doctor it shows me the following:
+Unable to find bundled Java version
+My current Java version is (build 1.8.0_131-b11) on Windows 10.
+I don't have any older versions of Android Studio on my computer.",
+46,https://stackoverflow.com/questions/50614661/how-to-underline-text-in-flutter,How to underline text in flutter,"
+How to underline text in flutter inside Text widget?
+I cannot seem to find underline inside fontStyle property of TextStyle","
+When underlining everything you can set a TextStyle on the Text widget.
+Text(
+  'Hello world',
+  style: TextStyle(
+    decoration: TextDecoration.underline,
+  ),
+)
+If you only want to underline part of the text then you need to use Text.rich() (or a RichText widget) and break the string into TextSpans that you can add a style to.
+Text.rich(
+  TextSpan(
+    text: 'Hello ',
+    style: TextStyle(fontSize: 50),
+    children: <TextSpan>[
+      TextSpan(
+          text: 'world',
+          style: TextStyle(
+            decoration: TextDecoration.underline,
+          )),
+      // can add more TextSpans here...
+    ],
+  ),
+)
+TextSpan is a little strange. The text parameter is the default style but the children list contains the styled (and possibly unstyled) text that follow it. You can use an empty string for text if you want to start with styled text.
+You can also add a TextDecorationStyle to change how the decoration looks. Here is dashed:
+Text(
+  'Hello world',
+  style: TextStyle(
+    decoration: TextDecoration.underline,
+    decorationStyle: TextDecorationStyle.dashed,
+  ),
+)
+and TextDecorationStyle.dotted:
+and TextDecorationStyle.double:
+and TextDecorationStyle.wavy:
+Text(
+  'Hello world',
+  style: TextStyle(
+    decoration: TextDecoration.underline,
+  ),
+)
+Text.rich(
+  TextSpan(
+    text: 'Hello ',
+    style: TextStyle(fontSize: 50),
+    children: <TextSpan>[
+      TextSpan(
+          text: 'world',
+          style: TextStyle(
+            decoration: TextDecoration.underline,
+          )),
+      // can add more TextSpans here...
+    ],
+  ),
+)
+Text(
+  'Hello world',
+  style: TextStyle(
+    decoration: TextDecoration.underline,
+    decorationStyle: TextDecorationStyle.dashed,
+  ),
+)"
+47,https://stackoverflow.com/questions/45900387/multi-line-textfield-in-flutter,Multi-line TextField in Flutter,"
+It may sound easy but How can we do a multi-line editable textfield in flutter? TextField works only with a single line.
+Edit: some precisions because seems like it's not clear. While you can set multiline to virtually wrap the text content, it's still not multiline. It's a single line displayed into multiple lines. If you want to do something like this then you can't. Because you don't have access to ENTER button. And no enter button means no multiline.",
+48,https://stackoverflow.com/questions/13264230/what-is-the-difference-between-named-and-positional-parameters-in-dart,What is the difference between named and positional parameters in Dart?,"
+Dart supports both named optional parameters and positional optional parameters. What are the differences between the two?
+Also, how can you tell if an optional parameter was actually specified?","
+Dart has two types of optional parameters: named and positional. Before I discuss the differences, let me first discuss the similarities.
+Dart's optional parameters are optional in that the caller isn't required to specify a value for the parameter when calling the function.
+Optional parameters can only be declared after any required parameters.
+Optional parameters can have a default value, which is used when a caller does not specify a value.
+Positional optional parameters
+A parameter wrapped by [ ] is a positional optional parameter. Here is an example:
+getHttpUrl(String server, String path, [int port=80]) {
+  // ...
+}
+In the above code, port is optional and has a default value of 80.
+You can call getHttpUrl with or without the third parameter.
+getHttpUrl('example.com', '/index.html', 8080); // port == 8080
+getHttpUrl('example.com', '/index.html');       // port == 80
+You can specify multiple positional parameters for a function:
+getHttpUrl(String server, String path, [int port=80, int numRetries=3]) {
+  // ...
+}
+The optional parameters are positional in that you can't omit port if you want to specify numRetries.
+getHttpUrl('example.com', '/index.html');
+getHttpUrl('example.com', '/index.html', 8080);
+getHttpUrl('example.com', '/index.html', 8080, 5);
+Of course, unless you know what 8080 and 5 are, it's hard to tell what those apparently magic numbers are. You can use named optional parameters to create more readable APIs.
+Named optional parameters
+A parameter wrapped by { } is a named optional parameter. Here is an example:
+getHttpUrl(String server, String path, {int port = 80}) {
+  // ...
+}
+You can call getHttpUrl with or without the third parameter. You must use the parameter name when calling the function.
+getHttpUrl('example.com', '/index.html', port: 8080); // port == 8080
+getHttpUrl('example.com', '/index.html');             // port == 80
+You can specify multiple named parameters for a function:
+getHttpUrl(String server, String path, {int port = 80, int numRetries = 3}) {
+  // ...
+}
+Because named parameters are referenced by name, they can be used in an order different from their declaration.
+getHttpUrl('example.com', '/index.html');
+getHttpUrl('example.com', '/index.html', port: 8080);
+getHttpUrl('example.com', '/index.html', port: 8080, numRetries: 5);
+getHttpUrl('example.com', '/index.html', numRetries: 5, port: 8080);
+getHttpUrl('example.com', '/index.html', numRetries: 5);
+I believe named parameters make for easier-to-understand call sites, especially when there are boolean flags or out-of-context numbers.
+Checking if optional parameter was provided
+Unfortunately, you cannot distinguish between the cases ""an optional parameter was not provided"" and ""an optional parameter was provided with the default value"".
+Note: You may use positional optional parameters or named optional parameters, but not both in the same function or method. The following is not allowed.
+thisFunctionWontWork(String foo, [String positonal], {String named}) {
+  // will not work!
+}
+getHttpUrl(String server, String path, [int port=80]) {
+  // ...
+}
+getHttpUrl('example.com', '/index.html', 8080); // port == 8080
+getHttpUrl('example.com', '/index.html');       // port == 80
+getHttpUrl(String server, String path, [int port=80, int numRetries=3]) {
+  // ...
+}
+getHttpUrl('example.com', '/index.html');
+getHttpUrl('example.com', '/index.html', 8080);
+getHttpUrl('example.com', '/index.html', 8080, 5);
+getHttpUrl(String server, String path, {int port = 80}) {
+  // ...
+}
+getHttpUrl('example.com', '/index.html', port: 8080); // port == 8080
+getHttpUrl('example.com', '/index.html');             // port == 80
+getHttpUrl(String server, String path, {int port = 80, int numRetries = 3}) {
+  // ...
+}
+getHttpUrl('example.com', '/index.html');
+getHttpUrl('example.com', '/index.html', port: 8080);
+getHttpUrl('example.com', '/index.html', port: 8080, numRetries: 5);
+getHttpUrl('example.com', '/index.html', numRetries: 5, port: 8080);
+getHttpUrl('example.com', '/index.html', numRetries: 5);
+thisFunctionWontWork(String foo, [String positonal], {String named}) {
+  // will not work!
+}"
+49,https://stackoverflow.com/questions/51930754/flutter-wrapping-text,Flutter- wrapping text [duplicate],"
+This question already has answers here:
+Flutter - Wrap text on overflow, like insert ellipsis or fade (23 answers)
+Closed 3 years ago.
+I want wrap text as text grows. I searched through and tried wrap with almost everything but still text stays one line and overflows from the screen. Does anyone know how to achieve this? Any help is highly appreciated!
+Positioned(
+    left: position.dx,
+    top: position.dy,
+    child: new Draggable(
+      data: widget.index,
+      onDragStarted: widget.setDragging,
+      onDraggableCanceled: (velocity, offset) {
+        setState(() {
+          position = offset;
+          widget.secondCallback(offset, widget.index);
+          widget.endDragging();
+        });
+      },
+      child: new GestureDetector(
+        onTap: () {
+          widget.callback(widget.caption, widget.index);
+        },
+        child: new Text(
+            widget.caption.caption,
+            style: new TextStyle(
+              color: widget.caption.color,
+              fontSize: widget.caption.fontSize,
+            ),
+          ),
+      ),
+      feedback: new Material(
+        type: MaterialType.transparency,
+        child: new Text(
+          widget.caption.caption,
+          style: new TextStyle(
+              color: widget.caption.color,
+              fontSize: widget.caption.fontSize),
+          softWrap: true,
+        ),
+      ),
+    ));
+Positioned(
+    left: position.dx,
+    top: position.dy,
+    child: new Draggable(
+      data: widget.index,
+      onDragStarted: widget.setDragging,
+      onDraggableCanceled: (velocity, offset) {
+        setState(() {
+          position = offset;
+          widget.secondCallback(offset, widget.index);
+          widget.endDragging();
+        });
+      },
+      child: new GestureDetector(
+        onTap: () {
+          widget.callback(widget.caption, widget.index);
+        },
+        child: new Text(
+            widget.caption.caption,
+            style: new TextStyle(
+              color: widget.caption.color,
+              fontSize: widget.caption.fontSize,
+            ),
+          ),
+      ),
+      feedback: new Material(
+        type: MaterialType.transparency,
+        child: new Text(
+          widget.caption.caption,
+          style: new TextStyle(
+              color: widget.caption.color,
+              fontSize: widget.caption.fontSize),
+          softWrap: true,
+        ),
+      ),
+    ));","
+In a project of mine I wrap Text instances around Containers. This particular code sample features two stacked Text objects.
+Here's a code sample.
+    //80% of screen width
+    double c_width = MediaQuery.of(context).size.width*0.8;
+
+    return new Container (
+      padding: const EdgeInsets.all(16.0),
+      width: c_width,
+      child: new Column (
+        children: <Widget>[
+          new Text (""Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 "", textAlign: TextAlign.left),
+          new Text (""Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2"", textAlign: TextAlign.left),
+        ],
+      ),
+    );
+[edit] Added a width constraint to the container
+    //80% of screen width
+    double c_width = MediaQuery.of(context).size.width*0.8;
+
+    return new Container (
+      padding: const EdgeInsets.all(16.0),
+      width: c_width,
+      child: new Column (
+        children: <Widget>[
+          new Text (""Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 Long text 1 "", textAlign: TextAlign.left),
+          new Text (""Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2, Long Text 2"", textAlign: TextAlign.left),
+        ],
+      ),
+    );"
+50,https://stackoverflow.com/questions/42257668/the-equivalent-of-wrap-content-and-match-parent-in-flutter,The equivalent of wrap_content and match_parent in flutter?,"
+In Android match_parent and wrap_content are used to resize the widgets automatically relative to their parent to the content the widget contains.
+In Flutter it seems by default all widgets are set to wrap_content, how would I change it such that I can fill its width and height to that of its parent?","
+You can do with little Trick: Suppose you have requirement of : ( Width,Height )
+Wrap_content ,Wrap_content :
+ //use this as child
+ Wrap(
+  children: <Widget>[*your_child*])
+Match_parent,Match_parent:
+ //use this as child
+Container(
+        height: double.infinity,
+    width: double.infinity,child:*your_child*)
+Match_parent,Wrap_content :
+ //use this as child
+Row(
+  mainAxisSize: MainAxisSize.max,
+  children: <Widget>[*your_child*],
+);
+Wrap_content ,Match_parent:
+ //use this as child
+Column(
+  mainAxisSize: MainAxisSize.max,
+  children: <Widget>[your_child],
+);
+ //use this as child
+ Wrap(
+  children: <Widget>[*your_child*])
+ //use this as child
+Container(
+        height: double.infinity,
+    width: double.infinity,child:*your_child*)
+ //use this as child
+Row(
+  mainAxisSize: MainAxisSize.max,
+  children: <Widget>[*your_child*],
+);
+ //use this as child
+Column(
+  mainAxisSize: MainAxisSize.max,
+  children: <Widget>[your_child],
+);"
+51,https://stackoverflow.com/questions/43879103/adding-a-splash-screen-to-flutter-apps,Adding a splash screen to Flutter apps,"
+How would you approach adding a splash screen to Flutter apps? It should load and display before any other content. Currently, there is a brief flash of color before the Scaffold(home:X) widget loads.","
+I want to shed some more light on the actual way of doing a Splash screen in Flutter.
+I followed a little bit the trace here and I saw that things aren't looking so bad about the Splash Screen in Flutter.
+Maybe most of the devs (like me) are thinking that there isn't a Splash screen by default in Flutter and they need to do something about that. There is a Splash screen, but it's with white background and nobody can understand that there is already a splash screen for iOS and Android by default.
+The only thing that the developer needs to do is to put the Branding image in the right place and the splash screen will start working just like that.
+Here is how you can do it step by step:
+First on Android (because is my favorite Platform :) )
+Find the ""android"" folder in your Flutter project.
+Browse to the app -> src -> main -> res folder and place all of the variants of your branding image in the corresponding folders. For example:
+the image with density 1 needs to be placed in mipmap-mdpi,
+the image with density 1.5 needs to be placed in mipmap-hdpi,
+the image with density 2 needs to be placed in mipmap-xhdpi,
+the image with density 3 needs to be placed in mipmap-xxhdpi,
+the image with density 4 needs to be placed in mipmap-xxxhdpi,
+By default in the android folder there isn't a drawable-mdpi, drawable-hdpi, etc., but we can create them if we want. Because of that fact the images need to be placed in the mipmap folders. Also the default XML code about the Splash screen (in Android) is going to use @mipmap, instead of @drawable resource (you can change it if you want).
+The last step on Android is to uncomment some of the XML code in drawable/launch_background.xml file. Browse to app -> src -> main -> res-> drawable and open launch_background.xml. Inside this file, you shall see why the Slash screen background is white. To apply the branding image which we placed in step 2, we have to uncomment some of the XML code in your launch_background.xml file. After the change, the code should look like:
+ <!--<item android:drawable=""@android:color/white"" />-->
+
+ <item>
+
+     <bitmap
+         android:gravity=""center""
+         android:src=""@mipmap/your_image_name"" />
+
+ </item>
+Please pay attention that we comment the XML code for the white background and uncomment the code about the mipmap image. If somebody is interested the file launch_background.xml is used in styles.xml file.
+Second on iOS:
+Find the ""ios"" folder in your Flutter project.
+Browse to Runner -> Assets.xcassets -> LaunchImage.imageset. There should be LaunchImage.png, LaunchImage@2x.png, etc. Now you have to replace these images with your branding image variants. For example:
+the image with density 1 needs to override LaunchImage.png,
+the image with density 2 needs to override LaunchImage@2x.png,
+the image with density 3 needs to override LaunchImage@3x.png,
+the image with density 4 needs to override LaunchImage@4x.png,
+If I am not wrong LaunchImage@4x.png doesn't exist by default, but you can easily create one. If LaunchImage@4x.png doesn't exist, you have to declare it in the Contents.json file as well, which is in the same directory as the images. After the change my Contents.json file looks like this :
+{
+  ""images"" : [
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage.png"",
+      ""scale"" : ""1x""
+    },
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage@2x.png"",
+      ""scale"" : ""2x""
+    },
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage@3x.png"",
+      ""scale"" : ""3x""
+    },
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage@4x.png"",
+      ""scale"" : ""4x""
+    }
+  ],
+  ""info"" : {
+    ""version"" : 1,
+    ""author"" : ""xcode""
+  }
+}
+That should be all you need, next time when you run your app, on Android or iOS you should have the right Splash Screen with the branding image which you added.
+Thanks
+ <!--<item android:drawable=""@android:color/white"" />-->
+
+ <item>
+
+     <bitmap
+         android:gravity=""center""
+         android:src=""@mipmap/your_image_name"" />
+
+ </item>
+{
+  ""images"" : [
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage.png"",
+      ""scale"" : ""1x""
+    },
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage@2x.png"",
+      ""scale"" : ""2x""
+    },
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage@3x.png"",
+      ""scale"" : ""3x""
+    },
+    {
+      ""idiom"" : ""universal"",
+      ""filename"" : ""LaunchImage@4x.png"",
+      ""scale"" : ""4x""
+    }
+  ],
+  ""info"" : {
+    ""version"" : 1,
+    ""author"" : ""xcode""
+  }
+}"
+52,https://stackoverflow.com/questions/50818770/passing-data-to-a-stateful-widget-in-flutter,Passing Data to a Stateful Widget in Flutter,"
+I'm wondering what the recommended way of passing data to a stateful widget, while creating it, is.
+The two styles I've seen are:
+class ServerInfo extends StatefulWidget {
+
+  Server _server;
+
+  ServerInfo(Server server) {
+    this._server = server;
+  }
+
+  @override
+    State<StatefulWidget> createState() => new _ServerInfoState(_server);
+}
+
+class _ServerInfoState extends State<ServerInfo> {
+  Server _server;
+
+  _ServerInfoState(Server server) {
+    this._server = server;
+  }
+}
+This method keeps a value both in ServerInfo and _ServerInfoState, which seems a bit wasteful.
+The other method is to use widget._server:
+class ServerInfo extends StatefulWidget {
+
+  Server _server;
+
+  ServerInfo(Server server) {
+    this._server = server;
+  }
+
+  @override
+    State<StatefulWidget> createState() => new _ServerInfoState();
+}
+
+class _ServerInfoState extends State<ServerInfo> {
+  @override
+    Widget build(BuildContext context) {
+      widget._server = ""10""; // Do something we the server value
+      return null;
+    }
+}
+This seems a bit backwards as the state is no longer stored in _ServerInfoSate but instead in the widget.
+Is there a best practice for this?
+class ServerInfo extends StatefulWidget {
+
+  Server _server;
+
+  ServerInfo(Server server) {
+    this._server = server;
+  }
+
+  @override
+    State<StatefulWidget> createState() => new _ServerInfoState(_server);
+}
+
+class _ServerInfoState extends State<ServerInfo> {
+  Server _server;
+
+  _ServerInfoState(Server server) {
+    this._server = server;
+  }
+}
+class ServerInfo extends StatefulWidget {
+
+  Server _server;
+
+  ServerInfo(Server server) {
+    this._server = server;
+  }
+
+  @override
+    State<StatefulWidget> createState() => new _ServerInfoState();
+}
+
+class _ServerInfoState extends State<ServerInfo> {
+  @override
+    Widget build(BuildContext context) {
+      widget._server = ""10""; // Do something we the server value
+      return null;
+    }
+}","
+Don't pass parameters to State using it's constructor. You should only access the parameters using this.widget.myField.
+Not only editing the constructor requires a lot of manual work ; it doesn't bring anything. There's no reason to duplicate all the fields of Widget.
+EDIT :
+Here's an example:
+class ServerIpText extends StatefulWidget {
+  final String serverIP;
+
+  const ServerIpText ({ Key? key, this.serverIP }): super(key: key);
+
+  @override
+  _ServerIpTextState createState() => _ServerIpTextState();
+}
+
+class _ServerIpTextState extends State<ServerIpText> {
+  @override
+  Widget build(BuildContext context) {
+    return Text(widget.serverIP);
+  }
+}
+
+class AnotherClass extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ServerIpText(serverIP: ""127.0.0.1"")
+    );
+  }
+}
+class ServerIpText extends StatefulWidget {
+  final String serverIP;
+
+  const ServerIpText ({ Key? key, this.serverIP }): super(key: key);
+
+  @override
+  _ServerIpTextState createState() => _ServerIpTextState();
+}
+
+class _ServerIpTextState extends State<ServerIpText> {
+  @override
+  Widget build(BuildContext context) {
+    return Text(widget.serverIP);
+  }
+}
+
+class AnotherClass extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ServerIpText(serverIP: ""127.0.0.1"")
+    );
+  }
+}"
+53,https://stackoverflow.com/questions/46551268/when-the-keyboard-appears-the-flutter-widgets-resize-how-to-prevent-this,"When the keyboard appears, the Flutter widgets resize. How to prevent this?","
+I have a Column of Expanded widgets like this:
+ return new Container(
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          new Expanded(
+            flex: 1,
+            child: convertFrom,
+          ),
+          new Expanded(
+            flex: 1,
+            child: convertTo,
+          ),
+          new Expanded(
+            flex: 1,
+            child: description,
+          ),
+        ],
+      ),
+    );
+It looks like this:
+convertFrom, includes a TextField. When I tap on this text field, the Android keyboard appears on the screen. This changes the screen size, so the widgets resize like this:
+Is there a way to have the keyboard ""overlay"" the screen so that my Column doesn't resize? If I don't use Expanded widgets and hardcode a height for each widget, the widgets don't resize, but I get the black-and-yellow striped error when the keyboard appears (because there isn't enough space). This also isn't flexible for all screen sizes.
+I'm not sure if this is an Android-specific or Flutter-specific.
+ return new Container(
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          new Expanded(
+            flex: 1,
+            child: convertFrom,
+          ),
+          new Expanded(
+            flex: 1,
+            child: convertTo,
+          ),
+          new Expanded(
+            flex: 1,
+            child: description,
+          ),
+        ],
+      ),
+    );","
+Updated Answer
+resizeToAvoidBottomPadding is now deprecated.
+The updated solution is to set resizeToAvoidBottomInset property to false.
+Original Answer
+In your Scaffold, set resizeToAvoidBottomPadding property to false."
+54,https://stackoverflow.com/questions/57689492/flutter-unhandled-exception-servicesbinding-defaultbinarymessenger-was-accesse,Flutter: Unhandled Exception: ServicesBinding.defaultBinaryMessenger was accessed before the binding was initialized,"
+Any solution to solve this problem?
+Stacktrace:
+[VERBOSE-2:ui_dart_state.cc(148)] Unhandled Exception: ServicesBinding.defaultBinaryMessenger was accessed before the binding was initialized.
+If you're running an application and need to access the binary messenger before `runApp()` has been called (for example, during plugin initialization), then you need to explicitly call the `WidgetsFlutterBinding.ensureInitialized()` first.
+If you're running a test, you can call the `TestWidgetsFlutterBinding.ensureInitialized()` as the first line in your test's `main()` method to initialize the binding.
+#0      defaultBinaryMessenger.<anonymous closure> (package:flutter/src/services/binary_messenger.dart:73:7)
+#1      defaultBinaryMessenger (package:flutter/src/services/binary_messenger.dart:86:4)
+#2      MethodChannel.binaryMessenger (package:flutter/src/services/platform_channel.dart:140:62)
+#3      MethodChannel.invokeMethod (package:flutter/src/services/platform_channel.dart:314:35)
+<asynchronous suspension>
+#4      MethodChannel.invokeMapMethod (package:f<…>
+[VERBOSE-2:ui_dart_state.cc(148)] Unhandled Exception: ServicesBinding.defaultBinaryMessenger was accessed before the binding was initialized.
+If you're running an application and need to access the binary messenger before `runApp()` has been called (for example, during plugin initialization), then you need to explicitly call the `WidgetsFlutterBinding.ensureInitialized()` first.
+If you're running a test, you can call the `TestWidgetsFlutterBinding.ensureInitialized()` as the first line in your test's `main()` method to initialize the binding.
+#0      defaultBinaryMessenger.<anonymous closure> (package:flutter/src/services/binary_messenger.dart:73:7)
+#1      defaultBinaryMessenger (package:flutter/src/services/binary_messenger.dart:86:4)
+#2      MethodChannel.binaryMessenger (package:flutter/src/services/platform_channel.dart:140:62)
+#3      MethodChannel.invokeMethod (package:flutter/src/services/platform_channel.dart:314:35)
+<asynchronous suspension>
+#4      MethodChannel.invokeMapMethod (package:f<…>","
+This problem is introduced when you upgrade Flutter. The reason behind this is you are waiting for some data or running an async function inside main().
+I was initialising ScopedModel inside main() and inside that I was awaiting for some data.
+There is a very small fix. Just run WidgetsFlutterBinding.ensureInitialized() inside void main() , before you do runApp(). Works like a charm!!
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(Delta(
+    model: ProductDataModel(),
+  ));
+}
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(Delta(
+    model: ProductDataModel(),
+  ));
+}"
+55,https://stackoverflow.com/questions/49707028/how-can-i-check-if-a-flutter-application-is-running-in-debug,How can I check if a Flutter application is running in debug?,"
+I'm looking for a way to execute code in Flutter when the app is in Debug mode. Is that possible in Flutter? I can't seem to find it anywhere in the documentation.
+Something like this
+If(app.inDebugMode) {
+   print(""Print only in debug mode"");
+}
+How can I check if the Flutter application is running in debug or release mode?
+If(app.inDebugMode) {
+   print(""Print only in debug mode"");
+}","
+While this works, using constants kReleaseMode or kDebugMode is preferable. See Rémi's answer below for a full explanation, which should probably be the accepted question.
+The easiest way is to use assert as it only runs in debug mode.
+Here's an example from Flutter's Navigator source code:
+assert(() {
+  if (navigator == null && !nullOk) {
+    throw new FlutterError(
+      'Navigator operation requested with a context that does not include a Navigator.\n'
+      'The context used to push or pop routes from the Navigator must be that of a '
+      'widget that is a descendant of a Navigator widget.'
+    );
+  }
+  return true;
+}());
+Note in particular the () at the end of the call - assert can only operate on a Boolean, so just passing in a function doesn't work.
+assert(() {
+  if (navigator == null && !nullOk) {
+    throw new FlutterError(
+      'Navigator operation requested with a context that does not include a Navigator.\n'
+      'The context used to push or pop routes from the Navigator must be that of a '
+      'widget that is a descendant of a Navigator widget.'
+    );
+  }
+  return true;
+}());"
+56,https://stackoverflow.com/questions/51125024/there-are-multiple-heroes-that-share-the-same-tag-within-a-subtree,There are multiple heroes that share the same tag within a subtree,"
+I am trying to navigate from one screen to another with route. When I hit the button for the page to move to the route provided I get the error
+I/flutter ( 8790): Another exception was thrown: There are multiple heroes that share the same tag within a subtree.
+Here's the code:
+Routes:
+ <String, WidgetBuilder>{
+    '/first':(BuildContext context) =>NavigatorOne() ,
+    '/second':(BuildContext context) =>NavigatorTwo(),
+    '/third':(BuildContext context) =>NavigatorThree(),
+
+  },
+
+Navigator.of(context).pushNamed('/first');
+Navigator.of(context).pushNamed('/second');
+Navigator.of(context).pushNamed('/third');
+
+class NavigatorOne extends StatefulWidget {
+  @override
+  _NavigatorOneState createState() =>  _NavigatorOneState();
+}
+
+class _NavigatorOneState extends State<NavigatorOne> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      appBar: AppBar(),
+      body: Container(
+      color: Colors.green,
+      child: RaisedButton(child: Text(' one 1'),onPressed: (){
+        Navigator.of(context).pushNamed('/second');
+      },),
+    ),
+    ); 
+  }
+}
+And The Error:
+══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════
+I/flutter (21786): The following assertion was thrown during a scheduler callback:
+I/flutter (21786): There are multiple heroes that share the same tag within a subtree.
+I/flutter (21786): Within each subtree for which heroes are to be animated (typically a PageRoute subtree), each Hero
+I/flutter (21786): must have a unique non-null tag.
+I/flutter (21786): In this case, multiple heroes had the following tag: <default FloatingActionButton tag>
+How do I solve this?
+I/flutter ( 8790): Another exception was thrown: There are multiple heroes that share the same tag within a subtree.
+ <String, WidgetBuilder>{
+    '/first':(BuildContext context) =>NavigatorOne() ,
+    '/second':(BuildContext context) =>NavigatorTwo(),
+    '/third':(BuildContext context) =>NavigatorThree(),
+
+  },
+
+Navigator.of(context).pushNamed('/first');
+Navigator.of(context).pushNamed('/second');
+Navigator.of(context).pushNamed('/third');
+
+class NavigatorOne extends StatefulWidget {
+  @override
+  _NavigatorOneState createState() =>  _NavigatorOneState();
+}
+
+class _NavigatorOneState extends State<NavigatorOne> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      appBar: AppBar(),
+      body: Container(
+      color: Colors.green,
+      child: RaisedButton(child: Text(' one 1'),onPressed: (){
+        Navigator.of(context).pushNamed('/second');
+      },),
+    ),
+    ); 
+  }
+}","
+I have encountered this before, and it was because I had two FloatingAction buttons on one screen, I had to add a heroTag property + value per FloatingActionButton in order for the error to go away.
+Example:
+FloatingActionButton(
+    heroTag: ""btn1"",
+    ...
+)
+
+FloatingActionButton(
+    heroTag: ""btn2"",
+    ...
+)
+From the example code you provided it doesn't appear that you have a FloatingActionButton, but from the error it does seem to reference it:
+I/flutter (21786): In this case, multiple heroes had the following tag: default FloatingActionButton tag
+Perhaps you used it on the page you were navigating to which then triggered the error. Note that if you're using a programmatic way of creating tagged heroes, you will need to find a way of giving them different tags. For example, if you have a ListView.builder() creating FloatingActionButtons, try passing tags with string formatting so each button has a different tag, e.g.: heroTag: ""btn$index"".
+FloatingActionButton(
+    heroTag: ""btn1"",
+    ...
+)
+
+FloatingActionButton(
+    heroTag: ""btn2"",
+    ...
+)
+I/flutter (21786): In this case, multiple heroes had the following tag: default FloatingActionButton tag"
+57,https://stackoverflow.com/questions/44909653/visual-studio-code-target-of-uri-doesnt-exist-packageflutter-material-dart,Visual Studio Code - Target of URI doesn't exist 'package:flutter/material.dart',"
+I've just set up my Macbook for flutter development,
+So I downloaded flutter SDK, and placed it in my Documents. After, I set up my path variable to work with flutter in my command line.
+I execute the command flutter create todolist so I achieve a blank project.
+I also set up my visual studio code with Dart-Code so I have the proper syntax highlight, IntelliSense, etc.
+So when I open visual studio code, it highlights the import method, like the following image:
+This means that it also highlights the classes that are correct, making it completely hard to understand if it's a real error or not.
+I have executed both pub get and flutter packages get and got everything correctly. I have my path variables all correctly.
+Why is it highlighting it cannot find that 'import' package?",
+58,https://stackoverflow.com/questions/53570575/flutter-upgrade-the-version-code-for-play-store,Flutter: upgrade the version code for play store,"
+I have published an application on the play store with flutter, now I want to upload a new version of the application. I am trying to change the version code with:
+flutter build apk --build-name=1.0.2 --build-number=3
+or changing the local.properties like this
+ flutter.versionName=2.0.0
+ flutter.versionCode=2
+ flutter.buildMode=release
+but every time I get an error on the play store
+You must use a different version code for your APK or your Android App Bundle because code 1 is already assigned to another APK or Android App Bundle.
+ flutter.versionName=2.0.0
+ flutter.versionCode=2
+ flutter.buildMode=release",
+59,https://stackoverflow.com/questions/54557479/flutter-and-google-sign-in-plugin-platformexceptionsign-in-failed-com-google,"Flutter and google_sign_in plugin: PlatformException(sign_in_failed, com.google.android.gms.common.api.ApiException: 10: , null)","
+The dialog (Google form) for the credentials is opened successfully, but after I fill my credentials I'm getting this error. I followed the instructions from here. Created a Firebase project, enabled the Google Drive API (that's what I need for now) from the Google APIs Console.
+The code throwing the exception:
+final GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: [
+    'https://www.googleapis.com/auth/drive',
+  ],
+);
+
+await _googleSignIn.signIn();
+That's the stack trace:
+E/flutter ( 5068): [ERROR:flutter/shell/common/shell.cc(184)] Dart Error: Unhandled exception:
+E/flutter ( 5068): PlatformException(sign_in_failed, com.google.android.gms.common.api.ApiException: 10: , null)
+E/flutter ( 5068): #0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:551:7)
+E/flutter ( 5068): #1      MethodChannel.invokeMethod (package:flutter/src/services/platform_channel.dart:292:18)
+E/flutter ( 5068): <asynchronous suspension>
+E/flutter ( 5068): #2      GoogleSignIn._callMethod (package:google_sign_in/google_sign_in.dart:226:58)
+E/flutter ( 5068): <asynchronous suspension>
+E/flutter ( 5068): #3      GoogleSignIn._addMethodCall (package:google_sign_in/google_sign_in.dart:268:20)
+E/flutter ( 5068): #4      GoogleSignIn.signIn (package:google_sign_in/google_sign_in.dart:339:48)
+E/flutter ( 5068): #5      ThatsMyComponentState.theSignInFuction.<anonymous closure> (package:my_app/widgets/my_file.dart:666:45)
+E/flutter ( 5068): <asynchronous suspension>
+E/flutter ( 5068): #6      _InkResponseState._handleTap (package:flutter/src/material/ink_well.dart:507:14)
+E/flutter ( 5068): #7      _InkResponseState.build.<anonymous closure> (package:flutter/src/material/ink_well.dart:562:30)
+E/flutter ( 5068): #8      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:102:24)
+E/flutter ( 5068): #9      TapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:242:9)
+E/flutter ( 5068): #10     TapGestureRecognizer.acceptGesture (package:flutter/src/gestures/tap.dart:204:7)
+E/flutter ( 5068): #11     GestureArenaManager.sweep (package:flutter/src/gestures/arena.dart:156:27)
+E/flutter ( 5068): #12     _WidgetsFlutterBinding&BindingBase&GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:184:20)
+E/flutter ( 5068): #13     _WidgetsFlutterBinding&BindingBase&GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:158:22)
+E/flutter ( 5068): #14     _WidgetsFlutterBinding&BindingBase&GestureBinding._handlePointerEvent (package:flutter/src/gestures/binding.dart:138:7)
+E/flutter ( 5068): #15     _WidgetsFlutterBinding&BindingBase&GestureBinding._flushPointerEventQueue (package:flutter/src/gestures/binding.dart:101:7)
+E/flutter ( 5068): #16     _WidgetsFlutterBinding&BindingBase&GestureBinding._handlePointerDataPacket (package:flutter/src/gestures/binding.dart:85:7)
+E/flutter ( 5068): #17     _invoke1 (dart:ui/hooks.dart:168:13)
+E/flutter ( 5068): #18     _dispatchPointerDataPacket (dart:ui/hooks.dart:122:5)
+The version of the google_sign_in plugin is 4.0.0.
+That's the output of flutter doctot -v:
+[√] Flutter (Channel stable, v1.0.0, on Microsoft Windows [Version 10.0.17763.253], locale en-US)
+• Flutter version 1.0.0 at C:\src\flutter-0.7.3\flutter
+• Framework revision 5391447fae (10 weeks ago), 2018-11-29 19:41:26 -0800
+• Engine revision 7375a0f414
+• Dart version 2.1.0 (build 2.1.0-dev.9.4 f9ebf21297)
+
+[√] Android toolchain - develop for Android devices (Android SDK 28.0.3)
+• Android SDK at C:\Users\myuser\AppData\Local\Android\Sdk
+• Android NDK location not configured (optional; useful for native profiling support)
+• Platform android-28, build-tools 28.0.3
+• ANDROID_HOME = C:\Users\myuser\AppData\Local\Android\Sdk
+• Java binary at: C:\Program Files\Android\Android Studio\jre\bin\java
+• Java version OpenJDK Runtime Environment (build 1.8.0_152-release-1248-b01)
+• All Android licenses accepted.
+
+[√] Android Studio (version 3.3)
+• Android Studio at C:\Program Files\Android\Android Studio
+• Flutter plugin version 32.0.1
+• Dart plugin version 182.5124
+• Java version OpenJDK Runtime Environment (build 1.8.0_152-release-1248-b01)
+
+[!] IntelliJ IDEA Community Edition (version 2018.1)
+• IntelliJ at C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.1.6
+X Flutter plugin not installed; this adds Flutter specific functionality.
+X Dart plugin not installed; this adds Dart specific functionality.
+• For information about installing plugins, see
+  https://flutter.io/intellij-setup/#installing-the-plugins
+
+[!] VS Code, 64-bit edition (version 1.30.2)
+• VS Code at C:\Program Files\Microsoft VS Code
+• Flutter extension not installed; install from
+  https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter
+
+[√] Connected device (1 available)
+• Android SDK built for x86 • emulator-5554 • android-x86 • Android 8.1.0 (API 27) (emulator)
+
+! Doctor found issues in 2 categories.
+Any help will be much appreciated. Thanks!
+final GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: [
+    'https://www.googleapis.com/auth/drive',
+  ],
+);
+
+await _googleSignIn.signIn();
+E/flutter ( 5068): [ERROR:flutter/shell/common/shell.cc(184)] Dart Error: Unhandled exception:
+E/flutter ( 5068): PlatformException(sign_in_failed, com.google.android.gms.common.api.ApiException: 10: , null)
+E/flutter ( 5068): #0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:551:7)
+E/flutter ( 5068): #1      MethodChannel.invokeMethod (package:flutter/src/services/platform_channel.dart:292:18)
+E/flutter ( 5068): <asynchronous suspension>
+E/flutter ( 5068): #2      GoogleSignIn._callMethod (package:google_sign_in/google_sign_in.dart:226:58)
+E/flutter ( 5068): <asynchronous suspension>
+E/flutter ( 5068): #3      GoogleSignIn._addMethodCall (package:google_sign_in/google_sign_in.dart:268:20)
+E/flutter ( 5068): #4      GoogleSignIn.signIn (package:google_sign_in/google_sign_in.dart:339:48)
+E/flutter ( 5068): #5      ThatsMyComponentState.theSignInFuction.<anonymous closure> (package:my_app/widgets/my_file.dart:666:45)
+E/flutter ( 5068): <asynchronous suspension>
+E/flutter ( 5068): #6      _InkResponseState._handleTap (package:flutter/src/material/ink_well.dart:507:14)
+E/flutter ( 5068): #7      _InkResponseState.build.<anonymous closure> (package:flutter/src/material/ink_well.dart:562:30)
+E/flutter ( 5068): #8      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:102:24)
+E/flutter ( 5068): #9      TapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:242:9)
+E/flutter ( 5068): #10     TapGestureRecognizer.acceptGesture (package:flutter/src/gestures/tap.dart:204:7)
+E/flutter ( 5068): #11     GestureArenaManager.sweep (package:flutter/src/gestures/arena.dart:156:27)
+E/flutter ( 5068): #12     _WidgetsFlutterBinding&BindingBase&GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:184:20)
+E/flutter ( 5068): #13     _WidgetsFlutterBinding&BindingBase&GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:158:22)
+E/flutter ( 5068): #14     _WidgetsFlutterBinding&BindingBase&GestureBinding._handlePointerEvent (package:flutter/src/gestures/binding.dart:138:7)
+E/flutter ( 5068): #15     _WidgetsFlutterBinding&BindingBase&GestureBinding._flushPointerEventQueue (package:flutter/src/gestures/binding.dart:101:7)
+E/flutter ( 5068): #16     _WidgetsFlutterBinding&BindingBase&GestureBinding._handlePointerDataPacket (package:flutter/src/gestures/binding.dart:85:7)
+E/flutter ( 5068): #17     _invoke1 (dart:ui/hooks.dart:168:13)
+E/flutter ( 5068): #18     _dispatchPointerDataPacket (dart:ui/hooks.dart:122:5)
+[√] Flutter (Channel stable, v1.0.0, on Microsoft Windows [Version 10.0.17763.253], locale en-US)
+• Flutter version 1.0.0 at C:\src\flutter-0.7.3\flutter
+• Framework revision 5391447fae (10 weeks ago), 2018-11-29 19:41:26 -0800
+• Engine revision 7375a0f414
+• Dart version 2.1.0 (build 2.1.0-dev.9.4 f9ebf21297)
+
+[√] Android toolchain - develop for Android devices (Android SDK 28.0.3)
+• Android SDK at C:\Users\myuser\AppData\Local\Android\Sdk
+• Android NDK location not configured (optional; useful for native profiling support)
+• Platform android-28, build-tools 28.0.3
+• ANDROID_HOME = C:\Users\myuser\AppData\Local\Android\Sdk
+• Java binary at: C:\Program Files\Android\Android Studio\jre\bin\java
+• Java version OpenJDK Runtime Environment (build 1.8.0_152-release-1248-b01)
+• All Android licenses accepted.
+
+[√] Android Studio (version 3.3)
+• Android Studio at C:\Program Files\Android\Android Studio
+• Flutter plugin version 32.0.1
+• Dart plugin version 182.5124
+• Java version OpenJDK Runtime Environment (build 1.8.0_152-release-1248-b01)
+
+[!] IntelliJ IDEA Community Edition (version 2018.1)
+• IntelliJ at C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2018.1.6
+X Flutter plugin not installed; this adds Flutter specific functionality.
+X Dart plugin not installed; this adds Dart specific functionality.
+• For information about installing plugins, see
+  https://flutter.io/intellij-setup/#installing-the-plugins
+
+[!] VS Code, 64-bit edition (version 1.30.2)
+• VS Code at C:\Program Files\Microsoft VS Code
+• Flutter extension not installed; install from
+  https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter
+
+[√] Connected device (1 available)
+• Android SDK built for x86 • emulator-5554 • android-x86 • Android 8.1.0 (API 27) (emulator)
+
+! Doctor found issues in 2 categories.",
+60,https://stackoverflow.com/questions/52774921/space-between-columns-children-in-flutter,Space between Column's children in Flutter,"
+I have a Column widget with two TextField widgets as children and I want to have some space between both of them.
+I already tried mainAxisAlignment: MainAxisAlignment.spaceAround, but the result was not what I wanted.","
+You can use Padding widget in between those two widget or wrap those widgets with Padding widget.
+Update
+SizedBox widget can be use in between two widget to add space between two widget and it makes code more readable than padding widget.
+Ex:
+Column(
+  children: <Widget>[
+    Widget1(),
+    SizedBox(height: 10),
+    Widget2(),
+  ],
+),
+Column(
+  children: <Widget>[
+    Widget1(),
+    SizedBox(height: 10),
+    Widget2(),
+  ],
+),"
